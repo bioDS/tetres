@@ -112,10 +112,21 @@ Tree_List* read_tree(int num_leaves){
 
 // write tree into given file
 void write_tree(Node * tree, int num_leaves, char * filename){
+    // //check if read_tree reads trees correctly
+    // for (int k = 0; k < 2 * num_leaves - 1; k++){
+    //     for(int i = 0; i < 2 * num_leaves - 1; i++){
+    //         if (i < num_leaves){
+    //             printf("leaf %d has parent %d\n", i+1, tree[i].parent);
+    //         } else{
+    //             printf("node %d has children %d and %d\n", i, tree[i].children[0], tree[i].children[1]);
+    //             printf("leaf %d has parent %d\n", i+1,tree[i].parent);
+    //         }
+    //     }
+    // }
+
     // TODO: Use malloc!
     char tree_str[5 * num_leaves]; //TODO: replace BUFSIZ with a reasonable upper bound on length of string for tree 
-    sprintf(tree_str, "[{");
-    int tree_str_pos = 1; //last position in tree_str that is filled with a character
+
     // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
     int clusters[num_leaves - 1][num_leaves]; // save all clusters as list of lists TODO: malloc
     for (int i = 0; i <num_leaves ; i++){
@@ -129,11 +140,16 @@ void write_tree(Node * tree, int num_leaves, char * filename){
         }
         clusters[num_leaves][i] = 1;
     }
+
+    // convert matrix into output string tree_str
+    sprintf(tree_str, "[{");
+    int tree_str_pos = 1; //last position in tree_str that is filled with a character
     for (int i = 0; i < num_leaves - 1; i++){
         for (int j = 0; j < num_leaves; j++){
             if (clusters[i][j] == 1){
                 char leaf_str[100];
                 sprintf(leaf_str, "%d,", j + 1);
+                // printf("leaf_str: %s\n", leaf_str);
                 strcat(tree_str, leaf_str);
                 tree_str_pos += 2;
             }
@@ -147,6 +163,7 @@ void write_tree(Node * tree, int num_leaves, char * filename){
     strcat(tree_str, "]");
     printf("%s\n", tree_str);
 
+    // write tree as string to file
     FILE *f;
     f = fopen(filename, "a"); //add tree at end of output file
     fprintf(f, "%s\n", tree_str); //This adds a new line at the end of the file -- we need to be careful when we read from such files!
@@ -194,7 +211,6 @@ Tree_List * rank_move(Node * tree, int rank, int num_leaves){
     int rank_in_list = rank + num_leaves - 1;
     Tree_List * tree_list = malloc(num_nodes * sizeof(Node) + sizeof(int));
     tree_list[0].trees = malloc(num_nodes * sizeof(Node));
-    tree_list[0].num_trees = 1;
 
     if (tree[rank_in_list].parent == rank_in_list + 1){
         printf("No rank move possible. The interval [%d,%d] is an edge!\n", rank, rank + 1);
@@ -208,6 +224,10 @@ Tree_List * rank_move(Node * tree, int rank, int num_leaves){
         tree_list[0].trees[rank_in_list + 1].parent = tree[rank_in_list].parent;
         tree_list[0].trees[rank_in_list + 1].children[0] = tree[rank_in_list].children[0];
         tree_list[0].trees[rank_in_list + 1].children[1] = tree[rank_in_list].children[1];
+
+        // update children of node that now have parent with rank rank + 1
+        tree_list[0].trees[tree_list[0].trees[rank_in_list + 1].children[0]].parent = rank_in_list + 1;
+        tree_list[0].trees[tree_list[0].trees[rank_in_list + 1].children[1]].parent = rank_in_list + 1;
 
         //update parents of nodes of ranks rank and rank+1
         for (int i = 0; i < 2; i ++){
@@ -223,6 +243,11 @@ Tree_List * rank_move(Node * tree, int rank, int num_leaves){
         tree_list[0].trees[rank_in_list].parent = tree[rank_in_list + 1].parent;
         tree_list[0].trees[rank_in_list].children[0] = tree[rank_in_list + 1].children[0];
         tree_list[0].trees[rank_in_list].children[1] = tree[rank_in_list + 1].children[1];
+
+        // update children of node that now have parent with rank rank
+        tree_list[0].trees[tree_list[0].trees[rank_in_list].children[0]].parent = rank_in_list;
+        tree_list[0].trees[tree_list[0].trees[rank_in_list].children[1]].parent = rank_in_list;
+
     }
     return tree_list;
 }
@@ -236,11 +261,8 @@ int main(){
 
     Tree_List * trees = read_tree(num_leaves);
     int num_nodes;
-    num_nodes = 2 * num_leaves - 1;   
-    printf("number of nodes: %d\n", num_nodes);
-    for (int i = 0; i < num_nodes; i++){
-        printf("parent of node %d is node %d\n", i, trees[0].trees[i].parent);
-    }
+    num_nodes = 2 * num_leaves - 1;
+
     remove("./output/output.rtree");
     write_tree(trees[0].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
     write_tree(trees[1].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
