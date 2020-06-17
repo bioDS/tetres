@@ -161,6 +161,7 @@ void write_tree(Node * tree, int num_leaves, char * filename){
 
 
 Tree_List * nni_move(Node * tree, int rank, int num_leaves){
+    // THIS IS STILL LINEAR TIME -- because we need to copy a tree to give two trees as output!
     // NNI move on edge bounded by ranks rank - n and rank - n + 1 (n = num_leaves) -- returns the two NNI neighbours on this edge HOW CAN I DO THIS?
     int rank_in_list = rank + num_leaves - 1;
     int num_nodes = 2 * num_leaves - 1;
@@ -195,6 +196,7 @@ Tree_List * nni_move(Node * tree, int rank, int num_leaves){
 }
 
 Tree_List * rank_move(Node * tree, int rank, int num_leaves){
+    // THIS IS STILL LINEAR TIME -- because we need to copy a tree to give two trees as output!
     // Make a rank moves and give the resulting tree as a Tree_List of length 1 (to be consistent with the output of nni_move)
     int num_nodes = 2 * num_leaves - 1;
     int rank_in_list = rank + num_leaves - 1;
@@ -229,6 +231,20 @@ Tree_List * rank_move(Node * tree, int rank, int num_leaves){
         }
     }
     return tree_list;
+}
+
+int mrca(Node * tree, int node1, int node2){
+    // find mrca of nodes with positions node1 and node2 in tree
+    int rank1 = node1;
+    int rank2 = node2;
+    while (rank1 != rank2){
+        if (rank1 < rank2){
+            rank1 = tree[rank1].parent;
+        } else{
+            rank2 = tree[rank2].parent;
+        }
+    }
+    return rank1;
 }
 
 
