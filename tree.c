@@ -4,6 +4,7 @@ basic algorithms for ranked trees*/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 /* trees will be arrays of nodes, ordered according to their ranks (first n nodes are leaves, order there doesn't matter)*/
 typedef struct Node{
@@ -160,39 +161,26 @@ void write_tree(Node * tree, int num_leaves, char * filename){
 }
 
 
-Tree_List * nni_move(Node * tree, int rank, int num_leaves){
-    // THIS IS STILL LINEAR TIME -- because we need to copy a tree to give two trees as output!
-    // NNI move on edge bounded by ranks rank - n and rank - n + 1 (n = num_leaves) -- returns the two NNI neighbours on this edge HOW CAN I DO THIS?
+int * nni_move(Node * tree, int rank, int num_leaves, int which_child){
+    // NNI move on edge bounded by ranks rank - n and rank - n + 1 (n = num_leaves), moving which_child up
     int rank_in_list = rank + num_leaves - 1;
     int num_nodes = 2 * num_leaves - 1;
-    Tree_List * tree_list = malloc(2 * num_nodes * sizeof(Node));
-    tree_list[0].trees = malloc(num_nodes * sizeof(Node));
-    tree_list[1].trees = malloc(num_nodes * sizeof(Node));
-    // deep copy tree into tree_list
-    for (int i = 0; i < num_nodes; i++){
-        tree_list[0].trees[i] = tree[i];
-        tree_list[1].trees[i] = tree[i];
-    }
     if(tree[rank_in_list].parent != rank_in_list + 1){
         printf("Can't do an NNI - interval [%d, %d] is not an edge!\n", rank_in_list, rank_in_list + 1);
     } else{
-        //find the child of the node of rank_in_list k+1 that is not the node of rank_in_list k
+        int child_moved_up;
         for (int i = 0; i < 2; i++){
-            if (tree[rank_in_list+1].children[i] != rank_in_list){
-                //update first nni neighbour tree_list[0]
-                tree_list[0].trees[tree[rank_in_list+1].children[i]].parent = rank_in_list; //update parents
-                tree_list[0].trees[tree[rank_in_list].children[0]].parent = rank_in_list+1;
-                tree_list[0].trees[rank_in_list].children[0] = tree[rank_in_list+1].children[0]; //update children
-                tree_list[0].trees[rank_in_list+1].children[i] = tree[rank_in_list].children[0];
-                //update second nni neighbur tree_list[1]
-                tree_list[1].trees[tree[rank_in_list+1].children[i]].parent = rank_in_list; //update parents
-                tree_list[1].trees[tree[rank_in_list].children[1]].parent = rank_in_list+1;
-                tree_list[1].trees[rank_in_list].children[1] = tree[rank_in_list+1].children[0];
-                tree_list[1].trees[rank_in_list+1].children[i] = tree[rank_in_list].children[1];
+            if (tree[rank_in_list+1].children[i] != rank_in_list){ //find the child of the node of rank_in_list k+1 that is not the node of rank_in_list k
+                //update parent/children relations to get nni neighbour
+                tree[tree[rank_in_list+1].children[i]].parent = rank_in_list; //update parents
+                tree[tree[rank_in_list].children[which_child]].parent = rank_in_list+1;
+                child_moved_up = tree[rank_in_list].children[which_child];
+                tree[rank_in_list].children[which_child] = tree[rank_in_list+1].children[0]; //update children
+                tree[rank_in_list+1].children[i] = child_moved_up;
             }
         }
     }
-    return tree_list;
+    return 0;
 }
 
 Tree_List * rank_move(Node * tree, int rank, int num_leaves){
@@ -247,6 +235,29 @@ int mrca(Node * tree, int node1, int node2){
     return rank1;
 }
 
+// Node * findpath(Node *start_tree, Node *dest_tree, int num_leaves){
+//     int current_mrca; //rank of the mrca that needs to be moved down
+//     Node * current_tree = start_tree;
+//     for (int i = num_leaves; i < 2 * num_leaves - 1; i++){
+//         current_mrca = mrca(start_tree, dest_tree[i].children[0], dest_tree[i].children[1]);
+//         // move current_mrca down
+//         while(current_mrca != i){
+//             bool nni_move = false;
+//             for (int child_index = 0; child_index < 2; child_index++){
+//                 if (nni_move == false && current_tree[current_mrca].children[child_index] == current_mrca - 1){
+//                     // NNI move on edge [current_mrca - 1 , current_mrca] that decreases the mrca
+//                     nni_move = true;
+//                     current_mrca--;
+//                 }
+//             }
+//             if (nni_move = false){
+//                 current_tree = rank_move(current_tree, current_mrca - 1, num_leaves);
+//                 current_mrca--;
+//             }
+
+//         }
+//     }
+// }
 
 int main(){
     // TODO: instead of asking for number of leaves, find an upper bound (caterpillar trees)
@@ -262,10 +273,12 @@ int main(){
     write_tree(trees[0].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
     write_tree(trees[1].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
 
-    Tree_List * nni_trees = nni_move(trees[1].trees, 1, num_leaves);
+    // Tree_List * nni_trees = nni_move(trees[1].trees, 1, num_leaves);
+    nni_move(trees[1].trees, 2, 5, 0);
     remove("./output/output.rtree");
-    write_tree(nni_trees[0].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
-    write_tree(nni_trees[1].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
+    write_tree(trees[1].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
+    nni_move(trees[1].trees, 2, 5, 1);
+    write_tree(trees[1].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
 
     Tree_List * rank_tree = rank_move(trees[0].trees, 1, num_leaves);
     remove("./output/output.rtree");
