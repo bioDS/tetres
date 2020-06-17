@@ -112,17 +112,6 @@ Tree_List* read_tree(int num_leaves){
 
 // write tree into given file
 void write_tree(Node * tree, int num_leaves, char * filename){
-    // //check if read_tree reads trees correctly
-    // for (int k = 0; k < 2 * num_leaves - 1; k++){
-    //     for(int i = 0; i < 2 * num_leaves - 1; i++){
-    //         if (i < num_leaves){
-    //             printf("leaf %d has parent %d\n", i+1, tree[i].parent);
-    //         } else{
-    //             printf("node %d has children %d and %d\n", i, tree[i].children[0], tree[i].children[1]);
-    //             printf("leaf %d has parent %d\n", i+1,tree[i].parent);
-    //         }
-    //     }
-    // }
 
     // TODO: Use malloc!
     char tree_str[5 * num_leaves]; //TODO: replace BUFSIZ with a reasonable upper bound on length of string for tree 
@@ -220,34 +209,24 @@ Tree_List * rank_move(Node * tree, int rank, int num_leaves){
             tree_list[0].trees[i] = tree[i];
         }
 
-        // updates for node at rank rank + 1
-        tree_list[0].trees[rank_in_list + 1].parent = tree[rank_in_list].parent;
-        tree_list[0].trees[rank_in_list + 1].children[0] = tree[rank_in_list].children[0];
-        tree_list[0].trees[rank_in_list + 1].children[1] = tree[rank_in_list].children[1];
+        // update nodes in tree
+        for (int r = 0; r < 2; r++){
+             // updates for node at rank rank + 1 - r
+            tree_list[0].trees[rank_in_list + 1 - r].parent = tree[rank_in_list + r].parent;
+            tree_list[0].trees[rank_in_list + 1 - r].children[0] = tree[rank_in_list + r].children[0];
+            tree_list[0].trees[rank_in_list + 1 - r].children[1] = tree[rank_in_list + r].children[1];
 
-        // update children of node that now have parent with rank rank + 1
-        tree_list[0].trees[tree_list[0].trees[rank_in_list + 1].children[0]].parent = rank_in_list + 1;
-        tree_list[0].trees[tree_list[0].trees[rank_in_list + 1].children[1]].parent = rank_in_list + 1;
+            // update children of node that now have parent with rank rank + 1 - r
+            tree_list[0].trees[tree_list[0].trees[rank_in_list + 1 - r].children[0]].parent = rank_in_list + 1 - r;
+            tree_list[0].trees[tree_list[0].trees[rank_in_list + 1 - r].children[1]].parent = rank_in_list + 1 - r;
 
-        //update parents of nodes of ranks rank and rank+1
-        for (int i = 0; i < 2; i ++){
-            if (tree[tree[rank_in_list + 1].parent].children[i] == rank_in_list + 1){
-                tree_list[0].trees[tree[rank_in_list + 1].parent].children[i] = rank_in_list;
-            }
-            if (tree[tree[rank_in_list].parent].children[i] == rank_in_list){
-                tree_list[0].trees[tree[rank_in_list].parent].children[i] = rank_in_list + 1;
+            // update parent of node rank + r
+            if (tree[tree[rank_in_list + 1 - r].parent].children[0] == rank_in_list + 1 - r){
+                tree_list[0].trees[tree[rank_in_list + 1 - r].parent].children[0] = rank_in_list + r;
+            } else{
+                tree_list[0].trees[tree[rank_in_list + 1 - r].parent].children[1] = rank_in_list + r;
             }
         }
-
-        // updates for node at rank rank
-        tree_list[0].trees[rank_in_list].parent = tree[rank_in_list + 1].parent;
-        tree_list[0].trees[rank_in_list].children[0] = tree[rank_in_list + 1].children[0];
-        tree_list[0].trees[rank_in_list].children[1] = tree[rank_in_list + 1].children[1];
-
-        // update children of node that now have parent with rank rank
-        tree_list[0].trees[tree_list[0].trees[rank_in_list].children[0]].parent = rank_in_list;
-        tree_list[0].trees[tree_list[0].trees[rank_in_list].children[1]].parent = rank_in_list;
-
     }
     return tree_list;
 }
