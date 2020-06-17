@@ -183,7 +183,7 @@ int * nni_move(Node * tree, int rank, int num_leaves, int which_child){
     return 0;
 }
 
-Tree_List * rank_move(Node * tree, int rank, int num_leaves){
+Node * rank_move(Node * tree, int rank, int num_leaves){
     // THIS IS STILL LINEAR TIME -- because we need to copy a tree to give two trees as output!
     // Make a rank moves and give the resulting tree as a Tree_List of length 1 (to be consistent with the output of nni_move)
     int num_nodes = 2 * num_leaves - 1;
@@ -218,7 +218,7 @@ Tree_List * rank_move(Node * tree, int rank, int num_leaves){
             }
         }
     }
-    return tree_list;
+    return tree_list[0].trees;
 }
 
 int mrca(Node * tree, int node1, int node2){
@@ -235,29 +235,34 @@ int mrca(Node * tree, int node1, int node2){
     return rank1;
 }
 
-// Node * findpath(Node *start_tree, Node *dest_tree, int num_leaves){
-//     int current_mrca; //rank of the mrca that needs to be moved down
-//     Node * current_tree = start_tree;
-//     for (int i = num_leaves; i < 2 * num_leaves - 1; i++){
-//         current_mrca = mrca(start_tree, dest_tree[i].children[0], dest_tree[i].children[1]);
-//         // move current_mrca down
-//         while(current_mrca != i){
-//             bool nni_move = false;
-//             for (int child_index = 0; child_index < 2; child_index++){
-//                 if (nni_move == false && current_tree[current_mrca].children[child_index] == current_mrca - 1){
-//                     // NNI move on edge [current_mrca - 1 , current_mrca] that decreases the mrca
-//                     nni_move = true;
-//                     current_mrca--;
-//                 }
-//             }
-//             if (nni_move = false){
-//                 current_tree = rank_move(current_tree, current_mrca - 1, num_leaves);
-//                 current_mrca--;
-//             }
 
-//         }
-//     }
-// }
+Node * findpath(Node *start_tree, Node *dest_tree, int num_leaves){
+    int current_mrca; //rank of the mrca that needs to be moved down
+    Node * current_tree = start_tree; //MALLOC
+    for (int i = num_leaves; i < 2 * num_leaves - 1; i++){
+        current_mrca = mrca(start_tree, dest_tree[i].children[0], dest_tree[i].children[1]);
+        // move current_mrca down
+        while(current_mrca != i){
+            bool did_nni = false;
+            for (int child_index = 0; child_index < 2; child_index++){
+                if (did_nni == false && current_tree[current_mrca].children[child_index] == current_mrca - 1){
+                    // which child of current_tree[current_mrca].children needs to be moved up? -- that's the one that is not in the current cluster
+                    nni_move(current_tree, current_mrca - 1, num_leaves, 1 - child_index);
+                    // NNI move on edge [current_mrca - 1 , current_mrca] that decreases the mrca
+                    did_nni = true;
+                    current_mrca--;
+                }
+            }
+            if (did_nni = false){
+                current_tree = rank_move(current_tree, current_mrca - 1, num_leaves);
+                current_mrca--;
+            }
+
+        }
+    }
+    write_tree(current_tree, num_leaves, "./output/output.rtree");
+}
+
 
 int main(){
     // TODO: instead of asking for number of leaves, find an upper bound (caterpillar trees)
