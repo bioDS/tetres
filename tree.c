@@ -185,40 +185,38 @@ int * nni_move(Node * tree, int rank, int num_leaves, int which_child){
 
 Node * rank_move(Node * tree, int rank, int num_leaves){
     // THIS IS STILL LINEAR TIME -- because we need to copy a tree to give two trees as output!
-    // Make a rank moves and give the resulting tree as a Tree_List of length 1 (to be consistent with the output of nni_move)
+    // Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
     int num_nodes = 2 * num_leaves - 1;
     int rank_in_list = rank + num_leaves - 1;
-    Tree_List * tree_list = malloc(num_nodes * sizeof(Node) + sizeof(int));
-    tree_list[0].trees = malloc(num_nodes * sizeof(Node));
 
     if (tree[rank_in_list].parent == rank_in_list + 1){
         printf("No rank move possible. The interval [%d,%d] is an edge!\n", rank, rank + 1);
     } else{
-        // deep copy tree into tree_list
-        for (int i = 0; i < num_nodes; i++){
-            tree_list[0].trees[i] = tree[i];
-        }
+        // update parents of nodes that swap ranks
+        int upper_parent;
+        upper_parent = tree[rank_in_list + 1].parent;
+        tree[rank_in_list + 1].parent = tree[rank_in_list].parent;
+        tree[rank_in_list].parent = upper_parent;
 
-        // update nodes in tree
-        for (int r = 0; r < 2; r++){
-             // updates for node at rank rank + 1 - r
-            tree_list[0].trees[rank_in_list + 1 - r].parent = tree[rank_in_list + r].parent;
-            tree_list[0].trees[rank_in_list + 1 - r].children[0] = tree[rank_in_list + r].children[0];
-            tree_list[0].trees[rank_in_list + 1 - r].children[1] = tree[rank_in_list + r].children[1];
-
-            // update children of node that now have parent with rank rank + 1 - r
-            tree_list[0].trees[tree_list[0].trees[rank_in_list + 1 - r].children[0]].parent = rank_in_list + 1 - r;
-            tree_list[0].trees[tree_list[0].trees[rank_in_list + 1 - r].children[1]].parent = rank_in_list + 1 - r;
-
-            // update parent of node rank + r
-            if (tree[tree[rank_in_list + 1 - r].parent].children[0] == rank_in_list + 1 - r){
-                tree_list[0].trees[tree[rank_in_list + 1 - r].parent].children[0] = rank_in_list + r;
-            } else{
-                tree_list[0].trees[tree[rank_in_list + 1 - r].parent].children[1] = rank_in_list + r;
+        int upper_child;
+        for (int i = 0; i < 2; i++){
+            upper_child = tree[rank_in_list + 1].children[i];
+            // update children of nodes that swap ranks
+            tree[rank_in_list + 1].children[i] = tree[rank_in_list].children[i];
+            tree[rank_in_list].children[i] = upper_child;
+            // update parents of children of nodes that swap ranks
+            tree[tree[rank_in_list + 1].children[i]].parent = rank_in_list + 1; 
+            tree[tree[rank_in_list].children[i]].parent = rank_in_list; 
+            // update children of parents of nodes that swap rank
+            if (tree[tree[rank_in_list + 1].parent].children[i] == rank_in_list + 1){
+                tree[tree[rank_in_list + 1].parent].children[i] = rank_in_list;
+            }
+            if (tree[tree[rank_in_list].parent].children[i] == rank_in_list){
+                tree[tree[rank_in_list].parent].children[i] = rank_in_list + 1;
             }
         }
     }
-    return tree_list[0].trees;
+    return tree;
 }
 
 int mrca(Node * tree, int node1, int node2){
@@ -285,8 +283,8 @@ int main(){
     nni_move(trees[1].trees, 2, 5, 1);
     write_tree(trees[1].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
 
-    Tree_List * rank_tree = rank_move(trees[0].trees, 1, num_leaves);
+    rank_move(trees[0].trees, 1, 5);
     remove("./output/output.rtree");
-    write_tree(rank_tree[0].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
+    write_tree(trees[0].trees, num_leaves, "./output/output.rtree"); //TODO: mkdir ./output/ and create file!
     return 0;
 }
