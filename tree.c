@@ -277,14 +277,22 @@ int mrca(Node * tree, int node1, int node2){
 }
 
 
-Node * findpath(Node *start_tree, Node *dest_tree, int num_leaves){
+int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
+    int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2;
+    int ** moves = malloc(max_dist * sizeof(int)); // save moves in a table: each row is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
+    for (int i = 0; i < max_dist; i++){
+        moves[i] = malloc(2 * sizeof(int));
+        moves[i][0] = 0;
+        moves[i][1] = 0;
+    }
+    int path_index = 0; // next position on path that we want to fill with a tree pointer
     if (start_tree == NULL){
         printf("Error. Start tree doesn't exist.\n");
     } else if (dest_tree == NULL){
         printf("Error. Destination tree doesn't exist.\n");
     } else{
         remove("./output/findpath.rtree");
-        write_tree(start_tree, num_leaves, "./output/findpath.rtree");
+        // write_tree(start_tree, num_leaves, "./output/findpath.rtree"); // this ruins the running time!!!!!!!!
         int current_mrca; //rank of the mrca that needs to be moved down
         Node * current_tree = malloc((2 * num_leaves - 1) * sizeof(Node));
         current_tree =  start_tree;
@@ -318,18 +326,22 @@ Node * findpath(Node *start_tree, Node *dest_tree, int num_leaves){
                             }
                         }
                         nni_move(current_tree, current_mrca - 1, num_leaves, 1 - child_stays);
+                        moves[path_index][1] = 1 + child_stays;
                         did_nni = true;
                         current_mrca--;
                     }
                 }
                 if (did_nni == false){
                     rank_move(current_tree, current_mrca - 1, num_leaves);
+                    moves[path_index][1] = 0;
                     current_mrca--;
                 }
-                write_tree(current_tree, num_leaves, "./output/findpath.rtree");
+                moves[path_index][0] = current_mrca;
+                path_index++;
             }
         }
     }
+    return moves;
 }
 
 
@@ -348,7 +360,32 @@ int main(){
         write_tree(trees[0].trees, num_leaves, "./output/output.tree");
         write_tree(trees[1].trees, num_leaves, "./output/output.tree");
 
-        findpath(trees[0].trees, trees[1].trees, 5);
+        // print trees on path
+        int path_index = 0;
+        Node * current_tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+        for (int i = 0; i < 2 * num_leaves - 1; i++){
+            current_tree[i] = trees[0].trees[i];
+        }
+        // current_tree = trees[0].trees;
+
+        int ** fp = findpath(trees[0].trees, trees[1].trees, 5);
+        int diameter = (num_leaves - 1) * (num_leaves - 2) / 2;
+
+        while(path_index < diameter && fp[path_index][0] > 0){
+            if (fp[path_index][1] == 0){
+                rank_move(current_tree, fp[path_index][0], num_leaves);
+            }
+            else if (fp[path_index][1] == 1){
+                nni_move(current_tree, fp[path_index][0], num_leaves, 1);
+            } else{
+                nni_move(current_tree, fp[path_index][0], num_leaves, 0);
+            }
+            path_index++;
+            write_tree(current_tree, num_leaves, "./output/findpath.rtree");
+        }
         return 0;
+    }
+    else{
+        return 1;
     }
 }
