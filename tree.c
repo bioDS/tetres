@@ -14,7 +14,9 @@ typedef struct Node{
 
 // List of trees (e.g. as output of NNI move (2 trees) or findpath(d trees))
 typedef struct Tree_List{
-    Node* trees; //?
+    int num_leaves;
+    int num_trees;
+    Node* trees;
 } Tree_List;
 
 
@@ -29,27 +31,39 @@ int get_num_digits(int integer){
 }
 
 /*read tree  from file*/
-Tree_List* read_trees(int num_leaves, char* filename){
+Tree_List* read_trees(char* filename){
 
-    int num_nodes = num_leaves*2 - 1;
-    int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
-    int max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
-    //TODO: allocate space for the tree_list that can save as many trees as there are lines in this file!
-    int num_trees = 2;
-    Tree_List * tree_list = malloc(num_trees * sizeof(Tree_List)); // is this correct? 
-    for (int i = 0; i < num_trees; i++){
-        tree_list[i].trees = malloc(num_nodes * sizeof(Node));
-        memset(tree_list[i].trees, -1, num_nodes * sizeof(Node));
-    }
-
-    int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
-    memset(highest_ancestor, 1, num_leaves * sizeof(int));
-    char *buffer = malloc(max_str_length * sizeof(char));
-    memset(buffer, '\0', max_str_length * sizeof(char));
-    int current_tree = 0;
-    //loop through lines (trees) in file
     FILE *f;
     if ((f = fopen(filename, "r"))){
+        int num_leaves;
+        int num_trees;
+        char * buffer0 = malloc(20 * sizeof(char)); // max number of digits for number of leaves and number of trees in file is assumed to be 20
+        // read in first two lines: number of leaves and number of trees
+        if (fgets(buffer0, 10 * sizeof(char), f) != NULL){
+            num_leaves = atoi(buffer0);
+        } // TODO: add else to give error when input file does not have the right format
+        if (fgets(buffer0, 10 * sizeof(char), f) != NULL){
+            num_trees = atoi(buffer0);
+        }
+        free(buffer0);
+        int num_nodes = num_leaves*2 - 1;
+        int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
+        int max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
+    
+        Tree_List * tree_list = malloc(num_trees * sizeof(Tree_List));
+        tree_list->num_leaves = num_leaves;
+        tree_list->num_trees = num_trees;
+        for (int i = 0; i < num_trees; i++){
+            tree_list[i].trees = malloc(num_nodes * sizeof(Node));
+            memset(tree_list[i].trees, -1, num_nodes * sizeof(Node));
+        }
+
+        int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
+        memset(highest_ancestor, 1, num_leaves * sizeof(int));
+        char *buffer = malloc(max_str_length * sizeof(char));
+        memset(buffer, '\0', max_str_length * sizeof(char));
+        int current_tree = 0;
+        //loop through lines (trees) in file
         while(fgets(buffer, max_str_length * sizeof(char), f) != NULL){
             char *cluster_list, *cluster; //malloc()???
             char * tree_str = malloc(strlen(buffer) * sizeof(char));
@@ -114,7 +128,7 @@ Tree_List* read_trees(int num_leaves, char* filename){
 }
 
 
-// write tree into given file -- runtime quadratic
+// write one tree into given file -- runtime quadratic
 void write_tree(Node * tree, int num_leaves, char * filename){
     if (tree == NULL){
         printf("Error. Can't write tree. Given tree doesn't exist.\n");
@@ -167,7 +181,7 @@ void write_tree(Node * tree, int num_leaves, char * filename){
         for (int i = 0; i < num_leaves - 1; i++){
             free(clusters[i]);
         }
-        free(clusters);
+        // free(clusters);
 
         // write tree as string to file
         FILE *f;
@@ -177,11 +191,22 @@ void write_tree(Node * tree, int num_leaves, char * filename){
     }
 }
 
+void write_trees(Tree_List * tree_list, char * filename){
+    FILE *f;
+    f = fopen(filename, "w");
+    fprintf(f, "%d\n", tree_list->num_leaves);
+    fprintf(f, "%d\n", tree_list->num_trees);
+    fclose(f);
+    for (int i = 0; i < tree_list->num_trees; i++){
+        write_tree(tree_list[i].trees, tree_list->num_leaves, filename);
+    }
+}
+
 
 int nni_move(Node * tree, int rank_in_list, int num_leaves, int child_moves_up){
     // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
     if (tree == NULL){
-        printf("Error. No NNI move possible. Given tree doesn't exist.\n");
+        printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
     } else{
         int num_nodes = 2 * num_leaves - 1;
         if(tree[rank_in_list].parent != rank_in_list + 1){
@@ -340,48 +365,61 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     return moves;
 }
 
+void write_findpath(Tree_List * tree_list, char * filename){
+        // print FP trees into output file, assuming that we want FP between the first two trees in Tree_List trees
+        int path_index = 0;
+        Node * current_tree = malloc((2 * tree_list->num_leaves - 1) * sizeof(Node)); // deep copy start tree
+        for (int i = 0; i < 2 * tree_list->num_leaves - 1; i++){
+            current_tree[i] = tree_list[0].trees[i];
+        }
+
+        int ** fp = findpath(tree_list[0].trees, tree_list[1].trees, 5);
+        int diameter = (tree_list->num_leaves - 1) * (tree_list->num_leaves - 2) / 2;
+
+        FILE *f;
+        f = fopen(filename, "w");
+        fprintf(f, "%d\n", tree_list->num_leaves);
+        fprintf(f, "%d\n", '\0');
+        fclose(f);
+        // write start tree
+        write_tree(current_tree, tree_list->num_leaves, "./output/findpath.rtree");
+
+        int num_trees; // count the number of trees in order to write them into secons line of file
+        while(path_index < diameter && fp[path_index][0] > 0){
+            if (fp[path_index][1] == 0){
+                rank_move(current_tree, fp[path_index][0], tree_list->num_leaves);
+            }
+            else if (fp[path_index][1] == 1){
+                nni_move(current_tree, fp[path_index][0], tree_list->num_leaves, 1);
+            } else{
+                nni_move(current_tree, fp[path_index][0], tree_list->num_leaves, 0);
+            }
+            path_index++;
+            write_tree(current_tree, tree_list->num_leaves, "./output/findpath.rtree");
+        }
+        // print the number of trees into second line of output file
+        char * buffer = malloc(20 * sizeof(char * )); // size of first two lines of file (number of leaves and number of trees)
+        FILE *g;
+        g = fopen(filename, "r+");
+        fgets(buffer, sizeof(buffer), g);
+        fprintf(g, "%d\n", path_index + 1);
+        fclose(g);
+        free(buffer);
+}
+
 
 int main(){
-    // TODO: instead of asking for number of leaves, find an upper bound (caterpillar trees?)
-    int num_leaves;
-    printf("How many leaves do your trees have?\n");
-    scanf("%d", &num_leaves);
     char filename[200]; // length of filename set to be 200 char max
     printf("What is the file containing trees?\n");
     scanf("%s", filename);
 
-    Tree_List * trees = malloc( 2 * sizeof(Tree_List)); // because we read two trees --- Needs to be more general!!
-    trees = read_trees(num_leaves, filename);
-    if (trees != NULL){
-        int num_nodes;
-        num_nodes = 2 * num_leaves - 1;
-
-        write_tree(trees[0].trees, num_leaves, "./output/output.tree");
-        write_tree(trees[1].trees, num_leaves, "./output/output.tree");
-
-        // print trees on path
-        int path_index = 0;
-        Node * current_tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
-        for (int i = 0; i < 2 * num_leaves - 1; i++){
-            current_tree[i] = trees[0].trees[i];
-        }
-        // current_tree = trees[0].trees;
-
-        int ** fp = findpath(trees[0].trees, trees[1].trees, 5);
-        int diameter = (num_leaves - 1) * (num_leaves - 2) / 2;
-
-        while(path_index < diameter && fp[path_index][0] > 0){
-            if (fp[path_index][1] == 0){
-                rank_move(current_tree, fp[path_index][0], num_leaves);
-            }
-            else if (fp[path_index][1] == 1){
-                nni_move(current_tree, fp[path_index][0], num_leaves, 1);
-            } else{
-                nni_move(current_tree, fp[path_index][0], num_leaves, 0);
-            }
-            path_index++;
-            write_tree(current_tree, num_leaves, "./output/findpath.rtree");
-        }
+    Tree_List * tree_list = read_trees(filename);
+    int num_trees = tree_list->num_trees;
+    int num_leaves = tree_list->num_leaves;
+    if (tree_list != NULL){
+        int num_nodes = 2 * num_leaves - 1;
+        write_trees(tree_list, "./output/output.rtree"); // write given trees into file
+        write_findpath(tree_list, "output/findpath.rtree"); // write FP into file
         return 0;
     }
     else{
