@@ -14,7 +14,6 @@ typedef struct Node{
 
 // List of trees (e.g. as output of NNI move (2 trees) or findpath(d trees))
 typedef struct Tree_List{
-    int num_trees;
     Node* trees; //?
 } Tree_List;
 
@@ -44,7 +43,6 @@ Tree_List* read_trees(int num_leaves){
     for (int i = 0; i < num_trees; i++){
         tree_list[i].trees = malloc(num_nodes * sizeof(Node));
         memset(tree_list[i].trees, -1, num_nodes * sizeof(Node));
-        tree_list[i].num_trees = num_trees;
     }
 
     int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
@@ -278,6 +276,7 @@ int mrca(Node * tree, int node1, int node2){
 
 
 int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
+    // returns a path in matrix representation -- explanation in data_structures.md
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2;
     int ** moves = malloc(max_dist * sizeof(int)); // save moves in a table: each row is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
     for (int i = 0; i < max_dist; i++){
@@ -352,7 +351,6 @@ int main(){
     scanf("%d", &num_leaves);
     Tree_List * trees = malloc( 2 * sizeof(Tree_List)); // because we read two trees --- Needs to be more general!!
     trees = read_trees(num_leaves);
-    // printf("returnes tree list\n");
     if (trees != NULL){
         int num_nodes;
         num_nodes = 2 * num_leaves - 1;
