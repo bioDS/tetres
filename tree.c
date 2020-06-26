@@ -138,8 +138,6 @@ void write_tree(Node * tree, int num_leaves, char * filename){
         char *tree_str = malloc(max_str_length * sizeof(char));
 
         // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
-        // int clusters[num_leaves - 1][num_leaves]; // save all clusters as list of lists TODO: malloc
-
         int ** clusters = malloc((num_leaves) * sizeof(int *));    
         for (int i = 0; i < num_leaves; i++){
             clusters[i] = malloc((num_leaves - 1) * sizeof(int));
@@ -181,8 +179,6 @@ void write_tree(Node * tree, int num_leaves, char * filename){
         for (int i = 0; i < num_leaves - 1; i++){
             free(clusters[i]);
         }
-        // free(clusters);
-
         // write tree as string to file
         FILE *f;
         f = fopen(filename, "a"); //add tree at end of output file
@@ -216,7 +212,7 @@ int nni_move(Node * tree, int rank_in_list, int num_leaves, int child_moves_up){
             int child_moved_up;
             for (int i = 0; i < 2; i++){
                 if (tree[rank_in_list+1].children[i] != rank_in_list){ //find the child of the node of rank_in_list k+1 that is not the node of rank_in_list k
-                    //update parent/children relations to get nni neighbour
+                    // update parent/children relations to get nni neighbour
                     tree[tree[rank_in_list+1].children[i]].parent = rank_in_list; //update parents
                     tree[tree[rank_in_list].children[child_moves_up]].parent = rank_in_list+1;
                     child_moved_up = tree[rank_in_list].children[child_moves_up];
@@ -226,20 +222,6 @@ int nni_move(Node * tree, int rank_in_list, int num_leaves, int child_moves_up){
             }
         }
     }
-
-    // //check if read_trees reads trees correctly
-    // for (int k = 0; k < 1; k++){
-    //     for(int i = 0; i < 2 * num_leaves - 1; i++){
-    //         if (i < num_leaves){
-    //             printf("leaf %d has parent %d\n", i+1, tree[i].parent);
-    //         } else{
-    //             printf("node %d has children %d and %d\n", i, tree[i].children[0], tree[i].children[1]);
-    //             printf("node %d has parent %d\n", i, tree[i].parent);
-    //         }
-    //     }
-    // }
-    // write_tree(tree, num_leaves, "./output/output.rtree");
-
     return 0;
 }
 
