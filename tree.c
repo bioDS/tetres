@@ -29,11 +29,8 @@ int get_num_digits(int integer){
 }
 
 /*read tree  from file*/
-Tree_List* read_trees(int num_leaves){
+Tree_List* read_trees(int num_leaves, char* filename){
 
-    char filename[200]; // length of filename set to be 200 char max
-    printf("What is the file containing trees?\n");
-    scanf("%s", filename);
     int num_nodes = num_leaves*2 - 1;
     int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
     int max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
@@ -349,8 +346,12 @@ int main(){
     int num_leaves;
     printf("How many leaves do your trees have?\n");
     scanf("%d", &num_leaves);
+    char filename[200]; // length of filename set to be 200 char max
+    printf("What is the file containing trees?\n");
+    scanf("%s", filename);
+
     Tree_List * trees = malloc( 2 * sizeof(Tree_List)); // because we read two trees --- Needs to be more general!!
-    trees = read_trees(num_leaves);
+    trees = read_trees(num_leaves, filename);
     if (trees != NULL){
         int num_nodes;
         num_nodes = 2 * num_leaves - 1;
