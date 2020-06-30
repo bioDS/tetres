@@ -16,7 +16,7 @@ typedef struct Node{
 typedef struct Tree_List{
     int num_leaves;
     int num_trees;
-    Node* trees;
+    Node** trees;
 } Tree_List;
 
 
@@ -31,7 +31,7 @@ int get_num_digits(int integer){
 }
 
 /*read tree  from file*/
-Tree_List* read_trees(char* filename){
+Tree_List read_trees(char* filename){
 
     FILE *f;
     if ((f = fopen(filename, "r"))){
@@ -50,12 +50,17 @@ Tree_List* read_trees(char* filename){
         int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
         int max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
     
-        Tree_List * tree_list = malloc(num_trees * sizeof(Tree_List));
-        tree_list->num_leaves = num_leaves;
-        tree_list->num_trees = num_trees;
+        Tree_List tree_list;
+        tree_list.trees = malloc(num_trees*sizeof(Node*));
         for (int i = 0; i < num_trees; i++){
-            tree_list[i].trees = malloc(num_nodes * sizeof(Node));
-            memset(tree_list[i].trees, -1, num_nodes * sizeof(Node));
+            tree_list.trees[i] = malloc(num_leaves * sizeof(Node *));
+        }
+        // Tree_List * tree_list = malloc(num_trees * sizeof(Tree_List));
+        tree_list.num_leaves = num_leaves;
+        tree_list.num_trees = num_trees;
+        for (int i = 0; i < num_trees; i++){
+            tree_list.trees[i] = malloc(num_nodes * sizeof(Node));
+            memset(tree_list.trees[i], -1, num_nodes * sizeof(Node));
         }
 
         int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
@@ -78,22 +83,22 @@ Tree_List* read_trees(char* filename){
                     while((cluster = strsep(&cluster_list, ",")) != NULL){
                         int actual_node = atoi(cluster);
                         // update node relations if current leaf appears for first time
-                        if(tree_list[current_tree].trees[actual_node - 1].parent == -1){
-                            tree_list[current_tree].trees[actual_node - 1].parent = rank;
+                        if(tree_list.trees[current_tree][actual_node - 1].parent == -1){
+                            tree_list.trees[current_tree][actual_node - 1].parent = rank;
                             // update the current internal node (rank) to have the current leaf as child
-                            if(tree_list[current_tree].trees[rank].children[0] == -1){
-                                tree_list[current_tree].trees[rank].children[0] = actual_node - 1;
+                            if(tree_list.trees[current_tree][rank].children[0] == -1){
+                                tree_list.trees[current_tree][rank].children[0] = actual_node - 1;
                             } else{
-                                tree_list[current_tree].trees[rank].children[1] = actual_node - 1;
+                                tree_list.trees[current_tree][rank].children[1] = actual_node - 1;
                             }
                         } else {
-                            tree_list[current_tree].trees[highest_ancestor[actual_node - 1]].parent = rank;
+                            tree_list.trees[current_tree][highest_ancestor[actual_node - 1]].parent = rank;
                             // update cluster relation if actual_node already has parent assigned (current cluster is union of two clusters or cluster and leaf)
-                            if(tree_list[current_tree].trees[rank].children[0] == -1 || tree_list[current_tree].trees[rank].children[0] == highest_ancestor[actual_node - 1]){ // first children should not be assigned yet. I if contains same value, overwrite that one
-                                tree_list[current_tree].trees[rank].children[0] = highest_ancestor[actual_node - 1];
-                            } else if (tree_list[current_tree].trees[rank].children[1] == -1)
+                            if(tree_list.trees[current_tree][rank].children[0] == -1 || tree_list.trees[current_tree][rank].children[0] == highest_ancestor[actual_node - 1]){ // first children should not be assigned yet. I if contains same value, overwrite that one
+                                tree_list.trees[current_tree][rank].children[0] = highest_ancestor[actual_node - 1];
+                            } else if (tree_list.trees[current_tree][rank].children[1] == -1)
                             {
-                                tree_list[current_tree].trees[rank].children[1] = highest_ancestor[actual_node - 1];
+                                tree_list.trees[current_tree][rank].children[1] = highest_ancestor[actual_node - 1];
                             }
                         }
                         // set new highest ancestor of leaf
@@ -110,7 +115,6 @@ Tree_List* read_trees(char* filename){
         return tree_list;
     } else{
         printf("Error. File doesn't exist.\n");
-        return NULL;
     }
     
     // //check if read_trees reads trees correctly
@@ -187,14 +191,14 @@ void write_tree(Node * tree, int num_leaves, char * filename){
     }
 }
 
-void write_trees(Tree_List * tree_list, char * filename){
+void write_trees(Tree_List tree_list, char * filename){
     FILE *f;
     f = fopen(filename, "w");
-    fprintf(f, "%d\n", tree_list->num_leaves);
-    fprintf(f, "%d\n", tree_list->num_trees);
+    fprintf(f, "%d\n", tree_list.num_leaves);
+    fprintf(f, "%d\n", tree_list.num_trees);
     fclose(f);
-    for (int i = 0; i < tree_list->num_trees; i++){
-        write_tree(tree_list[i].trees, tree_list->num_leaves, filename);
+    for (int i = 0; i < tree_list.num_trees; i++){
+        write_tree(tree_list.trees[i], tree_list.num_leaves, filename);
     }
 }
 
@@ -347,46 +351,47 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     return moves;
 }
 
-void write_findpath(Tree_List * tree_list, char * filename){
-        // print FP trees into output file, assuming that we want FP between the first two trees in Tree_List trees
-        int path_index = 0;
-        Node * current_tree = malloc((2 * tree_list->num_leaves - 1) * sizeof(Node)); // deep copy start tree
-        for (int i = 0; i < 2 * tree_list->num_leaves - 1; i++){
-            current_tree[i] = tree_list[0].trees[i];
+Tree_List return_findpath(Tree_List tree_list){
+    // print FP trees into output file, assuming that we want FP between the first two trees in Tree_List trees
+    int path_index = 0;
+    Node * current_tree = malloc((2 * tree_list.num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (int i = 0; i < 2 * tree_list.num_leaves - 1; i++){
+        current_tree[i] = tree_list.trees[0][i];
+    }
+
+    int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], 5);
+    int diameter = (tree_list.num_leaves - 1) * (tree_list.num_leaves - 2) / 2;
+
+    Tree_List findpath_list; // output: list of trees on FP path
+    findpath_list.num_leaves = tree_list.num_leaves;
+    findpath_list.trees = malloc(diameter * sizeof(Node *));
+    for (int i = 0; i < diameter; i++){
+        findpath_list.trees[i] = malloc((2*findpath_list.num_leaves - 1) * sizeof(Node *));
+    }
+    findpath_list.trees[0] = current_tree;
+    for (int i = 0; i < 2 * tree_list.num_leaves - 1; i++){
+        findpath_list.trees[0][i] = current_tree[i];
+    }
+
+    // create actual path by doing moves starting at tree_list.trees[0] with the information in the matrix returned form fp above
+    while(path_index < diameter - 1 && fp[path_index][0] > 0){
+        if (fp[path_index][1] == 0){
+            rank_move(current_tree, fp[path_index][0], tree_list.num_leaves);
         }
-
-        int ** fp = findpath(tree_list[0].trees, tree_list[1].trees, 5);
-        int diameter = (tree_list->num_leaves - 1) * (tree_list->num_leaves - 2) / 2;
-
-        FILE *f;
-        f = fopen(filename, "w");
-        fprintf(f, "%d\n", tree_list->num_leaves);
-        fprintf(f, "%d\n", '\0');
-        fclose(f);
-        // write start tree
-        write_tree(current_tree, tree_list->num_leaves, "./output/findpath.rtree");
-
-        int num_trees; // count the number of trees in order to write them into secons line of file
-        while(path_index < diameter && fp[path_index][0] > 0){
-            if (fp[path_index][1] == 0){
-                rank_move(current_tree, fp[path_index][0], tree_list->num_leaves);
-            }
-            else if (fp[path_index][1] == 1){
-                nni_move(current_tree, fp[path_index][0], tree_list->num_leaves, 1);
-            } else{
-                nni_move(current_tree, fp[path_index][0], tree_list->num_leaves, 0);
-            }
-            path_index++;
-            write_tree(current_tree, tree_list->num_leaves, "./output/findpath.rtree");
+        else if (fp[path_index][1] == 1){
+            nni_move(current_tree, fp[path_index][0], tree_list.num_leaves, 1);
+        } else{
+            nni_move(current_tree, fp[path_index][0], tree_list.num_leaves, 0);
         }
-        // print the number of trees into second line of output file
-        char * buffer = malloc(20 * sizeof(char * )); // size of first two lines of file (number of leaves and number of trees)
-        FILE *g;
-        g = fopen(filename, "r+");
-        fgets(buffer, sizeof(buffer), g);
-        fprintf(g, "%d\n", path_index + 1);
-        fclose(g);
-        free(buffer);
+        write_tree(findpath_list.trees[path_index], findpath_list.num_leaves, "output/test.rtree");
+        path_index++;
+        // deep copy currently last tree one path
+        for (int i = 0; i < 2 * tree_list.num_leaves - 1; i++){
+            findpath_list.trees[path_index][i] = current_tree[i];
+        }
+    }
+    findpath_list.num_trees = path_index + 1;
+    return findpath_list;
 }
 
 
@@ -395,16 +400,13 @@ int main(){
     printf("What is the file containing trees?\n");
     scanf("%s", filename);
 
-    Tree_List * tree_list = read_trees(filename);
-    int num_trees = tree_list->num_trees;
-    int num_leaves = tree_list->num_leaves;
-    if (tree_list != NULL){
-        int num_nodes = 2 * num_leaves - 1;
-        write_trees(tree_list, "./output/output.rtree"); // write given trees into file
-        write_findpath(tree_list, "output/findpath.rtree"); // write FP into file
-        return 0;
-    }
-    else{
-        return 1;
-    }
+    Tree_List tree_list = read_trees(filename);
+    int num_trees = tree_list.num_trees;
+    int num_leaves = tree_list.num_leaves;
+    int num_nodes = 2 * num_leaves - 1;
+
+    // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
+    Tree_List findpath_list = return_findpath(tree_list); // write FP into file
+    write_trees(findpath_list, "./output/fp.rtree");
+    return 0;
 }
