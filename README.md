@@ -1,7 +1,8 @@
 # README
 
+tree.c reads a tree file, computes a shortest path with FINDPATH between the first two trees of that file, and returns all trees on this shortest path in "output/fp.rtree".
 
-## Input file format:
+## Ranked tree file format:
 1st line: number of leaves
 2nd line: number of trees in file
 3rd and following lines: trees in list of sets representation
