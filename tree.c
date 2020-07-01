@@ -53,7 +53,7 @@ Tree_List read_trees(char* filename){
         Tree_List tree_list;
         tree_list.trees = malloc(num_trees*sizeof(Node*));
         for (int i = 0; i < num_trees; i++){
-            tree_list.trees[i] = malloc(num_leaves * sizeof(Node *));
+            tree_list.trees[i] = malloc(num_leaves * sizeof(Node));
         }
         // Tree_List * tree_list = malloc(num_trees * sizeof(Tree_List));
         tree_list.num_leaves = num_leaves;
@@ -139,7 +139,7 @@ void write_tree(Node * tree, int num_leaves, char * filename){
     } else{
         int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
         int max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
-        char *tree_str = malloc(max_str_length * sizeof(char));
+        char *tree_str = malloc(max_str_length * sizeof(char *));
 
         // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
         int ** clusters = malloc((num_leaves) * sizeof(int *));    
@@ -285,7 +285,7 @@ int mrca(Node * tree, int node1, int node2){
 
 int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     // returns a path in matrix representation -- explanation in data_structures.md
-    int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2;
+    int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
     int ** moves = malloc(max_dist * sizeof(int)); // save moves in a table: each row is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
     for (int i = 0; i < max_dist; i++){
         moves[i] = malloc(2 * sizeof(int));
@@ -351,6 +351,7 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     return moves;
 }
 
+  
 Tree_List return_findpath(Tree_List tree_list){
     // print FP trees into output file, assuming that we want FP between the first two trees in Tree_List trees
     int path_index = 0;
@@ -359,16 +360,19 @@ Tree_List return_findpath(Tree_List tree_list){
         current_tree[i] = tree_list.trees[0][i];
     }
 
-    int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], 5);
-    int diameter = (tree_list.num_leaves - 1) * (tree_list.num_leaves - 2) / 2;
+    // write_tree(tree_list.trees[1], tree_list.num_leaves, "output/tree.rtree");
+    // write_tree(tree_list.trees[0], tree_list.num_leaves, "output/tree.rtree");
+
+    int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves);
+    int diameter = (tree_list.num_leaves - 1) * (tree_list.num_leaves - 2) / 2 + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
 
     Tree_List findpath_list; // output: list of trees on FP path
     findpath_list.num_leaves = tree_list.num_leaves;
     findpath_list.trees = malloc(diameter * sizeof(Node *));
     for (int i = 0; i < diameter; i++){
-        findpath_list.trees[i] = malloc((2*findpath_list.num_leaves - 1) * sizeof(Node *));
+        findpath_list.trees[i] = malloc((2*findpath_list.num_leaves - 1) * sizeof(Node));
     }
-    findpath_list.trees[0] = current_tree;
+    // findpath_list.trees[0] = current_tree;
     for (int i = 0; i < 2 * tree_list.num_leaves - 1; i++){
         findpath_list.trees[0][i] = current_tree[i];
     }
@@ -383,7 +387,6 @@ Tree_List return_findpath(Tree_List tree_list){
         } else{
             nni_move(current_tree, fp[path_index][0], tree_list.num_leaves, 0);
         }
-        write_tree(findpath_list.trees[path_index], findpath_list.num_leaves, "output/test.rtree");
         path_index++;
         // deep copy currently last tree one path
         for (int i = 0; i < 2 * tree_list.num_leaves - 1; i++){
