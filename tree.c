@@ -41,9 +41,15 @@ Tree_List read_trees(char* filename){
         // read in first two lines: number of leaves and number of trees
         if (fgets(buffer0, 10 * sizeof(char), f) != NULL){
             num_leaves = atoi(buffer0);
+            if (num_leaves == 0){
+                printf("Error. Determine number of leaves in input file.\n");
+            }
         } // TODO: add else to give error when input file does not have the right format
         if (fgets(buffer0, 10 * sizeof(char), f) != NULL){
             num_trees = atoi(buffer0);
+            if (num_trees == 0){
+                printf("Error. Determine number of trees in input file.\n");
+            }
         }
         free(buffer0);
         int num_nodes = num_leaves*2 - 1;
