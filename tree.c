@@ -150,7 +150,7 @@ Tree_List read_trees(char* filename){
     }
 }
 
-// There is a BUG in this function!!
+
 // write one tree into given file -- runtime quadratic
 void write_tree(Node * tree, int num_leaves, char * filename){
     if (tree == NULL){
@@ -180,17 +180,17 @@ void write_tree(Node * tree, int num_leaves, char * filename){
 
         // convert matrix into output string tree_str
         sprintf(tree_str, "[{");
-        int tree_str_pos = 1; //last position in tree_str that is filled with a character
+        int tree_str_pos; //last position in tree_str that is filled with a character
         for (int i = 0; i < num_leaves - 1; i++){
             for (int j = 0; j < num_leaves; j++){
                 if (clusters[i][j] == 1){
                     char leaf_str[num_digits_n + 1];
                     sprintf(leaf_str, "%d,", j + 1);
                     strcat(tree_str, leaf_str);
-                    tree_str_pos += 2;
                 }
             }
-            tree_str[tree_str_pos] = '\0'; // delete last komma
+            tree_str_pos = strlen(tree_str) - 1;
+            tree_str[tree_str_pos] = '\0'; // delete last comma
             strcat(tree_str, "},{");
             tree_str_pos +=2;
         }
@@ -429,8 +429,21 @@ int main(){
     int num_leaves = tree_list.num_leaves;
     int num_nodes = 2 * num_leaves - 1;
 
-    // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
-    Tree_List findpath_list = return_findpath(tree_list); // write FP into file
-    write_trees(findpath_list, "./output/fp.rtree");
+    //check if read_trees reads trees correctly
+    for (int k = 0; k < num_trees; k++){
+        for(int i = 0; i < 2 * num_leaves - 1; i++){
+            if (i < num_leaves){
+                // printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
+                printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
+            } else{
+                printf("node %d has children %d and %d\n", i, tree_list.trees[k][i].children[0], tree_list.trees[k][i].children[1]);
+                printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
+            }
+        }
+    }
+
+    write_trees(tree_list, "./output/output.rtree"); // write given trees into file
+    // Tree_List findpath_list = return_findpath(tree_list); // write FP into file
+    // write_trees(findpath_list, "./output/fp.rtree");
     return 0;
 }
