@@ -264,22 +264,30 @@ int rank_move(Node * tree, int rank_in_list, int num_leaves){
             tree[rank_in_list + 1].parent = tree[rank_in_list].parent;
             tree[rank_in_list].parent = upper_parent;
 
-            int upper_child;
-            int parent;
             for (int i = 0; i < 2; i++){
-                upper_child = tree[rank_in_list + 1].children[i];
                 // update children of nodes that swap ranks
+                int upper_child = tree[rank_in_list + 1].children[i];
                 tree[rank_in_list + 1].children[i] = tree[rank_in_list].children[i];
                 tree[rank_in_list].children[i] = upper_child;
+            }
+            for (int i = 0; i < 2; i++){
                 // update parents of children of nodes that swap ranks
                 tree[tree[rank_in_list + 1].children[i]].parent = rank_in_list + 1; 
                 tree[tree[rank_in_list].children[i]].parent = rank_in_list;
+            }
+            for (int i = 0; i < 2; i ++){
                 // update children of parents of nodes that swap rank
-                if (tree[tree[rank_in_list + 1].parent].children[i] == rank_in_list){ //parent pointer of tree[rank_in_list + 1] is already set correctly!
-                    tree[tree[rank_in_list + 1].parent].children[i] = rank_in_list + 1;
+                //first case: nodes that swap ranks share a parent. In this case nothing needs to be changed
+                if (tree[rank_in_list + 1].parent == tree[rank_in_list].parent){
+                    break;
                 }
-                if (tree[tree[rank_in_list].parent].children[i] == rank_in_list + 1){
-                    tree[tree[rank_in_list].parent].children[i] = rank_in_list;
+                else{
+                    if (tree[tree[rank_in_list + 1].parent].children[i] == rank_in_list){ //parent pointer of tree[rank_in_list + 1] is already set correctly!
+                        tree[tree[rank_in_list + 1].parent].children[i] = rank_in_list + 1;
+                    }
+                    if (tree[tree[rank_in_list].parent].children[i] == rank_in_list + 1){
+                        tree[tree[rank_in_list].parent].children[i] = rank_in_list;
+                    }
                 }
             }
         }
@@ -305,7 +313,7 @@ int mrca(Node * tree, int node1, int node2){
 int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     // returns a path in matrix representation -- explanation in data_structures.md
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    int ** moves = malloc(max_dist * sizeof(int)); // save moves in a table: each row is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
+    int ** moves = malloc(max_dist * sizeof(int*)); // save moves in a table: each row is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
     for (int i = 0; i < max_dist; i++){
         moves[i] = malloc(2 * sizeof(int));
         moves[i][0] = 0;
@@ -324,7 +332,7 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
         current_tree =  start_tree;
 
         for (int i = num_leaves; i < 2 * num_leaves - 1; i++){
-            current_mrca = mrca(start_tree, dest_tree[i].children[0], dest_tree[i].children[1]);
+            current_mrca = mrca(current_tree, dest_tree[i].children[0], dest_tree[i].children[1]);
             // move current_mrca down
             while(current_mrca != i){
                 bool did_nni = false;
@@ -367,6 +375,7 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
             }
         }
     }
+    printf("length of path: %d\n", path_index);
     return moves;
 }
 
@@ -429,21 +438,22 @@ int main(){
     int num_leaves = tree_list.num_leaves;
     int num_nodes = 2 * num_leaves - 1;
 
-    //check if read_trees reads trees correctly
-    for (int k = 0; k < num_trees; k++){
-        for(int i = 0; i < 2 * num_leaves - 1; i++){
-            if (i < num_leaves){
-                // printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
-                printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
-            } else{
-                printf("node %d has children %d and %d\n", i, tree_list.trees[k][i].children[0], tree_list.trees[k][i].children[1]);
-                printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
-            }
-        }
-    }
+    // // check if read_trees reads trees correctly
+    // for (int k = 0; k < num_trees; k++){
+    //     for(int i = 0; i < 2 * num_leaves - 1; i++){
+    //         if (i < num_leaves){
+    //             // printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
+    //             printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
+    //         } else{
+    //             printf("node %d has children %d and %d\n", i, tree_list.trees[k][i].children[0], tree_list.trees[k][i].children[1]);
+    //             printf("node %d has parent %d\n", i, tree_list.trees[k][i].parent);
+    //         }
+    //     }
+    // }
 
     write_trees(tree_list, "./output/output.rtree"); // write given trees into file
     // Tree_List findpath_list = return_findpath(tree_list); // write FP into file
+    int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
     // write_trees(findpath_list, "./output/fp.rtree");
     return 0;
 }
