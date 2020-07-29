@@ -74,18 +74,27 @@ Tree_List read_trees(char* filename){
         for(int i = 0; i < num_leaves; i++){
             highest_ancestor[i] = 1;
         }
-        char *buffer = malloc(num_trees * max_str_length * sizeof(char));
-        for(int i = 0; i < max_str_length; i++){
+        char *buffer = malloc(num_nodes * max_str_length * sizeof(char));
+        for(int i = 0; i < num_nodes * max_str_length; i++){
             buffer[i] = '\0';
         }
         // memset(buffer, '\0', max_str_length * sizeof(char));
         int current_tree = 0;
         //loop through lines (trees) in file
-        while(fgets(buffer, max_str_length * sizeof(char), f) != NULL){
-            // printf("tree in buffer: %s\n", buffer);
+        while(fgets(buffer, num_nodes * max_str_length * sizeof(char), f) != NULL){
+            // Remove white spaces from string buffer
+            int l = 0;
+            for(int k=0;buffer[k]!='\0';++k)
+            {
+                if(buffer[k]!=' ')
+                    buffer[l++]=buffer[k];
+            }
+            buffer[l]='\0';
+
+            // allocate memory for strings saving clusters
             char *cluster_list = malloc(max_str_length / (num_leaves - 1)); // maximum length of a cluster as string
-            char *cluster = malloc(2 * num_digits_n * sizeof(char)); // max size of a single leaf in cluster
             char *tree_str = malloc(max_str_length * sizeof(char));
+            char *cluster;
             for(int i = 0; i < max_str_length; i++){
                 tree_str[i] = '\0';
             }
@@ -98,34 +107,35 @@ Tree_List read_trees(char* filename){
                 if(strlen(cluster_list) > 0){ //ignore last bit (just contained ])
                     // Find leaves in clusters
                     while((cluster = strsep(&cluster_list, ",")) != NULL){
-                        int actual_node = atoi(cluster);
+                        int actual_leaf = atoi(cluster);
                         // update node relations if current leaf appears for first time
-                        if(tree_list.trees[current_tree][actual_node - 1].parent == -1){
-                            tree_list.trees[current_tree][actual_node - 1].parent = rank;
+                        if(tree_list.trees[current_tree][actual_leaf - 1].parent == -1){
+                            tree_list.trees[current_tree][actual_leaf - 1].parent = rank;
                             // update the current internal node (rank) to have the current leaf as child
                             if(tree_list.trees[current_tree][rank].children[0] == -1){
-                                tree_list.trees[current_tree][rank].children[0] = actual_node - 1;
+                                tree_list.trees[current_tree][rank].children[0] = actual_leaf - 1;
                             } else{
-                                tree_list.trees[current_tree][rank].children[1] = actual_node - 1;
+                                tree_list.trees[current_tree][rank].children[1] = actual_leaf - 1;
                             }
                         } else {
-                            // printf("current tree: %d, actual_node: %d, highest_ancestor: %d\n", current_tree, actual_node - 1, highest_ancestor[actual_node - 1]);
-                            tree_list.trees[current_tree][highest_ancestor[actual_node - 1]].parent = rank;
-                            // update cluster relation if actual_node already has parent assigned (current cluster is union of two clusters or cluster and leaf)
-                            if(tree_list.trees[current_tree][rank].children[0] == -1 || tree_list.trees[current_tree][rank].children[0] == highest_ancestor[actual_node - 1]){ // first children should not be assigned yet. I if contains same value, overwrite that one
-                                tree_list.trees[current_tree][rank].children[0] = highest_ancestor[actual_node - 1];
+                            tree_list.trees[current_tree][highest_ancestor[actual_leaf - 1]].parent = rank;
+                            // update cluster relation if actual_leaf already has parent assigned (current cluster is union of two clusters or cluster and leaf)
+                            if(tree_list.trees[current_tree][rank].children[0] == -1 || tree_list.trees[current_tree][rank].children[0] == highest_ancestor[actual_leaf - 1]){ // first children should not be assigned yet. I if contains same value, overwrite that one
+                                tree_list.trees[current_tree][rank].children[0] = highest_ancestor[actual_leaf - 1];
                             } else if (tree_list.trees[current_tree][rank].children[1] == -1)
                             {
-                                tree_list.trees[current_tree][rank].children[1] = highest_ancestor[actual_node - 1];
+                                tree_list.trees[current_tree][rank].children[1] = highest_ancestor[actual_leaf - 1];
                             }
                         }
                         // set new highest ancestor of leaf
-                        highest_ancestor[actual_node - 1] = rank;
+                        highest_ancestor[actual_leaf - 1] = rank;
                     }
                 }
                 rank++;
             }
             current_tree++;
+            free(cluster_list);
+            free(tree_str);
         }
         fclose(f);
         free(buffer);
@@ -451,7 +461,7 @@ int main(){
     //     }
     // }
 
-    write_trees(tree_list, "./output/output.rtree"); // write given trees into file
+    // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
     // Tree_List findpath_list = return_findpath(tree_list); // write FP into file
     int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
     // write_trees(findpath_list, "./output/fp.rtree");
