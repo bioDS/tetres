@@ -5,6 +5,7 @@ basic algorithms for ranked trees*/
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
 /* trees will be arrays of nodes, ordered according to their ranks (first n nodes are leaves, order there doesn't matter)*/
 typedef struct Node{
@@ -54,7 +55,7 @@ Tree_List read_trees(char* filename){
         free(buffer0);
         int num_nodes = num_leaves*2 - 1;
         int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
-        int max_str_length = 4 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
+        int max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
     
         Tree_List tree_list;
         tree_list.num_leaves = num_leaves;
@@ -74,14 +75,14 @@ Tree_List read_trees(char* filename){
         for(int i = 0; i < num_leaves; i++){
             highest_ancestor[i] = 1;
         }
-        char *buffer = malloc(num_nodes * max_str_length * sizeof(char));
-        for(int i = 0; i < num_nodes * max_str_length; i++){
+        char *buffer = malloc(max_str_length * sizeof(char*));
+        for(int i = 0; i < max_str_length; i++){
             buffer[i] = '\0';
         }
         // memset(buffer, '\0', max_str_length * sizeof(char));
         int current_tree = 0;
         //loop through lines (trees) in file
-        while(fgets(buffer, num_nodes * max_str_length * sizeof(char), f) != NULL){
+        while(fgets(buffer, max_str_length * sizeof(char), f) != NULL){
             // Remove white spaces from string buffer
             int l = 0;
             for(int k=0;buffer[k]!='\0';++k)
@@ -143,9 +144,9 @@ Tree_List read_trees(char* filename){
 
         // //check if read_trees reads trees correctly
         // for (int k = 0; k < num_trees; k++){
-        //     for(int i = 0; i < 2 * num_leaves - 1; i++){
+        //     for(int i = 9980; i < 10030; i++){
         //         if (i < num_leaves){
-        //             printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
+        //             // printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
         //             printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
         //         } else{
         //             printf("node %d has children %d and %d\n", i, tree_list.trees[k][i].children[0], tree_list.trees[k][i].children[1]);
@@ -463,7 +464,10 @@ int main(){
 
     // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
     // Tree_List findpath_list = return_findpath(tree_list); // write FP into file
+    clock_t start_time = time(NULL);
     int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
+    clock_t end_time = time(NULL);
+    printf("Time to compute FP(T,R): %f sec\n", difftime(end_time, start_time));
     // write_trees(findpath_list, "./output/fp.rtree");
     return 0;
 }
