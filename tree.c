@@ -408,7 +408,6 @@ int rank_move(Node * tree, int rank_in_list, int num_leaves){
 }
 
 
-
 // find mrca of nodes with positions node1 and node2 in tree
 int mrca(Node * tree, int node1, int node2){
     int rank1 = node1;
@@ -427,13 +426,13 @@ int mrca(Node * tree, int node1, int node2){
 // returns a path in matrix representation -- explanation in data_structures.md
 int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    int ** moves = malloc(max_dist * sizeof(int*)); // save moves in a table: each row is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
-    for (int i = 0; i < max_dist; i++){
+    int ** moves = malloc(max_dist * sizeof(int*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
+    for (int i = 0; i < max_dist + 1; i++){
         moves[i] = malloc(2 * sizeof(int));
         moves[i][0] = 0;
         moves[i][1] = 0;
     }
-    int path_index = 0; // next position on path that we want to fill with a tree pointer
+    int path_index = 1; // next position on path that we want to fill with a tree pointer
     if (start_tree == NULL){
         printf("Error. Start tree doesn't exist.\n");
     } else if (dest_tree == NULL){
@@ -489,7 +488,7 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
             }
         }
     }
-    printf("length of path: %d\n", path_index);
+    moves[0][0] = path_index - 1;
     return moves;
 }
 
@@ -573,6 +572,7 @@ int main(){
     int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
     clock_t end_time = time(NULL);
     printf("Time to compute FP(T,R): %f sec\n", difftime(end_time, start_time));
+    printf("Length of fp: %d\n", fp[0][0]);
     // write_trees(findpath_list, "./output/fp.rtree");
     return 0;
 }
