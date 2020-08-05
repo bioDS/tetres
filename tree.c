@@ -7,11 +7,12 @@ basic algorithms for ranked trees*/
 #include <stdbool.h>
 #include <time.h>
 
-/* trees will be arrays of nodes, ordered according to their ranks (first n nodes are leaves, order there doesn't matter)*/
+// trees will be arrays of nodes, ordered according to their ranks (first n nodes are leaves, order there doesn't matter)
 typedef struct Node{
     int parent;
     int children[2];
 } Node;
+
 
 // List of trees (e.g. as output of NNI move (2 trees) or findpath(d trees))
 typedef struct Tree_List{
@@ -21,6 +22,7 @@ typedef struct Tree_List{
 } Tree_List;
 
 
+// Number of digits of an integer -- needed to get an upper bound of the length of an input tree as string (when reading from a file)
 int get_num_digits(int integer){
     int n = integer;
     int num_digits = 0;
@@ -31,9 +33,9 @@ int get_num_digits(int integer){
     return num_digits;
 }
 
-/*read tree  from file*/
-Tree_List read_trees(char* filename){
 
+// read trees from file
+Tree_List read_trees_from_file(char* filename){
     FILE *f;
     if ((f = fopen(filename, "r"))){
         int num_leaves;
@@ -68,7 +70,6 @@ Tree_List read_trees(char* filename){
                 tree_list.trees[i][j].children[0] = -1;
                 tree_list.trees[i][j].children[1] = -1;
             }
-            // memset(tree_list.trees[i], -1, num_nodes * sizeof(Node));
         }
 
         int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
@@ -79,7 +80,6 @@ Tree_List read_trees(char* filename){
         for(int i = 0; i < max_str_length; i++){
             buffer[i] = '\0';
         }
-        // memset(buffer, '\0', max_str_length * sizeof(char));
         int current_tree = 0;
         //loop through lines (trees) in file
         while(fgets(buffer, max_str_length * sizeof(char), f) != NULL){
@@ -142,7 +142,7 @@ Tree_List read_trees(char* filename){
         free(buffer);
         free(highest_ancestor);
 
-        // //check if read_trees reads trees correctly
+        // //check if read_trees_from_file reads trees correctly
         // for (int k = 0; k < num_trees; k++){
         //     for(int i = 9980; i < 10030; i++){
         //         if (i < num_leaves){
@@ -159,6 +159,104 @@ Tree_List read_trees(char* filename){
     } else{
         printf("Error. File doesn't exist.\n");
     }
+}
+
+/*read trees from string*/
+Tree_List read_trees_from_string(int num_leaves, char* tree_string){
+    int num_nodes = num_leaves*2 - 1;
+    int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
+    int str_length = strlen(tree_string); //upper bound for the maximum length of a tree as string
+
+    Tree_List tree_list;
+    tree_list.num_leaves = num_leaves;
+    tree_list.num_trees = 1;
+    tree_list.trees = malloc(sizeof(Node*));
+    tree_list.trees[0] = malloc(num_nodes * sizeof(Node));
+    for (int j = 0; j < num_nodes; j++){
+        tree_list.trees[0][j].parent = -1;
+        tree_list.trees[0][j].children[0] = -1;
+        tree_list.trees[0][j].children[1] = -1;
+    }
+
+    int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
+    for(int i = 0; i < num_leaves; i++){
+        highest_ancestor[i] = 1;
+    }
+    char *buffer = malloc(str_length * sizeof(char*));
+    for(int i = 0; i < str_length; i++){
+        buffer[i] = tree_string[i];
+    }
+    int current_tree = 0; //This will stay 0 as we only read one tree
+
+    // Remove white spaces from string buffer
+    int l = 0;
+    for(int k=0;buffer[k]!='\0';++k)
+    {
+        if(buffer[k]!=' ')
+            buffer[l++]=buffer[k];
+    }
+    buffer[l]='\0';
+
+    // allocate memory for strings saving clusters
+    char *cluster_list = malloc(str_length / (num_leaves - 1)); // maximum length of a cluster as string
+    char *tree_str = malloc(str_length * sizeof(char));
+    char *cluster;
+    for(int i = 0; i < str_length; i++){
+        tree_str[i] = '\0';
+    }
+    strcpy(tree_str, buffer);
+    tree_str[strcspn(tree_str, "\n")] = 0; // delete newline at end of each line that has been read
+    int rank = num_leaves;
+    //Find clusters
+    while((cluster_list = strsep(&tree_str, "}")) != NULL){
+        cluster_list += 2; // ignore first two characters [{ or ,{
+        if(strlen(cluster_list) > 0){ //ignore last bit (just contained ])
+            // Find leaves in clusters
+            while((cluster = strsep(&cluster_list, ",")) != NULL){
+                int actual_leaf = atoi(cluster);
+                // update node relations if current leaf appears for first time
+                if(tree_list.trees[current_tree][actual_leaf - 1].parent == -1){
+                    tree_list.trees[current_tree][actual_leaf - 1].parent = rank;
+                    // update the current internal node (rank) to have the current leaf as child
+                    if(tree_list.trees[current_tree][rank].children[0] == -1){
+                        tree_list.trees[current_tree][rank].children[0] = actual_leaf - 1;
+                    } else{
+                        tree_list.trees[current_tree][rank].children[1] = actual_leaf - 1;
+                    }
+                } else {
+                    tree_list.trees[current_tree][highest_ancestor[actual_leaf - 1]].parent = rank;
+                    // update cluster relation if actual_leaf already has parent assigned (current cluster is union of two clusters or cluster and leaf)
+                    if(tree_list.trees[current_tree][rank].children[0] == -1 || tree_list.trees[current_tree][rank].children[0] == highest_ancestor[actual_leaf - 1]){ // first children should not be assigned yet. I if contains same value, overwrite that one
+                        tree_list.trees[current_tree][rank].children[0] = highest_ancestor[actual_leaf - 1];
+                    } else if (tree_list.trees[current_tree][rank].children[1] == -1)
+                    {
+                        tree_list.trees[current_tree][rank].children[1] = highest_ancestor[actual_leaf - 1];
+                    }
+                }
+                // set new highest ancestor of leaf
+                highest_ancestor[actual_leaf - 1] = rank;
+            }
+        }
+        rank++;
+    }
+    free(cluster_list);
+    free(tree_str);
+    free(buffer);
+    free(highest_ancestor);
+
+    // // check if read_trees_from_file reads trees correctly
+    // for (int k = 0; k < 1; k++){
+    //     for(int i = 0; i < num_nodes; i++){
+    //         if (i < num_leaves){
+    //             // printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
+    //             printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
+    //         } else{
+    //             printf("node %d has children %d and %d\n", i, tree_list.trees[k][i].children[0], tree_list.trees[k][i].children[1]);
+    //             printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
+    //         }
+    //     }
+    // }
+    return tree_list;
 }
 
 
@@ -221,6 +319,8 @@ void write_tree(Node * tree, int num_leaves, char * filename){
     }
 }
 
+
+// write a Tree_List of trees into a given file in the format we require as input for read_trees_from_file (see README.md)
 void write_trees(Tree_List tree_list, char * filename){
     FILE *f;
     f = fopen(filename, "w");
@@ -233,8 +333,8 @@ void write_trees(Tree_List tree_list, char * filename){
 }
 
 
+// NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
 int nni_move(Node * tree, int rank_in_list, int num_leaves, int child_moves_up){
-    // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
     if (tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
     } else{
@@ -259,8 +359,9 @@ int nni_move(Node * tree, int rank_in_list, int num_leaves, int child_moves_up){
     return 0;
 }
 
+
+// Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
 int rank_move(Node * tree, int rank_in_list, int num_leaves){
-    // Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
     int num_nodes = 2 * num_leaves - 1;
     if (tree == NULL){
         printf("Error. No rank move possible. Given tree doesn't exist.\n");
@@ -306,8 +407,10 @@ int rank_move(Node * tree, int rank_in_list, int num_leaves){
     return 0;
 }
 
+
+
+// find mrca of nodes with positions node1 and node2 in tree
 int mrca(Node * tree, int node1, int node2){
-    // find mrca of nodes with positions node1 and node2 in tree
     int rank1 = node1;
     int rank2 = node2;
     while (rank1 != rank2){
@@ -321,8 +424,8 @@ int mrca(Node * tree, int node1, int node2){
 }
 
 
+// returns a path in matrix representation -- explanation in data_structures.md
 int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
-    // returns a path in matrix representation -- explanation in data_structures.md
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
     int ** moves = malloc(max_dist * sizeof(int*)); // save moves in a table: each row is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
     for (int i = 0; i < max_dist; i++){
@@ -390,9 +493,9 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     return moves;
 }
 
-  
+
+// print FP trees into output file, assuming that we want FP between the first two trees in Tree_List trees
 Tree_List return_findpath(Tree_List tree_list){
-    // print FP trees into output file, assuming that we want FP between the first two trees in Tree_List trees
     int path_index = 0;
     Node * current_tree = malloc((2 * tree_list.num_leaves - 1) * sizeof(Node)); // deep copy start tree
     for (int i = 0; i < 2 * tree_list.num_leaves - 1; i++){
@@ -443,13 +546,13 @@ int main(){
     char filename[200]; // length of filename set to be 200 char max
     printf("What is the file containing trees?\n");
     scanf("%s", filename);
-
-    Tree_List tree_list = read_trees(filename);
+    
+    Tree_List tree_list = read_trees_from_file(filename);
     int num_trees = tree_list.num_trees;
     int num_leaves = tree_list.num_leaves;
     int num_nodes = 2 * num_leaves - 1;
 
-    // // check if read_trees reads trees correctly
+    // // check if read_trees_from_file reads trees correctly
     // for (int k = 0; k < num_trees; k++){
     //     for(int i = 0; i < 2 * num_leaves - 1; i++){
     //         if (i < num_leaves){
@@ -461,6 +564,8 @@ int main(){
     //         }
     //     }
     // }
+
+    // read_trees_from_string(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]"); // test function when for reading tree as string
 
     // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
     // Tree_List findpath_list = return_findpath(tree_list); // write FP into file
