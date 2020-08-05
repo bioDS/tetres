@@ -16,6 +16,8 @@ tree.c reads a tree file, computes a shortest path with FINDPATH between the fir
 
 
 ## Path matrix format:
-Each row represents a move.  
+Matrix int ** moves with dimension distance x 2.  
+The first row contains the distance between the two trees (moves[0][0]).  
+Each following row represents a move.  
 1st column: rank of lower node bounding the interval on which move happens  
 2nd column: 0/1/2 if rannk move/nni move moving children[1] up/nni move moving children[0] up
