@@ -176,7 +176,7 @@ Tree_List read_tree_from_string(int num_leaves, char* tree_string){
         tree_list.trees[0][j].parent = -1;
         tree_list.trees[0][j].children[0] = -1;
         tree_list.trees[0][j].children[1] = -1;
-    }
+    }   
 
     int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
     for(int i = 0; i < num_leaves; i++){
@@ -542,13 +542,18 @@ Tree_List return_findpath(Tree_List tree_list){
 
 // Computing the RNNI distance from input trees as strings and number of leaves -- mainly to be executed from Python
 int distance(int num_leaves, char* start_tree, char* end_tree){
+
+    int num_nodes = 2 * num_leaves - 1;
+
+    Node * tree1 = malloc(num_nodes * sizeof(Node));
+    Node * tree2 = malloc(num_nodes * sizeof(Node));
     // Convert trees into list of nodes
-    Node * tree1 = read_tree_from_string(num_leaves, start_tree).trees[0];
-    Node * tree2 = read_tree_from_string(num_leaves, end_tree).trees[0];
+    tree1 = read_tree_from_string(num_leaves, start_tree).trees[0];
+    tree2 = read_tree_from_string(num_leaves, end_tree).trees[0];
 
     // run FindPath
     int ** fp = findpath(tree1, tree2, num_leaves);
-    
+
     return(fp[0][0]);
 }
 
