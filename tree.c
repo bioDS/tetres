@@ -97,9 +97,12 @@ Tree_List read_trees_from_file(char* filename){
             char *tree_str = malloc(max_str_length * sizeof(char));
             char *cluster;
             for(int i = 0; i < max_str_length; i++){
-                tree_str[i] = '\0';
+                tree_str[i] = buffer[i];
+                if(buffer[i] == ']'){
+                    break;
+                }
             }
-            strcpy(tree_str, buffer);
+            free(buffer);
             tree_str[strcspn(tree_str, "\n")] = 0; // delete newline at end of each line that has been read
             int rank = num_leaves;
             //Find clusters
@@ -139,7 +142,6 @@ Tree_List read_trees_from_file(char* filename){
             free(tree_str);
         }
         fclose(f);
-        free(buffer);
         free(highest_ancestor);
 
         // //check if read_trees_from_file reads trees correctly
@@ -163,9 +165,22 @@ Tree_List read_trees_from_file(char* filename){
 
 /*read trees from string*/
 Tree_List read_tree_from_string(int num_leaves, char* tree_string){
+    // Deep copy tree string
+    int str_length = strlen(tree_string);
+    char * tree_str = malloc((str_length + 1) * sizeof(char));
+    strcpy(tree_str, tree_string);
+    // Remove white spaces from string buffer
+    int l = 0;
+    for(int k=0;tree_str[k]!=']';++k)
+    {
+        if(tree_str[k]!=' ')
+            tree_str[l++]=tree_str[k];
+    }
+    tree_str[l] = ']';
+    tree_str[++l] = '\0';
+
     int num_nodes = num_leaves*2 - 1;
     int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
-    int str_length = strlen(tree_string); //upper bound for the maximum length of a tree as string
 
     Tree_List tree_list;
     tree_list.num_leaves = num_leaves;
@@ -176,41 +191,24 @@ Tree_List read_tree_from_string(int num_leaves, char* tree_string){
         tree_list.trees[0][j].parent = -1;
         tree_list.trees[0][j].children[0] = -1;
         tree_list.trees[0][j].children[1] = -1;
-    }   
+    }
 
     int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
     for(int i = 0; i < num_leaves; i++){
         highest_ancestor[i] = 1;
     }
-    char *buffer = malloc(str_length * sizeof(char*));
-    for(int i = 0; i < str_length; i++){
-        buffer[i] = tree_string[i];
-    }
     int current_tree = 0; //This will stay 0 as we only read one tree
-
-    // Remove white spaces from string buffer
-    int l = 0;
-    for(int k=0;buffer[k]!='\0';++k)
-    {
-        if(buffer[k]!=' ')
-            buffer[l++]=buffer[k];
-    }
-    buffer[l]='\0';
 
     // allocate memory for strings saving clusters
     char *cluster_list = malloc(str_length / (num_leaves - 1)); // maximum length of a cluster as string
-    char *tree_str = malloc(str_length * sizeof(char));
     char *cluster;
-    for(int i = 0; i < str_length; i++){
-        tree_str[i] = '\0';
-    }
-    strcpy(tree_str, buffer);
-    tree_str[strcspn(tree_str, "\n")] = 0; // delete newline at end of each line that has been read
+
     int rank = num_leaves;
+    int cluster_number = 1; // index of cluster we currently consider -- max is num_leaves - 1
     //Find clusters
     while((cluster_list = strsep(&tree_str, "}")) != NULL){
         cluster_list += 2; // ignore first two characters [{ or ,{
-        if(strlen(cluster_list) > 0){ //ignore last bit (just contained ])
+        if(cluster_number < num_leaves){ //only consider clusters, not things that could potentially be in rest of tree string after the actual tree
             // Find leaves in clusters
             while((cluster = strsep(&cluster_list, ",")) != NULL){
                 int actual_leaf = atoi(cluster);
@@ -233,16 +231,15 @@ Tree_List read_tree_from_string(int num_leaves, char* tree_string){
                         tree_list.trees[current_tree][rank].children[1] = highest_ancestor[actual_leaf - 1];
                     }
                 }
-                // set new highest ancestor of leaf
                 highest_ancestor[actual_leaf - 1] = rank;
             }
         }
+        cluster_number++;
         rank++;
     }
     free(cluster_list);
     free(tree_str);
-    free(buffer);
-    free(highest_ancestor);
+    // free(highest_ancestor);
 
     // // check if read_trees_from_file reads trees correctly
     // for (int k = 0; k < 1; k++){
@@ -426,7 +423,7 @@ int mrca(Node * tree, int node1, int node2){
 // returns a path in matrix representation -- explanation in data_structures.md
 int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    int ** moves = malloc(max_dist * sizeof(int*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
+    int ** moves = malloc(max_dist * 2 * sizeof(int*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
     for (int i = 0; i < max_dist + 1; i++){
         moves[i] = malloc(2 * sizeof(int));
         moves[i][0] = 0;
@@ -507,8 +504,6 @@ Tree_List return_findpath(Tree_List tree_list){
     int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves);
     int diameter = (tree_list.num_leaves - 1) * (tree_list.num_leaves - 2) / 2 + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
 
-    // printf("first fp done.\n");
-
     Tree_List findpath_list; // output: list of trees on FP path
     findpath_list.num_leaves = tree_list.num_leaves;
     findpath_list.trees = malloc(diameter * sizeof(Node *));
@@ -547,14 +542,24 @@ int distance(int num_leaves, char* start_tree, char* end_tree){
 
     Node * tree1 = malloc(num_nodes * sizeof(Node));
     Node * tree2 = malloc(num_nodes * sizeof(Node));
+
     // Convert trees into list of nodes
     tree1 = read_tree_from_string(num_leaves, start_tree).trees[0];
     tree2 = read_tree_from_string(num_leaves, end_tree).trees[0];
 
     // run FindPath
-    int ** fp = findpath(tree1, tree2, num_leaves);
+    int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
+    int ** fp = malloc(max_dist * sizeof(int*));
+    for (int i = 0; i < max_dist; i++){
+        fp[i] = malloc(2 * sizeof(int));
+    }
+    fp = findpath(tree1, tree2, num_leaves);
+    int output = fp[0][0];
 
-    return(fp[0][0]);
+    free(tree1);
+    free(tree2);
+    free(fp);
+    return(output);
 }
 
 
@@ -591,6 +596,6 @@ int main(){
     // printf("Time to compute FP(T,R): %f sec\n", difftime(end_time, start_time));
     // printf("Length of fp: %d\n", fp[0][0]);
     // // write_trees(findpath_list, "./output/fp.rtree");
-    printf("distance: %d\n", distance(5, "[{3,5},{2,4},{2,3,4,5},{1,5,4,3,2}]" ,"[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]"));
+    printf("distance: %d\n", distance(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]", "[{4,5},{3,4,5},{1,2},{1,2,3,4,5}]"));
     return 0;
 }
