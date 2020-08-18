@@ -200,13 +200,14 @@ Tree_List read_tree_from_string(int num_leaves, char* tree_string){
     int current_tree = 0; //This will stay 0 as we only read one tree
 
     // allocate memory for strings saving clusters
-    char *cluster_list = malloc(str_length / (num_leaves - 1)); // maximum length of a cluster as string
     char *cluster;
 
     int rank = num_leaves;
     int cluster_number = 1; // index of cluster we currently consider -- max is num_leaves - 1
     //Find clusters
-    while((cluster_list = strsep(&tree_str, "}")) != NULL){
+    char * partial_tree_str = tree_str;
+    char * cluster_list;
+    while((cluster_list = strsep(&partial_tree_str, "}")) != NULL){
         cluster_list += 2; // ignore first two characters [{ or ,{
         if(cluster_number < num_leaves){ //only consider clusters, not things that could potentially be in rest of tree string after the actual tree
             // Find leaves in clusters
@@ -239,7 +240,7 @@ Tree_List read_tree_from_string(int num_leaves, char* tree_string){
     }
     free(cluster_list);
     free(tree_str);
-    // free(highest_ancestor);
+    free(highest_ancestor);
 
     // // check if read_trees_from_file reads trees correctly
     // for (int k = 0; k < 1; k++){
@@ -439,7 +440,9 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
         // write_tree(start_tree, num_leaves, "./output/findpath.rtree"); // this ruins the running time!!!!!!!!
         int current_mrca; //rank of the mrca that needs to be moved down
         Node * current_tree = malloc((2 * num_leaves - 1) * sizeof(Node));
-        current_tree =  start_tree;
+        for (int i = 0; i < 2 * num_leaves - 1; i++){
+            current_tree[i] = start_tree[i];
+        }
 
         for (int i = num_leaves; i < 2 * num_leaves - 1; i++){
             current_mrca = mrca(current_tree, dest_tree[i].children[0], dest_tree[i].children[1]);
@@ -484,6 +487,7 @@ int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
                 path_index++;
             }
         }
+        free(current_tree);
     }
     moves[0][0] = path_index - 1;
     return moves;
@@ -540,26 +544,38 @@ int distance(int num_leaves, char* start_tree, char* end_tree){
 
     int num_nodes = 2 * num_leaves - 1;
 
-    Node * tree1 = malloc(num_nodes * sizeof(Node));
-    Node * tree2 = malloc(num_nodes * sizeof(Node));
+    // Tree_List tree1;
+    // tree1.trees = malloc(sizeof(Node*));
+    // tree1.trees[0] = malloc(num_nodes * sizeof(Node));
+
+    // Tree_List tree2;
+    // tree2.trees = malloc(sizeof(Node*));
+    // tree2.trees[0] = malloc(num_nodes * sizeof(Node));
+
 
     // Convert trees into list of nodes
-    tree1 = read_tree_from_string(num_leaves, start_tree).trees[0];
-    tree2 = read_tree_from_string(num_leaves, end_tree).trees[0];
+    Tree_List tree1 = read_tree_from_string(num_leaves, start_tree);
+    Tree_List tree2 = read_tree_from_string(num_leaves, end_tree);
 
     // run FindPath
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    int ** fp = malloc(max_dist * sizeof(int*));
-    for (int i = 0; i < max_dist; i++){
-        fp[i] = malloc(2 * sizeof(int));
-    }
-    fp = findpath(tree1, tree2, num_leaves);
-    int output = fp[0][0];
+    // int ** fp = malloc(max_dist * sizeof(int*));
+    // for (int i = 0; i < max_dist; i++){
+    //     fp[i] = malloc(2 * sizeof(int));
+    // }
+    // int ** fp = findpath(tree1.trees[0], tree2.trees[0], num_leaves);
+    // int output = fp[0][0];
 
-    free(tree1);
-    free(tree2);
-    free(fp);
-    return(output);
+    free(tree1.trees[0]);
+    free(tree1.trees);
+    free(tree2.trees[0]);
+    free(tree2.trees);
+
+    // for (int i = 0; i < max_dist; i++){
+    //     free(fp[i]);
+    // }
+    // free(fp);
+    // return(output);
 }
 
 
