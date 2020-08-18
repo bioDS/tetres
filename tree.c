@@ -424,7 +424,7 @@ int mrca(Node * tree, int node1, int node2){
 // returns a path in matrix representation -- explanation in data_structures.md
 int ** findpath(Node *start_tree, Node *dest_tree, int num_leaves){
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    int ** moves = malloc(max_dist * 2 * sizeof(int*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
+    int ** moves = malloc((max_dist + 1) * sizeof(int*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
     for (int i = 0; i < max_dist + 1; i++){
         moves[i] = malloc(2 * sizeof(int));
         moves[i][0] = 0;
@@ -559,23 +559,19 @@ int distance(int num_leaves, char* start_tree, char* end_tree){
 
     // run FindPath
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    // int ** fp = malloc(max_dist * sizeof(int*));
-    // for (int i = 0; i < max_dist; i++){
-    //     fp[i] = malloc(2 * sizeof(int));
-    // }
-    // int ** fp = findpath(tree1.trees[0], tree2.trees[0], num_leaves);
-    // int output = fp[0][0];
+    int ** fp = findpath(tree1.trees[0], tree2.trees[0], num_leaves);
+    int output = fp[0][0];
 
     free(tree1.trees[0]);
     free(tree1.trees);
     free(tree2.trees[0]);
     free(tree2.trees);
 
-    // for (int i = 0; i < max_dist; i++){
-    //     free(fp[i]);
-    // }
-    // free(fp);
-    // return(output);
+    for (int i = 0; i < max_dist + 1; i++){
+        free(fp[i]);
+    }
+    free(fp);
+    return(output);
 }
 
 
