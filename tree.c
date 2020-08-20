@@ -102,7 +102,6 @@ Tree_List read_trees_from_file(char* filename){
                     break;
                 }
             }
-            free(buffer);
             tree_str[strcspn(tree_str, "\n")] = 0; // delete newline at end of each line that has been read
             int rank = num_leaves;
             //Find clusters
@@ -141,6 +140,7 @@ Tree_List read_trees_from_file(char* filename){
             free(cluster_list);
             free(tree_str);
         }
+        free(buffer);
         fclose(f);
         free(highest_ancestor);
 
@@ -576,14 +576,14 @@ int distance(int num_leaves, char* start_tree, char* end_tree){
 
 
 int main(){
-    // char filename[200]; // length of filename set to be 200 char max
-    // printf("What is the file containing trees?\n");
-    // scanf("%s", filename);
+    char filename[200]; // length of filename set to be 200 char max
+    printf("What is the file containing trees?\n");
+    scanf("%s", filename);
     
-    // Tree_List tree_list = read_trees_from_file(filename);
-    // int num_trees = tree_list.num_trees;
-    // int num_leaves = tree_list.num_leaves;
-    // int num_nodes = 2 * num_leaves - 1;
+    Tree_List tree_list = read_trees_from_file(filename);
+    int num_trees = tree_list.num_trees;
+    int num_leaves = tree_list.num_leaves;
+    int num_nodes = 2 * num_leaves - 1;
 
     // // // check if read_trees_from_file reads trees correctly
     // // for (int k = 0; k < num_trees; k++){
@@ -600,14 +600,14 @@ int main(){
 
     // // read_tree_from_string(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]"); // test function when for reading tree as string
 
-    // // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
-    // // Tree_List findpath_list = return_findpath(tree_list); // write FP into file
-    // clock_t start_time = time(NULL);
-    // int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
-    // clock_t end_time = time(NULL);
-    // printf("Time to compute FP(T,R): %f sec\n", difftime(end_time, start_time));
-    // printf("Length of fp: %d\n", fp[0][0]);
-    // // write_trees(findpath_list, "./output/fp.rtree");
-    printf("distance: %d\n", distance(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]", "[{4,5},{3,4,5},{1,2},{1,2,3,4,5}]"));
+    // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
+    // Tree_List findpath_list = return_findpath(tree_list); // write FP into file
+    clock_t start_time = time(NULL);
+    int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
+    clock_t end_time = time(NULL);
+    printf("Time to compute FP(T,R): %f sec\n", difftime(end_time, start_time));
+    printf("Length of fp: %d\n", fp[0][0]);
+    // write_trees(findpath_list, "./output/fp.rtree");
+    // printf("distance: %d\n", distance(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]", "[{4,5},{3,4,5},{1,2},{1,2,3,4,5}]"));
     return 0;
 }
