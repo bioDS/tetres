@@ -93,7 +93,6 @@ Tree_List read_trees_from_file(char* filename){
             buffer[l]='\0';
 
             // allocate memory for strings saving clusters
-            char *cluster_list = malloc(max_str_length / (num_leaves - 1)); // maximum length of a cluster as string
             char *tree_str = malloc(max_str_length * sizeof(char));
             char *cluster;
             for(int i = 0; i < max_str_length; i++){
@@ -105,7 +104,9 @@ Tree_List read_trees_from_file(char* filename){
             tree_str[strcspn(tree_str, "\n")] = 0; // delete newline at end of each line that has been read
             int rank = num_leaves;
             //Find clusters
-            while((cluster_list = strsep(&tree_str, "}")) != NULL){
+            char * partial_tree_str = tree_str;
+            char * cluster_list;
+            while((cluster_list = strsep(&partial_tree_str, "}")) != NULL){
                 cluster_list += 2; // ignore first two characters [{ or ,{
                 if(strlen(cluster_list) > 0){ //ignore last bit (just contained ])
                     // Find leaves in clusters
@@ -605,8 +606,19 @@ int main(){
     clock_t start_time = time(NULL);
     int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
     clock_t end_time = time(NULL);
+    int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
+    int distance = fp[0][0];
+    for (int i = 0; i < max_dist + 1; i++){
+        free(fp[i]);
+    }
+    free(fp);
+
+    free(tree_list.trees[0]);
+    free(tree_list.trees[1]);
+    free(tree_list.trees);
+
     printf("Time to compute FP(T,R): %f sec\n", difftime(end_time, start_time));
-    printf("Length of fp: %d\n", fp[0][0]);
+    printf("Length of fp: %d\n", distance);
     // write_trees(findpath_list, "./output/fp.rtree");
     // printf("distance: %d\n", distance(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]", "[{4,5},{3,4,5},{1,2},{1,2,3,4,5}]"));
     return 0;
