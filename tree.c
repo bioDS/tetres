@@ -58,7 +58,7 @@ Tree_List read_trees_from_file(char* filename){
         int num_nodes = num_leaves*2 - 1;
         int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
         int max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
-    
+        
         Tree_List tree_list;
         tree_list.num_leaves = num_leaves;
         tree_list.num_trees = num_trees;
