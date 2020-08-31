@@ -499,7 +499,7 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
                 path_index++;
                 // Print progress (in 5% steps from max distance)
                 if (count < (float) path_index / (float) max_dist){
-                     printf("%f Percent of maximum distance reached\n", (int) 100 * count);
+                     printf("%d Percent of maximum distance reached\n", (int) (100 * count));
                      count += 0.05;
                 }
             }
@@ -573,7 +573,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                 path_index++;
                 // Print progress (in 5% steps from max distance)
                 if (count < (float) path_index / (float) max_dist){
-                     printf("%f Percent of maximum distance reached\n", (int) 100 * count);
+                     printf("%d Percent of maximum distance reached\n", (int) (100 * count));
                      count += 0.05;
                 }
             }
