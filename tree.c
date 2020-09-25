@@ -262,8 +262,7 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
 }
 
 
-// write one tree into given file -- runtime quadratic
-void write_tree(Tree * input_tree, char * filename){
+char* tree_to_string(Tree * input_tree){
     if (input_tree->tree == NULL){
         printf("Error. Can't write tree. Given tree doesn't exist.\n");
     } else{
@@ -313,12 +312,19 @@ void write_tree(Tree * input_tree, char * filename){
         for (long i = 0; i < num_leaves - 1; i++){
             free(clusters[i]);
         }
-        // write tree as string to file
-        FILE *f;
-        f = fopen(filename, "a"); //add tree at end of output file
-        fprintf(f, "%s\n", tree_str); //This adds a new line at the end of the file -- we need to be careful when we read from such files!
-        fclose(f);
+
+        return(tree_str);
     }
+}
+
+// write one tree into given file -- runtime quadratic
+void write_tree(Tree * input_tree, char * filename){
+    char * tree_str = tree_to_string(input_tree);
+    // write tree as string to file
+    FILE *f;
+    f = fopen(filename, "a"); //add tree at end of output file
+    fprintf(f, "%s\n", tree_str); //This adds a new line at the end of the file -- we need to be careful when we read from such files!
+    fclose(f);
 }
 
 
@@ -584,7 +590,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
 }
 
 
-// print FP trees into output file, assuming that we want FP between the first two trees in Tree_List trees
+// returns the path that findpath computed between two trees given in a Tree_List
 Tree_List return_findpath(Tree_List tree_list){
     long path_index = 0;
     long num_leaves = tree_list.trees[0].num_leaves;
@@ -635,6 +641,35 @@ Tree_List return_findpath(Tree_List tree_list){
     }
     findpath_list.num_trees = path_index + 1;
     return findpath_list;
+}
+
+char** findpath_cluster_list(int num_leaves, char* input_tree1, char* input_tree2){
+
+    Tree tree1 = read_tree_from_string(num_leaves, input_tree1);
+    Tree tree2 = read_tree_from_string(num_leaves, input_tree2);
+    Tree_List findpath_input;
+    findpath_input.num_trees = 2;
+    findpath_input.trees[0] = tree1;
+    findpath_input.trees[1] = tree2;
+
+    // start_tree = &tree1;
+    // dest_tree = &tree2;
+
+    // run FindPath
+    int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
+    Tree_List path = return_findpath(findpath_input);
+
+    char** output = malloc((max_dist) * sizeof(char* ));
+    for (int k = 0; k < max_dist; k++){
+        output[k] = malloc((num_leaves-1) * (num_leaves-1) * sizeof(char));
+        output[k] = tree_to_string(&path.trees[k]);
+        k++;
+        printf("tree: %s", output[k]);
+    }
+    // TODO: Memory allocation / FREE
+
+    return(output);
+
 }
 
 // Computing the RNNI distance from input trees as strings and number of leaves -- mainly to be executed from Python
@@ -721,6 +756,10 @@ int main(){
     //     free(fp[i]);
     // }
     // free(fp);
+
+    char ** fpath;
+    printf("start_tree: %s", tree_to_string(start_tree));
+    fpath = findpath_cluster_list(num_leaves, tree_to_string(start_tree), tree_to_string(dest_tree));
 
     free(tree_list.trees[0].tree);
     free(tree_list.trees[1].tree);
