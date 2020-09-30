@@ -194,7 +194,12 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
     int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
 
     Tree output_tree;
-    output_tree.tree = malloc(num_nodes * sizeof(Node*));
+    output_tree.tree = malloc(num_nodes * sizeof(Node));
+    for (int i = 0; i < num_nodes; i ++){
+        output_tree.tree[i].parent = -1;
+        output_tree.tree[i].children[0] = -1;
+        output_tree.tree[i].children[1] = -1;
+    }
     output_tree.num_leaves = num_leaves;
 
     int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
@@ -251,10 +256,10 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
     //     for(int i = 0; i < num_nodes; i++){
     //         if (i < num_leaves){
     //             // printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
-    //             printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
+    //             printf("leaf %d has parent %ld\n", i+1, output_tree.tree[i].parent);
     //         } else{
-    //             printf("node %d has children %d and %d\n", i, tree_list.trees[k][i].children[0], tree_list.trees[k][i].children[1]);
-    //             printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
+    //             printf("node %d has children %ld and %ld\n", i, output_tree.tree[i].children[0], output_tree.tree[i].children[1]);
+    //             printf("leaf %d has parent %ld\n", i+1, output_tree.tree[i].parent);
     //         }
     //     }
     // }
@@ -269,24 +274,25 @@ char* tree_to_string(Tree * input_tree){
         long num_leaves = input_tree->num_leaves;
         int num_digits_n = get_num_digits(input_tree->num_leaves); // number of digits of the int num_leaves
         long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
-        char *tree_str = malloc(2 * max_str_length * sizeof(char *));
+        char *tree_str = malloc(2 * max_str_length * sizeof(char));
 
         // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
-        int ** clusters = malloc((num_leaves) * sizeof(long *));    
-        for (long i = 0; i < num_leaves; i++){
-            clusters[i] = malloc((num_leaves - 1) * sizeof(long));
+        long ** clusters = malloc((num_leaves - 1) * sizeof(long *));
+        for (long i = 0; i < num_leaves - 1; i++){
+            clusters[i] = malloc((num_leaves) * sizeof(long));
         }
 
-        for (long i = 0; i <num_leaves ; i++){
+        for (long i = 0; i < num_leaves ; i++){
             for (long j = 0; j < num_leaves - 1; j++){
                 clusters[j][i] = 0; //initialise all entries to be 0
             }
             long j = i;
             while (input_tree->tree[j].parent != -1){
                 j = input_tree->tree[j].parent;
+                // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
                 clusters[j - num_leaves][i] = 1;
             }
-            clusters[num_leaves - 1][i] = 1;
+            clusters[num_leaves - 2][i] = 1;
         }
 
         // convert matrix into output string tree_str
@@ -594,10 +600,11 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
 Tree_List return_findpath(Tree_List tree_list){
     long path_index = 0;
     long num_leaves = tree_list.trees[0].num_leaves;
-    Tree * current_tree;
-    current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    Tree current_tree;
+    current_tree.num_leaves = num_leaves;
+    current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree 
     for (int i = 0; i < 2 * num_leaves - 1; i++){
-        current_tree->tree[i] = tree_list.trees[0].tree[i];
+        current_tree.tree[i] = tree_list.trees[0].tree[i];
     }
 
     // write_tree(tree_list.trees[1], num_leaves, "output/tree.rtree");
@@ -613,30 +620,30 @@ Tree_List return_findpath(Tree_List tree_list){
     long diameter = (num_leaves - 1) * (num_leaves - 2) / 2 + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
 
     Tree_List findpath_list; // output: list of trees on FP path
-    findpath_list.trees = malloc(diameter * sizeof(Tree *));
+    findpath_list.trees = malloc(diameter * sizeof(Tree));
     for (long i = 0; i < diameter; i++){
         findpath_list.trees[i].num_leaves = num_leaves;
         findpath_list.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
     }
-    // findpath_list.trees[0] = current_tree->tree;
+    // findpath_list.trees[0] = current_tree.tree;
     for (long i = 0; i < 2 * num_leaves - 1; i++){
-        findpath_list.trees[0].tree[i] = current_tree->tree[i];
+        findpath_list.trees[0].tree[i] = current_tree.tree[i];
     }
 
     // create actual path by doing moves starting at tree_list.trees[0] with the information in the matrix returned form fp above
     while(path_index < diameter - 1 && fp.moves[path_index][0] > 0){
         if (fp.moves[path_index][1] == 0){
-            rank_move(current_tree, fp.moves[path_index][0]);
+            rank_move(&current_tree, fp.moves[path_index][0]);
         }
         else if (fp.moves[path_index][1] == 1){
-            nni_move(current_tree, fp.moves[path_index][0], 1);
+            nni_move(&current_tree, fp.moves[path_index][0], 1);
         } else{
-            nni_move(current_tree, fp.moves[path_index][0], 0);
+            nni_move(&current_tree, fp.moves[path_index][0], 0);
         }
         path_index++;
         // deep copy currently last tree one path
         for (long i = 0; i < 2 * num_leaves - 1; i++){
-            findpath_list.trees[path_index].tree[i] = current_tree->tree[i];
+            findpath_list.trees[path_index].tree[i] = current_tree.tree[i];
         }
     }
     findpath_list.num_trees = path_index + 1;
@@ -649,9 +656,9 @@ char** findpath_cluster_list(int num_leaves, char* input_tree1, char* input_tree
     Tree tree2 = read_tree_from_string(num_leaves, input_tree2);
     Tree_List findpath_input;
     findpath_input.num_trees = 2;
+    findpath_input.trees = malloc(2 * sizeof(Tree));
     findpath_input.trees[0] = tree1;
     findpath_input.trees[1] = tree2;
-
     // start_tree = &tree1;
     // dest_tree = &tree2;
 
@@ -660,11 +667,9 @@ char** findpath_cluster_list(int num_leaves, char* input_tree1, char* input_tree
     Tree_List path = return_findpath(findpath_input);
 
     char** output = malloc((max_dist) * sizeof(char* ));
-    for (int k = 0; k < max_dist; k++){
+    for (int k = 0; k < path.num_trees; k++){
         output[k] = malloc((num_leaves-1) * (num_leaves-1) * sizeof(char));
         output[k] = tree_to_string(&path.trees[k]);
-        k++;
-        printf("tree: %s", output[k]);
     }
     // TODO: Memory allocation / FREE
 
@@ -758,8 +763,10 @@ int main(){
     // free(fp);
 
     char ** fpath;
-    printf("start_tree: %s", tree_to_string(start_tree));
     fpath = findpath_cluster_list(num_leaves, tree_to_string(start_tree), tree_to_string(dest_tree));
+    for (int i = 0; i < distance; i++){
+        printf("%s\n", fpath[i]);
+    }
 
     free(tree_list.trees[0].tree);
     free(tree_list.trees[1].tree);
