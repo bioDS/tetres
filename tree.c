@@ -620,6 +620,7 @@ Tree_List return_findpath(Tree_List tree_list){
     long diameter = (num_leaves - 1) * (num_leaves - 2) / 2 + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
 
     Tree_List findpath_list; // output: list of trees on FP path
+    findpath_list.num_trees = fp.length;
     findpath_list.trees = malloc(diameter * sizeof(Tree));
     for (long i = 0; i < diameter; i++){
         findpath_list.trees[i].num_leaves = num_leaves;
@@ -646,11 +647,11 @@ Tree_List return_findpath(Tree_List tree_list){
             findpath_list.trees[path_index].tree[i] = current_tree.tree[i];
         }
     }
-    findpath_list.num_trees = path_index + 1;
     return findpath_list;
 }
 
 char** findpath_cluster_list(int num_leaves, char* input_tree1, char* input_tree2){
+    // Returns the path computed by findpath as an array of strings where the first element is the number of trees on this path
 
     Tree tree1 = read_tree_from_string(num_leaves, input_tree1);
     Tree tree2 = read_tree_from_string(num_leaves, input_tree2);
@@ -666,10 +667,12 @@ char** findpath_cluster_list(int num_leaves, char* input_tree1, char* input_tree
     int max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
     Tree_List path = return_findpath(findpath_input);
 
-    char** output = malloc((max_dist) * sizeof(char* ));
-    for (int k = 0; k < path.num_trees; k++){
+    char** output = malloc((max_dist + 1) * sizeof(char* ));
+    output[0] = malloc(sizeof(char));
+    sprintf(output[0], "%d", path.num_trees); // first entry in output is number of trees on path
+    for (int k = 1; k < path.num_trees+1; k++){
         output[k] = malloc((num_leaves-1) * (num_leaves-1) * sizeof(char));
-        output[k] = tree_to_string(&path.trees[k]);
+        output[k] = tree_to_string(&path.trees[k-1]);
     }
     // TODO: Memory allocation / FREE
 
@@ -764,7 +767,8 @@ int main(){
 
     char ** fpath;
     fpath = findpath_cluster_list(num_leaves, tree_to_string(start_tree), tree_to_string(dest_tree));
-    for (int i = 0; i < distance; i++){
+    printf("FP path:\n");
+    for (int i = 0; i < atoi(fpath[0]) + 1; i++){
         printf("%s\n", fpath[i]);
     }
 
