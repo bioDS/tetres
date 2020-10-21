@@ -585,10 +585,10 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                 }
                 path_index++;
                 // Print progress (in 5% steps from max distance)
-                if (count < (float) path_index / (float) max_dist){
-                     printf("%d Percent of maximum distance reached\n", (int) (100 * count));
-                     count += 0.05;
-                }
+                // if (count < (float) path_index / (float) max_dist){
+                //      printf("%d Percent of maximum distance reached\n", (int) (100 * count));
+                //      count += 0.05;
+                // }
             }
         }
         free(current_tree.tree);
@@ -770,6 +770,7 @@ int main(){
     clock_t start_time = time(NULL);
     Path path = findpath(start_tree, dest_tree);
     long distance = path.length;
+    // long distance = findpath_distance(start_tree, dest_tree);
     clock_t end_time = time(NULL);
     printf("End running FindPath\n");
     long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
@@ -782,19 +783,19 @@ int main(){
     char ** fpath;
     char * start_tree_str = tree_to_string(start_tree);
     char * dest_tree_str = tree_to_string(dest_tree);
-    fpath = findpath_cluster_list(num_leaves, start_tree_str, dest_tree_str);
-    printf("FP path:\n");
-    for (int i = 0; i < distance + 1; i++){
-        printf("%s\n", fpath[i]);
-        free(fpath[i]);
-    }
-    free(fpath);
+    // fpath = findpath_cluster_list(num_leaves, start_tree_str, dest_tree_str);
+    // printf("FP path:\n");
+    // for (int i = 0; i < distance + 1; i++){
+    //     printf("%s\n", fpath[i]);
+    //     free(fpath[i]);
+    // }
+    // free(fpath);
 
     // Free all variables
-    for (int i = 0; i < max_dist + 1; i++){
-        free(path.moves[i]);
-    }
-    free(path.moves);
+    // for (int i = 0; i < max_dist + 1; i++){
+    //     free(path.moves[i]);
+    // }
+    // free(path.moves);
 
     for (int i = 0; i < tree_list.num_trees; i++){
         free(tree_list.trees[i].tree);
