@@ -2,7 +2,7 @@ __author__ = 'Lena Collienne'
 # Handling Tree input and output (to C)
 
 import re
-from calling_findpath import *
+# from calling_findpath import *
 
 
 # Read tree from string s in newick format -- assuming that the given tree is ultrametric!!
@@ -89,7 +89,8 @@ def read_newick(s):
     return(output_tree)
 
 
-# #test: tree_to_string
-# tree = read_newick("(((a_1:1,a_2:1):2,a_3:3):1,(a_4:2,a_5:2):2)")
-# treep = pointer(tree)
-# print(py_tts(treep))
+if __name__ == '__main__':
+    # #test: tree_to_string
+    # tree = read_newick("(((a_1:1,a_2:1):2,a_3:3):1,(a_4:2,a_5:2):2)")
+    # treep = pointer(tree)
+    # print(py_tts(treep))

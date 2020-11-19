@@ -16,8 +16,8 @@ class TREE(Structure):
         self.num_leaves = num_leaves
         self.tree = tree
 
-
-# C function tree_to_string for testing purposes
-py_tts = lib.tree_to_string
-py_tts.argtypes= [POINTER(TREE)]
-py_tts.restype = c_char_p
+if __name__ == '__main__':
+    # C function tree_to_string for testing purposes
+    py_tts = lib.tree_to_string
+    py_tts.argtypes = [POINTER(TREE)]
+    py_tts.restype = c_char_p
