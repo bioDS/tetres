@@ -350,17 +350,17 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
 
 
 // returns the FINDPATH path between two given given trees as Tree_List -- runs findpath and translates path matrix to actual trees on path
-Tree_List return_findpath(Tree start_tree, Tree dest_tree){
+Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
     long path_index = 0;
-    long num_leaves = start_tree.num_leaves;
+    long num_leaves = start_tree->num_leaves;
     Tree current_tree;
     current_tree.num_leaves = num_leaves;
     current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree 
     for (int i = 0; i < 2 * num_leaves - 1; i++){
-        current_tree.tree[i] = start_tree.tree[i];
+        current_tree.tree[i] = start_tree->tree[i];
     }
 
-    Path fp = findpath(&start_tree, &dest_tree);
+    Path fp = findpath(start_tree, dest_tree);
 
     long diameter = (num_leaves - 1) * (num_leaves - 2) / 2 + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
 
