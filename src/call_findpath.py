@@ -7,17 +7,28 @@ lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
 class NODE(Structure):
     _fields_ = [('parent', c_long), ('children', c_long * 2)] # The order of arguments here matters! Needs to be the same as in C code!
+    def __init_(self, parent, children):
+        self.parent = parent
+        self.children = children
 
 
 class TREE(Structure):
     _fields_ =  [('num_leaves', c_long), ('tree', POINTER(NODE))] # Everything from struct definition in C
-
-    def __init_(self, num_leaves, tree, id):
+    def __init_(self, num_leaves, tree):
         self.num_leaves = num_leaves
         self.tree = tree
 
-if __name__ == '__main__':
-    # C function tree_to_string for testing purposes
-    py_tts = lib.tree_to_string
-    py_tts.argtypes = [POINTER(TREE)]
-    py_tts.restype = c_char_p
+
+class TREE_LIST(Structure):
+    _field_ = [('num_trees', c_long), ('trees', POINTER(TREE))]
+    def __init_(self, num_trees, trees):
+        self.num_trees = num_trees
+        self.trees = trees
+
+# C function tree_to_string (for testing purposes)
+tree_to_cluster_string = lib.tree_to_string
+tree_to_cluster_string.argtypes = [POINTER(TREE)]
+tree_to_cluster_string.restype = c_char_p
+
+
+# C function findpath_distance
