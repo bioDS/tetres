@@ -49,6 +49,7 @@ int get_num_digits(int integer){
 char* tree_to_string(Tree * input_tree){
     if (input_tree->tree == NULL){
         printf("Error. Can't write tree. Given tree doesn't exist.\n");
+        return(NULL);
     } else{
         long num_leaves = input_tree->num_leaves;
         int num_digits_n = get_num_digits(input_tree->num_leaves); // number of digits of the int num_leaves
@@ -114,7 +115,6 @@ int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
     if (input_tree->tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
     } else{
-        long num_leaves = input_tree->num_leaves;
         if(input_tree->tree[rank_in_list].parent != rank_in_list + 1){
             printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank_in_list, rank_in_list + 1);
             return 1;
@@ -138,8 +138,6 @@ int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
 
 // Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
 int rank_move(Tree * input_tree, long rank_in_list){
-    long num_leaves = input_tree->num_leaves;
-    long num_nodes = 2 * num_leaves - 1;
     if (input_tree->tree == NULL){
         printf("Error. No rank move possible. Given tree doesn't exist.\n");
         return 1;
