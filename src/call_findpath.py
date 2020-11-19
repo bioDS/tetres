@@ -20,10 +20,11 @@ class TREE(Structure):
 
 
 class TREE_LIST(Structure):
-    _field_ = [('num_trees', c_long), ('trees', POINTER(TREE))]
+    _fields_ = [('num_trees', c_long), ('trees', POINTER(TREE))]
     def __init_(self, num_trees, trees):
         self.num_trees = num_trees
         self.trees = trees
+
 
 # C function tree_to_string (for testing purposes)
 tree_to_cluster_string = lib.tree_to_string
@@ -32,3 +33,11 @@ tree_to_cluster_string.restype = c_char_p
 
 
 # C function findpath_distance
+findpath_distance = lib.findpath_distance
+findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+findpath_distance.restype = c_long
+
+# C function return_findpath
+findpath_path = lib.return_findpath
+findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
+findpath_path.restype = TREE_LIST
