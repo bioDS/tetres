@@ -2,7 +2,7 @@ __author__ = 'Lena Collienne'
 # Handling Tree input and output (to C)
 
 import re
-# from calling_findpath import *
+from call_findpath import *
 
 
 # Read tree from string s in newick format -- assuming that the given tree is ultrametric!!
