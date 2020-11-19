@@ -58,7 +58,8 @@ def read_newick(s):
     # sort internal nodes according to rank/times (increasing) -- output: list of keys (indices of internal nodes)
     int_node_list = [key for key, val in sorted(int_node_height.items(), key=lambda item:item[1])]
 
-    leaf_index = 0 # Index for leaves, their order doesn't matter
+    leaf_index = 0 # Index for leaves, they are ordered alphabetical! (To make sure that two trees on same leaf set have same mapping of position in NODE array to label)
+    parent_dict = dict(sorted(parent_dict.items(), key=lambda item: item[0])) # sort parent_dict alphabetical according to node names (internal_nodex + leaf labels) to make sure leaf labels are added to NODE listin alphabetical order
 
     for node in parent_dict:
         int_node_str = re.search(r'internal_node(\d*)', node)
@@ -90,7 +91,11 @@ def read_newick(s):
 
 
 if __name__ == '__main__':
-    # #test: tree_to_string
-    # tree = read_newick("(((a_1:1,a_2:1):2,a_3:3):1,(a_4:2,a_5:2):2)")
-    # treep = pointer(tree)
-    # print(py_tts(treep))
+    #test: tree_to_string
+    tree = read_newick("(((a_1:1,a_2:1):2,a_3:3):1,(a_4:2,a_5:2):2)")
+    tree1 = read_newick("(((a_1:1,a_3:1):2,a_2:3):1,(a_4:2,a_5:2):2)")
+    treep = pointer(tree)
+    treep1 = pointer(tree1)
+    print(tree_to_cluster_string(treep))
+    print(tree_to_cluster_string(treep1))
+    print('distance:' + str(findpath_distance(treep, treep1)))
