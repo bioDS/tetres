@@ -1,0 +1,11 @@
+.gitignore
+*.o
+*.html
+*.txt
+__pycache__
+.python-version
+*.so
+*.trees
+*.py.lprof
+*.nex
+*.tree
