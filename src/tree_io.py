@@ -88,14 +88,3 @@ def read_newick(s):
     
     output_tree = TREE(num_leaves, node_list)
     return(output_tree)
-
-
-if __name__ == '__main__':
-    #test: tree_to_string
-    tree = read_newick("(((a_1:1,a_2:1):2,a_3:3):1,(a_4:2,a_5:2):2)")
-    tree1 = read_newick("(((a_1:1,a_3:1):2,a_2:3):1,(a_4:2,a_5:2):2)")
-    treep = pointer(tree)
-    treep1 = pointer(tree1)
-    print(tree_to_cluster_string(treep))
-    print(tree_to_cluster_string(treep1))
-    print('distance:' + str(findpath_distance(treep, treep1)))
