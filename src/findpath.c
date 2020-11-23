@@ -10,6 +10,7 @@
 typedef struct Node{
     long parent;
     long children[2];
+    char * name;
 } Node;
 
 
@@ -87,7 +88,7 @@ char* tree_to_string(Tree * input_tree){
             for (long j = 0; j < num_leaves; j++){
                 if (clusters[i][j] == 1){
                     char leaf_str[num_digits_n + 1];
-                    sprintf(leaf_str, "%ld,", j + 1);
+                    sprintf(leaf_str, "%ld,", j+1);
                     strcat(tree_str, leaf_str);
                 }
             }

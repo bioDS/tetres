@@ -6,10 +6,11 @@ from ctypes import *
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
 class NODE(Structure):
-    _fields_ = [('parent', c_long), ('children', c_long * 2)] # The order of arguments here matters! Needs to be the same as in C code!
-    def __init_(self, parent, children):
+    _fields_ = [('parent', c_long), ('children', c_long * 2), ('name', c_wchar_p)] # The order of arguments here matters! Needs to be the same as in C code!
+    def __init_(self, parent, children, name):
         self.parent = parent
         self.children = children
+        self.name = name
 
 
 class TREE(Structure):
