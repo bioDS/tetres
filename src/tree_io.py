@@ -132,7 +132,6 @@ def read_nexus(file_handle):
                 break
             elif re_label != None:
                 name_dict[re_label.group(1)] = re_label.group(2)
-    print(name_dict)
 
     # Read trees
     for line in f:
