@@ -21,9 +21,9 @@ def read_newick(s):
     while (len(tree_str) > 0): # recurse over tree and replace internal nodes with leaves labelled by internal_nodei for int i and save information about internal node height and children
 
         if int_node_index < num_int_nodes - 1: # as long as we don't reach the root
-            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+)|(\d+))\):(\[[^\]]*\])?((\d+.\d+)|(\d+))'
+            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+))\):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+))'
         else: # we reach the root -- string of form '(node1:x,node2:y)' left
-            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+)|(\d+))\);?'
+            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+))\);?'
 
         int_node_str = re.search(pattern, tree_str)
 
@@ -110,27 +110,25 @@ def read_nexus(file_handle):
             first_line += 1
         else: break
 
-    num_trees = last_line - first_line # Number of trees in nexus file
-    print(num_trees)
+    num_trees = last_line - first_line + 1 # Number of trees in nexus file
 
     f = open(file_handle, 'r')
-    i = 0
-
-    trees = (TREE * num_trees)()
+    index = 0
+    progress = 10
+    trees = (TREE * num_trees)() # Save trees in an array to give to output TREE_LIST
 
     for line in f:
         # Save leaf labels
 
         # Read trees
-        num_trees = 0
         re_tree = re.search(r'tree .* (\(.*\);)', line)
         if re_tree != None:
-            num_trees += 1
-            print(re_tree.group(1))
             current_tree = read_newick(re_tree.group(1))
-            trees[i] = current_tree
-            i += 1
-            print(trees)
+            trees[index] = current_tree
+            index += 1
+            if int(100*index/num_trees) == progress:
+                print(str(progress) + '% of trees are read')
+                progress += 10
         tree_list = TREE_LIST(num_trees, trees)
 
     return(tree_list)
