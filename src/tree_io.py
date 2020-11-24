@@ -49,7 +49,6 @@ def read_newick(s):
         node_list[i].parent = -1
         node_list[i].children[0] = -1
         node_list[i].children[1] = -1
-        node_list[i].name = ''
         node_name_list.append('')
 
     # sort internal nodes according to rank/times (increasing) -- output: list of keys (indices of internal nodes)
@@ -73,7 +72,6 @@ def read_newick(s):
                 node_list[parent_rank].children[1] = child_rank
         else: # Consider leaf
             parent_rank = num_leaves + int_node_list.index(int(parent_dict[node]))
-            node_list[leaf_index].name = str(node)
             # Set parent
             node_list[leaf_index].parent = parent_rank
             # Set children (only one, make sure to use the slot children[0] ot children[1] that is not used already)

@@ -10,7 +10,6 @@
 typedef struct Node{
     long parent;
     long children[2];
-    char * name;
 } Node;
 
 
