@@ -86,3 +86,51 @@ def read_newick(s):
 
     output_tree = TREE(num_leaves, node_list)
     return(output_tree)
+
+# Read trees from nexus file and save leaf labels as dict and trees as TREE_LIST
+def read_nexus(file_handle):
+
+    # To get the number of trees in the given file, we find the first and last line in the file that contain a tree (Line starts with tree)
+    # Count number of lines in file
+    number_of_lines = len(open(file_handle).readlines())
+    last_line = number_of_lines
+
+    # Find last line containing a tree
+    for line in reversed(list(open(file_handle))):
+        re_tree = re.search(r'^tree', line)
+        if re_tree == None:
+            last_line -= 1
+        else: break
+
+    # Find first line containing a tree
+    first_line = 1
+    for line in list(open(file_handle)):
+        re_tree = re.search(r'^tree', line)
+        if re_tree == None:
+            first_line += 1
+        else: break
+
+    num_trees = last_line - first_line # Number of trees in nexus file
+    print(num_trees)
+
+    f = open(file_handle, 'r')
+    i = 0
+
+    trees = (TREE * num_trees)()
+
+    for line in f:
+        # Save leaf labels
+
+        # Read trees
+        num_trees = 0
+        re_tree = re.search(r'tree .* (\(.*\);)', line)
+        if re_tree != None:
+            num_trees += 1
+            print(re_tree.group(1))
+            current_tree = read_newick(re_tree.group(1))
+            trees[i] = current_tree
+            i += 1
+            print(trees)
+        tree_list = TREE_LIST(num_trees, trees)
+
+    return(tree_list)
