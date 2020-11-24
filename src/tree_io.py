@@ -112,15 +112,32 @@ def read_nexus(file_handle):
 
     num_trees = last_line - first_line + 1 # Number of trees in nexus file
 
-    f = open(file_handle, 'r')
+    # running variables for reading trees and displaying progress
     index = 0
     progress = 10
+
+    name_dict = dict() # Save tree label names in dict
     trees = (TREE * num_trees)() # Save trees in an array to give to output TREE_LIST
 
-    for line in f:
-        # Save leaf labels
+    f = open(file_handle, 'r')
 
-        # Read trees
+    leaf_labels = False
+    # Save leaf labels -- returns empty dict if no abbreviation for leaf labels is used
+    for line in f:
+        if re.search(r'translate', line, re.I) != None:
+            leaf_labels = True
+        # Start reading leaf labels after 'translate' (signals start of this sequence)
+        if leaf_labels == True:
+            re_label = re.search(r'\s*(.+)\s(.+),', line)
+            re_stop = re.search(r';', line)
+            if re_stop != None:
+                break
+            elif re_label != None:
+                name_dict[re_label.group(1)] = re_label.group(2)
+    print(name_dict)
+
+    # Read trees
+    for line in f:
         re_tree = re.search(r'tree .* (\(.*\);)', line)
         if re_tree != None:
             current_tree = read_newick(re_tree.group(1))
@@ -129,6 +146,8 @@ def read_nexus(file_handle):
             if int(100*index/num_trees) == progress:
                 print(str(progress) + '% of trees are read')
                 progress += 10
-        tree_list = TREE_LIST(num_trees, trees)
 
-    return(tree_list)
+    tree_list = TREE_LIST(num_trees, trees)
+    f.close()
+
+    return(tree_list, name_dict)
