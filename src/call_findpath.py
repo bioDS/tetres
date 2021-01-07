@@ -1,6 +1,8 @@
 __author__ = 'Lena Collienne'
 
 import os
+import numpy as np
+from numpy.ctypeslib import ndpointer
 from ctypes import *
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
@@ -41,3 +43,8 @@ findpath_distance.restype = c_long
 findpath_path = lib.return_findpath
 findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
 findpath_path.restype = TREE_LIST
+
+pw_distances = lib.pw_distances
+pw_distances.argtypes = [POINTER(TREE_LIST)]
+# pw_distances.restype = ndpointer(dtype=np.int64) # this doesn't work yet!
+pw_distances.restype = POINTER(POINTER(c_int))

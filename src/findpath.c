@@ -398,3 +398,28 @@ Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
     free(current_tree.tree);
     return findpath_list;
 }
+
+int ** pw_distances(Tree_List *tree_list){
+    // returns matrix of pairwise distances for given list of trees
+    int ** output = malloc(tree_list->num_trees * sizeof(int *));
+    for (long i =0; i < tree_list->num_trees; i++){
+        output[i] = malloc(tree_list->num_trees * sizeof(int));
+    }
+
+    // for printing progress:
+    float progress = 0.05;
+    long index = 0;
+    for (long i = 0; i < tree_list->num_trees; i++){
+        for (long j = i; j < tree_list->num_trees; j++){
+            output[i][j] = findpath_distance(&tree_list->trees[i], &tree_list->trees[j]);
+            // print progress (in 5% intervals)
+            index += 1;
+            if (progress < ((float)index/(float)(tree_list->num_trees * tree_list->num_trees))){
+                printf("Approximately %d precent of pairwise distances computed\n", (int)(progress * 100));
+                progress += 0.05;
+        }
+        }
+
+    }
+    return(output);
+}
