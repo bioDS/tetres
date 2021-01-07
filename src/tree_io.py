@@ -90,8 +90,7 @@ def read_nexus(file_handle):
 
     # To get the number of trees in the given file, we find the first and last line in the file that contain a tree (Line starts with tree)
     # Count number of lines in file
-    number_of_lines = len(open(file_handle).readlines())
-    last_line = number_of_lines
+    las_line = len(open(file_handle).readlines())
 
     # Find last line containing a tree
     for line in reversed(list(open(file_handle))):
