@@ -22,7 +22,7 @@ typedef struct Tree{
 
 // List of trees (e.g. as output of NNI move (2 trees) or findpath(d trees))
 typedef struct Tree_List{
-    int num_trees;
+    long num_trees;
     Tree * trees;
 } Tree_List;
 
@@ -399,27 +399,22 @@ Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
     return findpath_list;
 }
 
-int ** pw_distances(Tree_List *tree_list){
+void pw_distances(Tree_List *tree_list, int *output){
     // returns matrix of pairwise distances for given list of trees
-    int ** output = malloc(tree_list->num_trees * sizeof(int *));
-    for (long i =0; i < tree_list->num_trees; i++){
-        output[i] = malloc(tree_list->num_trees * sizeof(int));
-    }
-
     // for printing progress:
     float progress = 0.05;
     long index = 0;
-    for (long i = 0; i < tree_list->num_trees; i++){
-        for (long j = i; j < tree_list->num_trees; j++){
-            output[i][j] = findpath_distance(&tree_list->trees[i], &tree_list->trees[j]);
-            // print progress (in 5% intervals)
+    long num_trees  = tree_list->num_trees;
+    // fill in array/matrix
+    for (long i = 0; i < num_trees; i++){
+        for (long j = i; j < num_trees; j++){
+            output[i*num_trees+j] = findpath_distance(&tree_list->trees[i], &tree_list->trees[j]);
             index += 1;
-            if (progress < ((float)index/(float)(tree_list->num_trees * tree_list->num_trees))){
+            if (progress < ((float)index/(float)(num_trees * num_trees))){
                 printf("Approximately %d precent of pairwise distances computed\n", (int)(progress * 100));
                 progress += 0.05;
         }
         }
 
     }
-    return(output);
 }

@@ -45,6 +45,4 @@ findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
 findpath_path.restype = TREE_LIST
 
 pw_distances = lib.pw_distances
-pw_distances.argtypes = [POINTER(TREE_LIST)]
-# pw_distances.restype = ndpointer(dtype=np.int64) # this doesn't work yet!
-pw_distances.restype = POINTER(POINTER(c_int))
+pw_distances.argtypes = [POINTER(TREE_LIST), ndpointer(c_int, flags="C_CONTIGUOUS")]
