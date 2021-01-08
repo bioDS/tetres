@@ -29,8 +29,8 @@ typedef struct Tree_List{
 
 
 typedef struct Path{
-    long length;
-    long ** moves;
+    long long length;
+    long long ** moves;
 } Path;
 
 // Number of digits of an integer -- needed to get an upper bound of the length of an input tree as string (when reading from a file)
@@ -69,7 +69,16 @@ Tree_List read_trees_from_file(char* filename){
 
         long num_nodes = 2 * num_leaves - 1;
         int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
-        long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string -- this is quite a bad approximation and should be improved (?)        
+        // get maximum length of line in file by using wc -L in command line
+        char buf[100];
+        // system("ls -al");
+        char command[100] = "wc -L ";
+        strcat(command, filename);
+
+        FILE *fp;
+        fp = popen(command, "r");
+        long max_str_length = atoi(strtok(fgets(buf, 100, fp), " ")) + 100;
+
         Tree_List tree_list;
         tree_list.num_trees = num_trees;
         tree_list.trees = malloc(num_trees * sizeof(Tree));
@@ -446,10 +455,11 @@ long mrca(Tree * input_tree, long node1, long node2){
 Path findpath(Tree *start_tree, Tree *dest_tree){
     float count = 0.05; // counter to print the progress of the algorithm (in 10% steps of max distance)
     long num_leaves = start_tree->num_leaves;
-    long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
+    long long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
+    printf("max dist: %lld\n", max_dist);
     Path path;
     path.moves = malloc((max_dist + 1) * sizeof(long*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
-    for (long i = 0; i < max_dist + 1; i++){
+    for (long long i = 0; i < max_dist + 1; i++){
         path.moves[i] = malloc(2 * sizeof(long));
         path.moves[i][0] = 0;
         path.moves[i][1] = 0;
