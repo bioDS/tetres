@@ -2,6 +2,7 @@ __author__ = 'Lena Collienne'
 # Handling Tree input and output (to C)
 
 import re
+from ete3 import Tree
 from call_findpath import *
 
 
@@ -86,7 +87,7 @@ def read_newick(s):
     return(output_tree)
 
 # Read trees from nexus file and save leaf labels as dict and trees as TREE_LIST
-def read_nexus(file_handle):
+def read_nexus(file_handle, ete3 = False):
 
     # To get the number of trees in the given file, we find the first and last line in the file that contain a tree (Line starts with tree)
     # Count number of lines in file
@@ -114,7 +115,10 @@ def read_nexus(file_handle):
     progress = 10
 
     name_dict = dict() # Save tree label names in dict
-    trees = (TREE * num_trees)() # Save trees in an array to give to output TREE_LIST
+    if ete3 == True:
+        trees = list()
+    else:
+        trees = (TREE * num_trees)() # Save trees in an array to give to output TREE_LIST
 
     f = open(file_handle, 'r')
 
@@ -136,14 +140,28 @@ def read_nexus(file_handle):
     for line in f:
         re_tree = re.search(r'tree .* (\(.*\);)', line)
         if re_tree != None:
-            current_tree = read_newick(re_tree.group(1))
-            trees[index] = current_tree
+            if ete3 == True:
+                # print(re_tree.group(1))
+                # print(re.sub(r'\[[^\]]*\]',"",re_tree.group(1)))
+                current_tree = Tree(re.sub(r'\[[^\]]*\]',"",re_tree.group(1)))
+                trees.append(current_tree)
+            else:
+                current_tree = read_newick(re_tree.group(1))
+                trees[index] = current_tree
             index += 1
             if int(100*index/num_trees) == progress:
                 print(str(progress) + '% of trees are read')
                 progress += 10
-
-    tree_list = TREE_LIST(num_trees, trees)
     f.close()
 
-    return(tree_list, name_dict)
+    if ete3 == True:
+        return(trees,name_dict)
+    else:
+        tree_list = TREE_LIST(num_trees, trees)
+        return(tree_list, name_dict)
+
+# # read nexus file to get trees in ete3 tree format instead of RNNI tree format
+# def read_nexus(file_handle, ete3):
+#     if ete3 == false:
+#         read_nexus(file_handle)
+#     else:
