@@ -172,9 +172,3 @@ def read_nexus(file_handle, ete3 = False):
     else:
         tree_list = TREE_LIST(num_trees, trees)
         return(tree_list, name_dict)
-
-# # read nexus file to get trees in ete3 tree format instead of RNNI tree format
-# def read_nexus(file_handle, ete3):
-#     if ete3 == false:
-#         read_nexus(file_handle)
-#     else:
