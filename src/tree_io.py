@@ -95,18 +95,31 @@ def read_nexus(file_handle, ete3 = False):
 
     # Find last line containing a tree
     for line in reversed(list(open(file_handle))):
-        re_tree = re.search(r'^tree', line)
+        re_tree = re.search(r'tree', line, re.I)
         if re_tree == None:
             last_line -= 1
         else: break
 
     # Find first line containing a tree
     first_line = 1
+    in_tree = False # turn to True if we pass 'begin tree' in NEXUS file. The actual trees then start after the 'translate' block
     for line in list(open(file_handle)):
-        re_tree = re.search(r'^tree', line)
-        if re_tree == None:
+        if in_tree == False:
+            re_tree = re.search(r'begin tree', line, re.I)
+            if re_tree != None:
+                in_tree = True
             first_line += 1
-        else: break
+        else: # pass the translate block
+            if re.search(r';', line) == None:
+                first_line += 1
+            else:
+                first_line += 1
+                break
+    # for line in list(open(file_handle)):
+        # re_tree = re.search(r'^tree', line, re.I)
+        # if re_tree == None:
+        #     first_line += 1
+        # else: break
 
     num_trees = last_line - first_line + 1 # Number of trees in nexus file
 
