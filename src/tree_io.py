@@ -151,7 +151,7 @@ def read_nexus(file_handle, ete3 = False):
 
     # Read trees
     for line in f:
-        re_tree = re.search(r'tree .* (\(.*\);)', line)
+        re_tree = re.search(r'tree .* (\(.*\);)', line, re.I)
         if re_tree != None:
             if ete3 == True:
                 # print(re_tree.group(1))
