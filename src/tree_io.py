@@ -19,14 +19,14 @@ def read_newick(s):
     parent_dict = dict() # for each node (leaves + internal) save index of parent (int_node_index)
     int_node_height = dict() # heights for all internal nodes (distance to leaves)
 
-    while (len(tree_str) > 0): # recurse over tree and replace internal nodes with leaves labelled by internal_nodei for int i and save information about internal node height and children
+    while (len(tree_str) > 0): # recurse over tree and replace internal nodes with leaves labelled by internal_node i for int i and save information about internal node height and children
 
         if int_node_index < num_int_nodes - 1: # as long as we don't reach the root
-            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+))\):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+))'
+            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d+)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d+)|(\d+))\):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+))'
         else: # we reach the root -- string of form '(node1:x,node2:y)' left
-            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d?)|(\d+))\);?'
+            pattern = r'\((\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d+)|(\d+)),(\w+):(\[[^\]]*\])?((\d+.\d+E?\-?\d+)|(\d+))\);?'
 
-        int_node_str = re.search(pattern, tree_str)
+        int_node_str = re.search(pattern, tree_str, re.I)
 
         # Save new internal node as parent of its two children
         parent_dict[int_node_str.group(1)] = int_node_index
@@ -36,7 +36,7 @@ def read_newick(s):
 
         if int_node_index < num_int_nodes - 1: # insert new leaf 'internal_nodei' replacing the found pattern (pair of leaves)
             repl = "internal_node" + str(int_node_index) + ":" + str(float(int_node_height[int_node_index])+ float(int_node_str.group(12)))
-            tree_str = re.sub(pattern, repl, tree_str, count = 1)
+            tree_str = re.sub(pattern, repl, tree_str, count = 1, flags = re.I)
             int_node_index += 1
         else: # If we consider root, replace tree_str with empty str
             tree_str = ''
