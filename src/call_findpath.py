@@ -1,31 +1,34 @@
-__author__ = 'Lena Collienne'
+__author__ = 'Lena Collienne and Jordan Kettles'
 
 import os
+from ctypes import *
 import numpy as np
 from numpy.ctypeslib import ndpointer
-from ctypes import *
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
 class NODE(Structure):
-    _fields_ = [('parent', c_long), ('children', c_long * 2)] # The order of arguments here matters! Needs to be the same as in C code!
-    def __init_(self, parent, children, name):
+    _fields_ = [('parent', c_long), ('children', c_long * 2), ('time', c_long)] # The order of arguments here matters! Needs to be the same as in C code!
+    def __init_(self, parent, children, time):
         self.parent = parent
         self.children = children
+        self.time = time
 
 
 class TREE(Structure):
-    _fields_ =  [('num_leaves', c_long), ('tree', POINTER(NODE))] # Everything from struct definition in C
-    def __init_(self, num_leaves, tree):
+    _fields_ =  [('num_leaves', c_long), ('tree', POINTER(NODE)), ('root_time', c_long)] # Everything from struct definition in C
+    def __init_(self, num_leaves, tree, root_time):
         self.num_leaves = num_leaves
         self.tree = tree
+        self.root_time = root_time
 
 
 class TREE_LIST(Structure):
-    _fields_ = [('num_trees', c_long), ('trees', POINTER(TREE))]
+    _fields_ = [('num_trees', c_int), ('trees', POINTER(TREE))]
     def __init_(self, num_trees, trees):
         self.num_trees = num_trees
         self.trees = trees
+
 
 
 # C function tree_to_string (for testing purposes)

@@ -10,6 +10,7 @@
 typedef struct Node{
     long parent;
     long children[2];
+    long time;
 } Node;
 
 
@@ -17,6 +18,7 @@ typedef struct Node{
 typedef struct Tree{
     long num_leaves;
     Node * tree;
+    long root_time;
 } Tree;
 
 
