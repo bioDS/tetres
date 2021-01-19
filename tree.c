@@ -4,35 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
-
-// Structure for an internal node of a tree
-typedef struct Node{
-    long parent;
-    long children[2];
-    long time;
-} Node;
-
-
-// A tree is an array of nodes ordered according to their ranks (first n nodes are leaves, order there doesn't matter) + number of leaves (long)
-typedef struct Tree{
-    long num_leaves;
-    Node * tree;
-    long root_time;
-} Tree;
-
-
-// List of trees (e.g. as output of NNI move (2 trees) or findpath(d trees))
-typedef struct Tree_List{
-    long num_trees;
-    Tree * trees;
-} Tree_List;
-
-
-typedef struct Path{
-    long length;
-    long ** moves;
-} Path;
+#include "tree.h"
 
 
 // Number of digits of an integer -- needed to get an upper bound of the length of an input tree as string (when reading from a file)
