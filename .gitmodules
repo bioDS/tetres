@@ -1,0 +1,3 @@
+[submodule "dct_parser"]
+	path = dct_parser
+	url = git@github.com:bioDS/dct_parser.git
