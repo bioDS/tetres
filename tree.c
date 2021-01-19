@@ -458,8 +458,9 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
     long long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
     printf("max dist: %lld\n", max_dist);
     Path path;
-    path.moves = malloc((max_dist + 1) * sizeof(long*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
+    path.moves = malloc((max_dist + 1) * sizeof(long*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
     for (long long i = 0; i < max_dist + 1; i++){
+        printf("i: %lld\n", i);
         path.moves[i] = malloc(2 * sizeof(long));
         path.moves[i][0] = 0;
         path.moves[i][1] = 0;
@@ -540,6 +541,9 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
 long findpath_distance(Tree *start_tree, Tree *dest_tree){
     long num_leaves = start_tree->num_leaves;
     long path_index = 0; // next position on path that we want to fill with a tree pointer
+    // for printing progress:
+    long long max_dist = (num_leaves - 1) * (num_leaves - 2) / 2;
+    float progress = 0.05;
     if (start_tree->tree == NULL){
         printf("Error. Start tree doesn't exist.\n");
     } else if (dest_tree->tree == NULL){
@@ -594,6 +598,10 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                     current_mrca--;
                 }
                 path_index++;
+                if (progress < (float)path_index/(float)max_dist){
+                    printf("Progress: %f\n", progress);
+                    progress += 0.05;
+                }
             }
         }
         free(current_tree.tree);
@@ -735,24 +743,6 @@ int main(){
     long num_leaves = tree_list.trees[0].num_leaves;
     long num_nodes = 2 * num_leaves - 1;
 
-    // // // check if read_trees_from_file reads trees correctly
-    // // for (int k = 0; k < num_trees; k++){
-    // //     for(int i = 0; i < 2 * num_leaves - 1; i++){
-    // //         if (i < num_leaves){
-    // //             // printf("highest ancestor of node %d has rank %d\n", i, highest_ancestor[i] + 1);
-    // //             printf("leaf %d has parent %d\n", i+1, tree_list.trees[k][i].parent);
-    // //         } else{
-    // //             printf("node %d has children %d and %d\n", i, tree_list.trees[k][i].children[0], tree_list.trees[k][i].children[1]);
-    // //             printf("node %d has parent %d\n", i, tree_list.trees[k][i].parent);
-    // //         }
-    // //     }
-    // // }
-
-    // // read_tree_from_string(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]"); // test function when for reading tree as string
-
-    // write_trees(tree_list, "./output/output.rtree"); // write given trees into file
-    Tree_List findpath_list = return_findpath(tree_list.trees[0], tree_list.trees[1]); // write FP into file
-    // int ** fp = findpath(tree_list.trees[0], tree_list.trees[1], tree_list.num_leaves); //run FP
     Tree * start_tree;
     Tree * dest_tree;
     start_tree = &tree_list.trees[0];
@@ -760,47 +750,16 @@ int main(){
 
     printf("Start running FindPath\n");
     clock_t start_time = time(NULL);
-    Path path = findpath(start_tree, dest_tree);
-    long distance = path.length;
-    // long distance = findpath_distance(start_tree, dest_tree);
+    long distance = findpath_distance(start_tree, dest_tree);
     clock_t end_time = time(NULL);
     printf("End running FindPath\n");
-    long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    // int distance = fp[0][0];
-    // for (int i = 0; i < max_dist + 1; i++){
-    //     free(fp[i]);
-    // }
-    // free(fp);
-
-    char * start_tree_str = tree_to_string(start_tree);
-    char * dest_tree_str = tree_to_string(dest_tree);
-    // fpath = findpath_cluster_list(num_leaves, start_tree_str, dest_tree_str);
-    // printf("FP path:\n");
-    // for (int i = 0; i < distance + 1; i++){
-    //     printf("%s\n", fpath[i]);
-    //     free(fpath[i]);
-    // }
-    // free(fpath);
-
-    // Free all variables
-    // for (int i = 0; i < max_dist + 1; i++){
-    //     free(path.moves[i]);
-    // }
-    // free(path.moves);
 
     for (int i = 0; i < tree_list.num_trees; i++){
         free(tree_list.trees[i].tree);
     }
-    for (int i = 0; i < findpath_list.num_trees; i++){
-        printf("%s \n", tree_to_string(&findpath_list.trees[i]));
-    }
     free(tree_list.trees);
-    free(start_tree_str);
-    free(dest_tree_str);
 
     printf("Time to compute FP(T,R): %f sec\n", difftime(end_time, start_time));
     printf("Length of fp: %ld\n", distance);
-    write_trees(&findpath_list, "./output/fp.rtree");
-    // printf("distance: %d\n", distance(5, "[{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]", "[{4,5},{3,4,5},{1,2},{1,2,3,4,5}]"));
     return 0;
 }
