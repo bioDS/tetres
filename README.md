@@ -1,23 +1,27 @@
-# README
+# Computing nearest neighbour interchange distances between ranked phylogenetic trees - Code Repository
 
-tree.c reads a tree file, computes a shortest path with FINDPATH between the first two trees of that file, and returns all trees on this shortest path in "output/fp.rtree".
-
-## Ranked tree file format:
-1st line: number of leaves  
-2nd line: number of trees in file  
-3rd and following lines: trees in list of sets representation  
-
-### Example for an input file:
-
-> 5  
-> 2  
-> [{3,5},{2,4},{2,3,4,5},{1,5,4,3,2}]  
-> [{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}]
+This repository contains the code for computing the RNNI distance using the algorithm FINDPATH from the paper [Computing nearest neighbour interchange distances between ranked phylogenetic trees](https://doi.org/10.1007/s00285-021-01567-5) by Lena Collienne and Alex Gavryushkin
 
 
-## Path matrix format:
-Matrix int ** moves with dimension distance x 2.  
-The first row contains the distance between the two trees (moves[0][0]).  
-Each following row represents a move.  
-1st column: rank of lower node bounding the interval on which move happens  
-2nd column: 0/1/2 if rannk move/nni move moving children[1] up/nni move moving children[0] up
+## Compilation
+
+`make`
+
+The executable program **tree** asks for a file containing ranked trees and computes the RNNI distance between the given trees.
+
+## Files
+
+| File			|	Description
+---			|	---
+| tree.c | FINDPATH algorithm |
+| example.trees | example of input file for trees in the format described below |
+
+### Input format for tree file
+
+> number_of_leaves  
+> number_of_trees  
+> tree_1  
+> tree_2  
+> ...
+
+The input trees need to be given in the cluster representation.
