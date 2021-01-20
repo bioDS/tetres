@@ -7,21 +7,16 @@ This repository contains the code for computing the RNNI distance using the algo
 
 `make`
 
-The executable program **tree** asks for a file containing ranked trees and computes the RNNI distance between the given trees.
+## Reading Trees
 
-## Files
+The submodule dct_parser allows reading trees from nexus files or as newick strings
 
-| File			|	Description
+## Functions
+
+The following C functions (tree.c) are wrapped in Python (tree_structs.py):
+
+| Functions			|	Description
 ---			|	---
-| tree.c | FINDPATH algorithm |
-| example.trees | example of input file for trees in the format described below |
+| findpath_distance | returns distance for two trees, using FINDPATH |
+| findpath_path | returns a shortest path for two trees, using FINDPATH |
 
-### Input format for tree file
-
-> number_of_leaves  
-> number_of_trees  
-> tree_1  
-> tree_2  
-> ...
-
-The input trees need to be given in the cluster representation.
