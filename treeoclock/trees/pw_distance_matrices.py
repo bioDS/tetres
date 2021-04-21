@@ -2,6 +2,7 @@ __author__ = 'Lena Collienne'
 # Computing pairwise distance matrices -- RNNI, RF
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from tree_io import *
 
