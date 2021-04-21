@@ -8,6 +8,7 @@ __pycache__
 *.nex
 *.tree
 .DS_Store
+.idea/
 
 # Compiled python modules.
 *.pyc
