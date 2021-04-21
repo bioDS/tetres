@@ -1,6 +1,5 @@
 *.o
 *.html
-*.txt
 __pycache__
 .python-version
 *.so
