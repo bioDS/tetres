@@ -7,6 +7,7 @@ __pycache__
 *.py.lprof
 *.nex
 *.tree
+.DS_Store
 
 # Compiled python modules.
 *.pyc
