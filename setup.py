@@ -7,5 +7,5 @@ setup(name='treeoclock',
       author='Lars Berling, Lena Collienne, Jordan Kettles',
       # author_email='flyingcircus@example.com',
       license='MIT',
-      packages=['trees'],
+      packages=['treeoclock'],
       zip_safe=False)
