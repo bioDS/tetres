@@ -1,10 +1,10 @@
 __author__ = 'Lena Collienne'
 # Computing pairwise distance matrices -- RNNI, RF
 
-import ctypes
-from tree_io import *
-from ete3 import Tree
 import matplotlib.pyplot as plt
+
+from tree_io import *
+
 
 def pw_rnni_dist(filename):
     tree_list = read_nexus(filename)[0]
