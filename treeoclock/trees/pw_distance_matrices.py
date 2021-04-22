@@ -1,14 +1,26 @@
 __author__ = 'Lena Collienne'
 
-# Computing pairwise distance matrices -- RNNI, RF
-
 import matplotlib.pyplot as plt
 import numpy as np
 
 from tree_io import *
 
+"""
+Computing pariwise distance matrices, RNNI and RF distances
+"""
+
 
 def pw_rnni_dist(filename):
+    """
+    Computes pairwise RNNI distance matrix for trees in the given file
+
+    Also saves the matrix in a file output/pw_rf_distance_matrix.txt
+
+    :param filename: specifies nexus file path
+    :type filename: string
+    :return: pairwise distance matrix
+    :rtype: ndarray of int
+    """
     tree_list = read_nexus(filename)[0]
     num_trees = tree_list.num_trees
 
@@ -24,6 +36,16 @@ def pw_rnni_dist(filename):
 
 
 def pw_rf_dist(filename):
+    """
+    Computes pairwise RF distance matrix for trees in the given file
+
+    Also saves the matrix in a file output/pw_rf_distance_matrix.txt
+
+    :param filename: specifies nexus file path
+    :type filename: string
+    :return: pairwise distance matrix
+    :rtype: ndarray of int
+    """
     tree_list, name_dict = read_nexus(filename, ete3=True)
     num_trees = len(tree_list)
     distances = np.zeros(shape=(num_trees, num_trees), dtype=np.int32)
@@ -37,6 +59,15 @@ def pw_rf_dist(filename):
 
 
 def plot_pw_dist_hist(tree_file, dist):
+    """
+    Plots a histogram of the pairwise distance matrix
+
+    :param tree_file: tree file name
+    :type tree_file: string
+    :param dist: a pairwise distance matrix
+    :type dist: ndarray
+    """
+
     # Get number of leaves:
     for line in list(open(tree_file)):
         ntax_str = re.search(r'ntax\D*(\d*)', line, re.I)
