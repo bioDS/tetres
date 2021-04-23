@@ -15,7 +15,7 @@ from call_findpath import *  # TODO
 import timeit
 
 
-def get_mapping_dict(file):
+def get_mapping_dict(file: str) -> dict:
     """
     Returns the taxon mapping of the nexus file as a dictionary
 
@@ -258,11 +258,13 @@ def read_newick(s):
 def read_nexus(file_handle, ete3=False):
     # To get the number of trees in the given file, we find the first and last line in the file that contain a tree (Line starts with tree)
     # Count number of lines in file
+
+    # TODO BLOCK
     last_line = len(open(file_handle).readlines())
 
     # Find last line containing a tree
     for line in reversed(list(open(file_handle))):
-        re_tree = re.search(r'tree', line, re.I)
+        re_tree = re.search(r'tree', line, re.I)  # TODO compile regex prior to loop
         if re_tree == None:
             last_line -= 1
         else:
@@ -273,12 +275,12 @@ def read_nexus(file_handle, ete3=False):
     in_tree = False  # turn to True if we pass 'begin tree' in NEXUS file. The actual trees then start after the 'translate' block
     for line in list(open(file_handle)):
         if in_tree == False:
-            re_tree = re.search(r'begin tree', line, re.I)
+            re_tree = re.search(r'begin tree', line, re.I)  # TODO compile regex prior to loop
             if re_tree != None:
                 in_tree = True
             first_line += 1
         else:  # pass the translate block
-            if re.search(r';', line) == None:
+            if re.search(r';', line) == None:  # TODO compile regex prior to loop
                 first_line += 1
             else:
                 first_line += 1
@@ -286,41 +288,42 @@ def read_nexus(file_handle, ete3=False):
 
     num_trees = last_line - first_line + 1  # Number of trees in nexus file
 
-    # TODO count number of lines that begin with tree regex to count the number instead
-
     # print(num_trees)
+
+    # TODO count number of lines that begin with tree regex to count the number instead
+    # TODO BLOCK
 
     # running variables for reading trees and displaying progress
     index = 0
-    progress = 10
+    # progress = 10
 
     name_dict = get_mapping_dict(file_handle)  # Save tree label names in dict
     trees = (TREE * num_trees)()  # Save trees in an array to give to output TREE_LIST
     if ete3:
         trees = list()
 
+    re_tree = re.compile('\t?tree .*=? (.*$)', re.I)
     with open(file_handle, 'r') as f:
         # Read trees
         for line in f:
-            re_tree = re.search(r'tree .* (\(.*\);)', line, re.I)
-            if re_tree != None:
-                if ete3 == True:
-                    current_tree = Tree(re.sub(r'\[[^\]]*\]', "", re_tree.group(1)))
+            if re_tree.match(line):
+                if ete3:  # TODO doesn't ete3 have a nexus reading module ?
+                    current_tree = Tree(re.sub(r'\[[^\]]*\]', "", re.split(re_tree, line)[1]))  # TODO compile regex prior to loop
                     trees.append(current_tree)
                 else:
-                    current_tree = read_newick(re_tree.group(1))
-                    trees[index] = current_tree
-                index += 1
-                if int(100 * index / num_trees) == progress:
-                    # print(str(progress) + '% of trees are read')
-                    progress += 10
+                    # TODO Can this be more efficient?
+                    trees[index] = read_newick(re.split(re_tree, line)[1])
+                # current tree =
+                # index += 1
+                # if int(100 * index / num_trees) == progress:
+                #     # print(str(progress) + '% of trees are read')
+                #     progress += 10
 
-    if ete3 == True:
-        return (trees, name_dict)
-    else:
-        tree_list = TREE_LIST(num_trees, trees)
-        # print('Finished')
-        return (tree_list, name_dict)
+    if ete3:
+        return trees, name_dict
+    tree_list = TREE_LIST(num_trees, trees)
+    # print('Finished')
+    return tree_list, name_dict
 
 
 if __name__ == '__main__':
@@ -328,30 +331,24 @@ if __name__ == '__main__':
     import sys
     import numpy as np
 
+    # t, n = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/jirka_01/jirka_01.trees')
+    # sys.exit('Finito')
 
-    read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/jirka_01/jirka_01.trees')
-
-    sys.exit('Finito')
-
-    # 0.25
     start_time = timeit.default_timer()
     dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
     elapsed = timeit.default_timer() - start_time
     print(elapsed)
 
-    # 0.15
     start_time = timeit.default_timer()
     rsv2 = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees')
     elapsed = timeit.default_timer() - start_time
     print(elapsed)
 
-    # 0.19
     start_time = timeit.default_timer()
     dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees', ete3=True)
     elapsed = timeit.default_timer() - start_time
     print(elapsed)
 
-    # 0.16
     start_time = timeit.default_timer()
     rsv2 = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees', ete3=True)
     elapsed = timeit.default_timer() - start_time
