@@ -303,12 +303,14 @@ def read_nexus(file_handle, ete3=False):
         trees = list()
 
     re_tree = re.compile('\t?tree .*=? (.*$)', re.I)
+    ete3_regex = re.compile(r'\[[^\]]*\]')
+
     with open(file_handle, 'r') as f:
         # Read trees
         for line in f:
             if re_tree.match(line):
                 if ete3:  # TODO doesn't ete3 have a nexus reading module ?
-                    current_tree = Tree(re.sub(r'\[[^\]]*\]', "", re.split(re_tree, line)[1]))  # TODO compile regex prior to loop
+                    current_tree = Tree(re.sub(ete3_regex, "", re.split(re_tree, line)[1]))
                     trees.append(current_tree)
                 else:
                     # TODO Can this be more efficient?
