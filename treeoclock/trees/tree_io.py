@@ -9,7 +9,46 @@ from collections import OrderedDict
 
 from ete3 import Tree
 
-from call_findpath import *
+from call_findpath import *  # TODO
+
+# TODO temporary imports
+import timeit
+
+
+def get_mapping_dict(file):
+    """
+    Returns the taxon mapping of the nexus file as a dictionary
+
+    :param file: A nexus file path
+    :type file: string
+    :return: Dictionary containing the mapping of taxa(values) to int(keys)
+    :rtype: dict {int --> string}
+    """
+    # Extract a mapping dict from a file dict: int --> taxa
+    # Begin trees;
+    #   Translate
+
+    # ;
+    # trees
+    # End;
+    begin_map = re.compile('\tTranslate\n', re.I)
+    end = re.compile('\t?;\n?')
+
+    mapping = {}
+
+    begin = False
+    with open(file) as f:
+        for line in f:
+            if begin:
+                if end.match(line):
+                    break
+                split = line.split()
+
+                mapping[int(split[0])] = split[1][:-1] if split[1][-1] == "," else split[1]
+
+            if begin_map.match(line):
+                begin = True
+    return mapping
 
 
 # Update the height of the node child by the height of the parent - difference.
@@ -247,50 +286,75 @@ def read_nexus(file_handle, ete3=False):
 
     num_trees = last_line - first_line + 1  # Number of trees in nexus file
 
+    # TODO count number of lines that begin with tree regex to count the number instead
+
+    # print(num_trees)
+
     # running variables for reading trees and displaying progress
     index = 0
     progress = 10
 
-    name_dict = dict()  # Save tree label names in dict
-    if ete3 == True:
+    name_dict = get_mapping_dict(file_handle)  # Save tree label names in dict
+    trees = (TREE * num_trees)()  # Save trees in an array to give to output TREE_LIST
+    if ete3:
         trees = list()
-    else:
-        trees = (TREE * num_trees)()  # Save trees in an array to give to output TREE_LIST
 
-    f = open(file_handle, 'r')
-
-    leaf_labels = False
-    # Save leaf labels -- returns empty dict if no abbreviation for leaf labels is used
-    for line in f:
-        if re.search(r'translate', line, re.I) != None:
-            leaf_labels = True
-        # Start reading leaf labels after 'translate' (signals start of this sequence)
-        if leaf_labels == True:
-            re_label = re.search(r'\s*(.+)\s(.+),', line)
-            re_stop = re.search(r';', line)
-            if re_stop != None:
-                break
-            elif re_label != None:
-                name_dict[re_label.group(1)] = re_label.group(2)
-
-    # Read trees
-    for line in f:
-        re_tree = re.search(r'tree .* (\(.*\);)', line, re.I)
-        if re_tree != None:
-            if ete3 == True:
-                current_tree = Tree(re.sub(r'\[[^\]]*\]', "", re_tree.group(1)))
-                trees.append(current_tree)
-            else:
-                current_tree = read_newick(re_tree.group(1))
-                trees[index] = current_tree
-            index += 1
-            if int(100 * index / num_trees) == progress:
-                print(str(progress) + '% of trees are read')
-                progress += 10
-    f.close()
+    with open(file_handle, 'r') as f:
+        # Read trees
+        for line in f:
+            re_tree = re.search(r'tree .* (\(.*\);)', line, re.I)
+            if re_tree != None:
+                if ete3 == True:
+                    current_tree = Tree(re.sub(r'\[[^\]]*\]', "", re_tree.group(1)))
+                    trees.append(current_tree)
+                else:
+                    current_tree = read_newick(re_tree.group(1))
+                    trees[index] = current_tree
+                index += 1
+                if int(100 * index / num_trees) == progress:
+                    # print(str(progress) + '% of trees are read')
+                    progress += 10
 
     if ete3 == True:
         return (trees, name_dict)
     else:
         tree_list = TREE_LIST(num_trees, trees)
+        # print('Finished')
         return (tree_list, name_dict)
+
+
+if __name__ == '__main__':
+
+    import sys
+    import numpy as np
+
+
+    read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/jirka_01/jirka_01.trees')
+
+    sys.exit('Finito')
+
+    # 0.25
+    start_time = timeit.default_timer()
+    dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
+    elapsed = timeit.default_timer() - start_time
+    print(elapsed)
+
+    # 0.15
+    start_time = timeit.default_timer()
+    rsv2 = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees')
+    elapsed = timeit.default_timer() - start_time
+    print(elapsed)
+
+    # 0.19
+    start_time = timeit.default_timer()
+    dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees', ete3=True)
+    elapsed = timeit.default_timer() - start_time
+    print(elapsed)
+
+    # 0.16
+    start_time = timeit.default_timer()
+    rsv2 = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees', ete3=True)
+    elapsed = timeit.default_timer() - start_time
+    print(elapsed)
+
+    # read_newick()
