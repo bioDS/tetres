@@ -197,9 +197,9 @@ def read_newick(s):
 
     shortest_branch = int_node_times[1]
     for i in range(1, num_int_nodes - 1):
-        if (shortest_branch == 0):
+        if shortest_branch == 0:
             shortest_branch = int_node_times[i]
-        if ((int_node_times[i + 1] - int_node_times[i]) < shortest_branch):
+        if (int_node_times[i + 1] - int_node_times[i]) < shortest_branch:
             shortest_branch = (int_node_times[i + 1] - int_node_times[i])
 
     # Lars version (incomplete)
@@ -219,8 +219,9 @@ def read_newick(s):
     parent_dict = OrderedDict(sorted(parent_dict.items(), key=lambda item: item[0]))
 
     for node in parent_dict:
+        # TODO this is a case for re.match again!
         int_node_str = re.search(r'internal_node(\d*)', node)
-        if int_node_str != None:  # Consider internal node
+        if int_node_str is not None:  # Consider internal node
 
             child_rank = num_leaves + int_node_list.index(int(int_node_str.group(1)))
             parent_rank = num_leaves + int_node_list.index(int(parent_dict[int_node_str.group()]))
@@ -229,7 +230,7 @@ def read_newick(s):
             node_list[child_rank].parent = parent_rank
             node_list[child_rank].time = int_node_times[child_rank - num_leaves]
             # Set children (only one, make sure to use the slot children[0] ot children[1] that is not used already)
-            if (node_list[parent_rank].children[0] == -1):
+            if node_list[parent_rank].children[0] == -1:
                 node_list[parent_rank].children[0] = child_rank
             else:
                 node_list[parent_rank].children[1] = child_rank
@@ -241,7 +242,7 @@ def read_newick(s):
             # set time of every leaf to 0.
             node_list[node_int].time = 0
             # Set children (only one, make sure to use the slot children[0] ot children[1] that is not used already)
-            if (node_list[parent_rank].children[0] == -1):
+            if node_list[parent_rank].children[0] == -1:
                 node_list[parent_rank].children[0] = node_int
             else:
                 node_list[parent_rank].children[1] = node_int
@@ -251,7 +252,7 @@ def read_newick(s):
     node_list[num_nodes - 1].time = int_node_times[num_int_nodes - 1]
 
     output_tree = TREE(num_leaves, node_list, -1)
-    return (output_tree)
+    return output_tree
 
 
 # Read trees from nexus file and save leaf labels as dict and trees as TREE_LIST
@@ -259,50 +260,25 @@ def read_nexus(file_handle, ete3=False):
     # To get the number of trees in the given file, we find the first and last line in the file that contain a tree (Line starts with tree)
     # Count number of lines in file
 
-    # TODO BLOCK
-    last_line = len(open(file_handle).readlines())
 
-    # Find last line containing a tree
-    for line in reversed(list(open(file_handle))):
-        re_tree = re.search(r'tree', line, re.I)  # TODO compile regex prior to loop
-        if re_tree == None:
-            last_line -= 1
-        else:
-            break
+    # Counting the number of trees in the file
+    re_tree = re.compile('\t?tree .*=? (.*$)', flags= re.I | re.MULTILINE)
+    num_trees = len(re_tree.findall(open(file_handle).read()))
 
-    # Find first line containing a tree
-    first_line = 1
-    in_tree = False  # turn to True if we pass 'begin tree' in NEXUS file. The actual trees then start after the 'translate' block
-    for line in list(open(file_handle)):
-        if in_tree == False:
-            re_tree = re.search(r'begin tree', line, re.I)  # TODO compile regex prior to loop
-            if re_tree != None:
-                in_tree = True
-            first_line += 1
-        else:  # pass the translate block
-            if re.search(r';', line) == None:  # TODO compile regex prior to loop
-                first_line += 1
-            else:
-                first_line += 1
-                break
-
-    num_trees = last_line - first_line + 1  # Number of trees in nexus file
-
-    # print(num_trees)
-
-    # TODO count number of lines that begin with tree regex to count the number instead
-    # TODO BLOCK
-
+    # TODO
     # running variables for reading trees and displaying progress
     index = 0
     # progress = 10
+    #TODO
 
     name_dict = get_mapping_dict(file_handle)  # Save tree label names in dict
+    # TODO what does this syntax actually do ? do we need the num_trees or can this be done with python list ?
     trees = (TREE * num_trees)()  # Save trees in an array to give to output TREE_LIST
+
     if ete3:
         trees = list()
 
-    re_tree = re.compile('\t?tree .*=? (.*$)', re.I)
+    
     ete3_regex = re.compile(r'\[[^\]]*\]')
 
     with open(file_handle, 'r') as f:
@@ -331,11 +307,16 @@ def read_nexus(file_handle, ete3=False):
 if __name__ == '__main__':
 
     import sys
-    import numpy as np
 
-    # t, n = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/jirka_01/jirka_01.trees')
-    # sys.exit('Finito')
+    dengue, map = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
+    # Dengue contains a tree list object, what to do with this class ?
+    # Should be an iterable list
 
+    # findpath_distance()
+
+    sys.exit('Bla')
+
+    # blaskf
     start_time = timeit.default_timer()
     dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
     elapsed = timeit.default_timer() - start_time
