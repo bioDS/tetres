@@ -17,11 +17,11 @@ def pw_rnni_dist(filename):
     Also saves the matrix in a file output/pw_rf_distance_matrix.txt
 
     :param filename: specifies nexus file path
-    :type filename: string
+    :type filename: str
     :return: pairwise distance matrix
     :rtype: ndarray of int
     """
-    tree_list = read_nexus(filename)[0]
+    tree_list = read_nexus_to_treelist(filename)[0]
     num_trees = tree_list.num_trees
 
     # Create empty distance matrix as input for pw_distances
@@ -42,11 +42,11 @@ def pw_rf_dist(filename):
     Also saves the matrix in a file output/pw_rf_distance_matrix.txt
 
     :param filename: specifies nexus file path
-    :type filename: string
+    :type filename: str
     :return: pairwise distance matrix
     :rtype: ndarray of int
     """
-    tree_list, name_dict = read_nexus(filename, ete3=True)
+    tree_list, name_dict = read_nexus_to_treelist(filename, ete3=True)
     num_trees = len(tree_list)
     distances = np.zeros(shape=(num_trees, num_trees), dtype=np.int32)
     for i in range(0, num_trees):
@@ -63,7 +63,7 @@ def plot_pw_dist_hist(tree_file, dist):
     Plots a histogram of the pairwise distance matrix
 
     :param tree_file: tree file name
-    :type tree_file: string
+    :type tree_file: str
     :param dist: a pairwise distance matrix
     :type dist: ndarray
     """

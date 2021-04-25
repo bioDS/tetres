@@ -20,7 +20,7 @@ def get_mapping_dict(file: str) -> dict:
     Returns the taxon mapping of the nexus file as a dictionary
 
     :param file: A nexus file path
-    :type file: string
+    :type file: str
     :return: Dictionary containing the mapping of taxa(values) to int(keys)
     :rtype: dict {int --> string}
     """
@@ -255,30 +255,30 @@ def read_newick(s):
     return output_tree
 
 
-# Read trees from nexus file and save leaf labels as dict and trees as TREE_LIST
-def read_nexus(file_handle, ete3=False):
-    # To get the number of trees in the given file, we find the first and last line in the file that contain a tree (Line starts with tree)
-    # Count number of lines in file
+def read_nexus_to_treelist(file_handle, ete3=False):
+    """
+    Read trees from nexus file and returns either an ete3 list of trees or a TREE_LIST
 
+    :param file_handle: Path to a nexus tree file
+    :type file_handle: str
+    :param ete3: Whether to return an ete3 list of trees(True) or a  TREE_LIST(False), defaults to False
+    :type ete3: bool
+    :return: list of ete3 trees or TREE_LIST
+    """
 
     # Counting the number of trees in the file
-    re_tree = re.compile('\t?tree .*=? (.*$)', flags= re.I | re.MULTILINE)
+    re_tree = re.compile('\t?tree .*=? (.*$)', flags=re.I | re.MULTILINE)
     num_trees = len(re_tree.findall(open(file_handle).read()))
 
-    # TODO
     # running variables for reading trees and displaying progress
     index = 0
     # progress = 10
-    #TODO
 
     name_dict = get_mapping_dict(file_handle)  # Save tree label names in dict
-    # TODO what does this syntax actually do ? do we need the num_trees or can this be done with python list ?
     trees = (TREE * num_trees)()  # Save trees in an array to give to output TREE_LIST
-
     if ete3:
         trees = list()
 
-    
     ete3_regex = re.compile(r'\[[^\]]*\]')
 
     with open(file_handle, 'r') as f:
@@ -289,51 +289,44 @@ def read_nexus(file_handle, ete3=False):
                     current_tree = Tree(re.sub(ete3_regex, "", re.split(re_tree, line)[1]))
                     trees.append(current_tree)
                 else:
-                    # TODO Can this be more efficient?
                     trees[index] = read_newick(re.split(re_tree, line)[1])
-                # current tree =
-                # index += 1
-                # if int(100 * index / num_trees) == progress:
-                #     # print(str(progress) + '% of trees are read')
-                #     progress += 10
 
     if ete3:
         return trees, name_dict
     tree_list = TREE_LIST(num_trees, trees)
-    # print('Finished')
     return tree_list, name_dict
 
 
 if __name__ == '__main__':
-
     import sys
 
-    dengue, map = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
+    # dengue, map = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
     # Dengue contains a tree list object, what to do with this class ?
     # Should be an iterable list
 
     # findpath_distance()
 
-    sys.exit('Bla')
+    # sys.exit('Bla')
 
-    # blaskf
     start_time = timeit.default_timer()
-    dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
+    dengue = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
     elapsed = timeit.default_timer() - start_time
     print(elapsed)
 
     start_time = timeit.default_timer()
-    rsv2 = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees')
+    rsv2 = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees')
     elapsed = timeit.default_timer() - start_time
     print(elapsed)
 
     start_time = timeit.default_timer()
-    dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees', ete3=True)
+    dengue = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees',
+                                    ete3=True)
     elapsed = timeit.default_timer() - start_time
     print(elapsed)
 
     start_time = timeit.default_timer()
-    rsv2 = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees', ete3=True)
+    rsv2 = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees',
+                                  ete3=True)
     elapsed = timeit.default_timer() - start_time
     print(elapsed)
 
