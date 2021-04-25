@@ -297,37 +297,30 @@ def read_nexus_to_treelist(file_handle, ete3=False):
     return tree_list, name_dict
 
 
+def read_nexus(file):
+    # Counting the number of trees in the file
+    re_tree = re.compile('\t?tree .*=? (.*$)', flags=re.I | re.MULTILINE)
+    # num_trees = len(re_tree.findall(open(file).read()))
+
+    # running variables for reading trees and displaying progress
+    index = 0
+
+    # name_dict = get_mapping_dict(file)  # Save tree label names in dict
+    trees = [] # Save trees in an array to give to output TREE_LIST
+
+    with open(file, 'r') as f:
+        # Read trees
+        for line in f:
+            if re_tree.match(line):
+                trees.append(read_newick(re.split(re_tree, line)[1]))
+    return trees
+
+
 if __name__ == '__main__':
     import sys
 
-    # dengue, map = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
-    # Dengue contains a tree list object, what to do with this class ?
-    # Should be an iterable list
+    dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
+
+    sys.exit('Bla')
 
     # findpath_distance()
-
-    # sys.exit('Bla')
-
-    start_time = timeit.default_timer()
-    dengue = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
-    elapsed = timeit.default_timer() - start_time
-    print(elapsed)
-
-    start_time = timeit.default_timer()
-    rsv2 = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees')
-    elapsed = timeit.default_timer() - start_time
-    print(elapsed)
-
-    start_time = timeit.default_timer()
-    dengue = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees',
-                                    ete3=True)
-    elapsed = timeit.default_timer() - start_time
-    print(elapsed)
-
-    start_time = timeit.default_timer()
-    rsv2 = read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees',
-                                  ete3=True)
-    elapsed = timeit.default_timer() - start_time
-    print(elapsed)
-
-    # read_newick()
