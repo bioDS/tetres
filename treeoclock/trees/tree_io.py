@@ -22,7 +22,7 @@ def get_mapping_dict(file: str) -> dict:
     :param file: A nexus file path
     :type file: str
     :return: Dictionary containing the mapping of taxa(values) to int(keys)
-    :rtype: dict {int --> string}
+    :rtype: dict {int --> str}
     """
     # Extract a mapping dict from a file dict: int --> taxa
     # Begin trees;
