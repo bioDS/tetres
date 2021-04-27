@@ -252,59 +252,12 @@ def read_newick(s):
     return output_tree
 
 
-def read_nexus_to_treelist(file_handle, ete3=False):
-    """
-    Read trees from nexus file and returns either an ete3 list of trees or a TREE_LIST
-
-    :param file_handle: Path to a nexus tree file
-    :type file_handle: str
-    :param ete3: Whether to return an ete3 list of trees(True) or a  TREE_LIST(False), defaults to False
-    :type ete3: bool
-    :return: list of ete3 trees or TREE_LIST
-    """
-
-    # Counting the number of trees in the file
-    re_tree = re.compile('\t?tree .*=? (.*$)', flags=re.I | re.MULTILINE)
-    num_trees = len(re_tree.findall(open(file_handle).read()))
-
-    # running variables for reading trees and displaying progress
-    index = 0
-    # progress = 10
-
-    name_dict = get_mapping_dict(file_handle)  # Save tree label names in dict
-    trees = (TREE * num_trees)()  # Save trees in an array to give to output TREE_LIST
-    if ete3:
-        trees = list()
-
-    ete3_regex = re.compile(r'\[[^\]]*\]')
-
-    with open(file_handle, 'r') as f:
-        # Read trees
-        for line in f:
-            if re_tree.match(line):
-                if ete3:  # TODO doesn't ete3 have a nexus reading module ?
-                    current_tree = Tree(re.sub(ete3_regex, "", re.split(re_tree, line)[1]))
-                    trees.append(current_tree)
-                else:
-                    trees[index] = read_newick(re.split(re_tree, line)[1])
-                index += 1
-
-    if ete3:
-        return trees, name_dict
-    tree_list = TREE_LIST(num_trees, trees)
-    return tree_list, name_dict
-
-
 def read_nexus(file):
     # Counting the number of trees in the file
     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
-    # num_trees = len(re_tree.findall(open(file).read()))
-
-    # running variables for reading trees and displaying progress
-    index = 0
 
     # name_dict = get_mapping_dict(file)  # Save tree label names in dict
-    trees = [] # Save trees in an array to give to output TREE_LIST
+    trees = []
 
     with open(file, 'r') as f:
         # Read trees
