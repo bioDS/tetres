@@ -1,7 +1,4 @@
-__author__ = 'Lena Collienne'
-
-# Handling Tree input and output (to C)
-# Written by Lena Collienne, modified by Jordan Kettles.
+__author__ = 'Lena Collienne, Lars Berling, Jordan Kettles'
 
 import re
 import sys
@@ -290,6 +287,7 @@ def read_nexus_to_treelist(file_handle, ete3=False):
                     trees.append(current_tree)
                 else:
                     trees[index] = read_newick(re.split(re_tree, line)[1])
+                index += 1
 
     if ete3:
         return trees, name_dict
@@ -299,7 +297,7 @@ def read_nexus_to_treelist(file_handle, ete3=False):
 
 def read_nexus(file):
     # Counting the number of trees in the file
-    re_tree = re.compile('\t?tree .*=? (.*$)', flags=re.I | re.MULTILINE)
+    re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
     # num_trees = len(re_tree.findall(open(file).read()))
 
     # running variables for reading trees and displaying progress
@@ -319,8 +317,15 @@ def read_nexus(file):
 if __name__ == '__main__':
     import sys
 
-    dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
+    import numpy as np
+    import timeit
 
-    sys.exit('Bla')
+    times = []
+    for _ in range(100):
+        s = timeit.default_timer()
+        read_nexus_to_treelist('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
+        times.append(timeit.default_timer() - s)
+    print(np.mean(times))
 
+    # dengue = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees')
     # findpath_distance()
