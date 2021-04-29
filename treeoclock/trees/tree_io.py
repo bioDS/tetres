@@ -285,21 +285,22 @@ def ete_to_ctree(tree):
     # TREE(num_leaves, node_list, -1)
 
 
-def read_nexus(file, c=False, ranked=False):
+def read_nexus(file, c=False):
     # re_tree returns nwk string without the root height and no ; in the end
     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
     # Used to delete the ; and a potential branchlength of the root
-    root_length = re.compile("(?<=\))(?::\d+\.\d+);")
     # name_dict = get_mapping_dict(file)  # Save tree label names in dict
+    ete3_regex = re.compile(r'\[[^\]]*\]')
 
     trees = []
     with open(file, 'r') as f:
         for line in f:
             if re_tree.match(line):
                 if not c:
-                    trees.append(ete3.Tree(f'{re.sub(root_length, "", re.split(re_tree, line)[1])};'))
+                    tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'
+                    trees.append(ete3.Tree(re.sub(ete3_regex, "", tree_string)))
                 else:
-                    trees.append(read_newick(f'{re.sub(root_length, "", re.split(re_tree, line)[1])};'))
+                    trees.append(read_newick(f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'))
     return trees
 
 
@@ -307,13 +308,13 @@ if __name__ == '__main__':
 
     import sys
 
-    # ct = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees', c=True)
+    # ct = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees', c=True)
     #
     # sys.exit('Finished')
 
-    d_name = 'RSV2'
+    d_name = 'dispg2d_australia_small_active_1'
 
-    ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
+    # ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
 
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
 
@@ -328,7 +329,7 @@ if __name__ == '__main__':
     dM = np.genfromtxt(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/distm_{d_name}.csv',
                        delimiter=',', dtype=int)
 
-    ind = random.sample(range(len(ct)), 50)
+    ind = random.sample(range(len(ct)), 5)
 
     with progressbar.ProgressBar(max_value=len(ind) ** 2) as bar:
         for x, i in enumerate(ind):
