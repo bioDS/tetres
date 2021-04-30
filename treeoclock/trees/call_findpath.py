@@ -30,19 +30,19 @@ class TREE(Structure):
 
 # @profile
 def ete3_to_ctree(tree):
-    num_leaves = len(tree.get_tree_root())
-    num_nodes = (num_leaves * 2) - 1
-    node_list = (NODE * num_nodes)()
+    # num_leaves = len(tree)
+    # num_nodes = (num_leaves * 2) - 1
+    # node_list = (NODE * num_nodes)()
 
     # leaves = [str(i+1) for i in range(num_leaves)]
 
     distances = {}
-
-    # tree_root = tree.get_tree_root()
+    node2leaves = tree.get_cached_content()
 
     index = 0
     for node in tree.traverse('levelorder'):
-        if node.children:
+        if len(node2leaves[node]) != 1:
+        # if node.children:
             # if not node.is_leaf():
             if index == 0:
                 node.name = node.dist
@@ -52,12 +52,17 @@ def ete3_to_ctree(tree):
             distances[node.name] = index
             index += 1
 
+    num_nodes = len(node2leaves)  # Number of nodes
+    num_leaves = int(((num_nodes - 1) / 2) + 1)
+    node_list = (NODE * num_nodes)()
+
     # distances = sorted(distances)
     if not len(distances.keys()) == num_leaves - 1:
         sys.exit('Distances to root not unique! \n'
                  'This has to be resolved!')
     for node in tree.traverse('levelorder'):
-        if not node.children:
+        if len(node2leaves[node]) == 1:
+            # if not node.children:
             # if node.is_leaf():
             node_list[int(node.name) - 1].parent = num_nodes - (distances[node.up.name] + 1)
         else:
@@ -72,7 +77,8 @@ def ete3_to_ctree(tree):
                 sys.exit('Not a binary tree!')
 
             # Child 0
-            if not current_children[0].children:
+            if len(node2leaves[current_children[0]]) == 1:
+                # if not current_children[0].children:
                 # if current_children[0].is_leaf():
                 node_list[num_nodes - (distances[node.name] + 1)].children[0] = \
                     int(current_children[0].name) - 1
@@ -81,7 +87,8 @@ def ete3_to_ctree(tree):
                     num_nodes - (distances[current_children[0].name] + 1)
 
             # Child 1
-            if not current_children[1].children:
+            if len(node2leaves[current_children[1]]) == 1:
+                # if not current_children[1].children:
                 # if current_children[1].is_leaf():
                 node_list[num_nodes - (distances[node.name] + 1)].children[1] = \
                     int(current_children[1].name) - 1
