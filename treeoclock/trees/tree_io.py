@@ -4,10 +4,11 @@ import re
 import sys
 import ete3
 from collections import OrderedDict
-from call_findpath import *  # TODO
+from call_findpath import TREE, NODE, TREE_LIST, findpath_distance
+from ctypes import c_long
 
 # TODO temporary imports
-import timeit
+import line_profiler
 
 
 def get_mapping_dict(file: str) -> dict:
@@ -47,6 +48,7 @@ def get_mapping_dict(file: str) -> dict:
 
 
 # Update the height of the node child by the height of the parent - difference.
+# @profile
 def update_child(pdict, cdict, inhdict, child, pheight, dif):
     prevheight = inhdict[child]
     inhdict[child] = prevheight + (pheight - dif)
@@ -57,6 +59,7 @@ def update_child(pdict, cdict, inhdict, child, pheight, dif):
 
 
 # Update children finds the internal nodes of node and updates their heights.
+# @profile
 def update_children(pdict, cdict, inhdict, node, pheight, dif):
     children_list = [key for (key, value) in pdict.items() if value == node]
     in1 = re.findall(r"internal_node(\d+)", children_list[0])
@@ -72,10 +75,8 @@ def update_children(pdict, cdict, inhdict, node, pheight, dif):
 
 
 # Read tree from string s in newick format -- assuming that the given tree is ultrametric!!
+# @profile
 def read_newick(s):
-
-    # Ranked False returns the RNNI trees with ranks 1...n-1
-    # Ranked True returns something else
 
     # Works only for binary trees!
 
@@ -176,8 +177,6 @@ def read_newick(s):
         else:  # If we consider root, replace tree_str with empty str
             tree_str = ''
 
-    # TODO ##########################################
-
     # Now we use parent_list and int_node_height to create tree in C TREE data structure
     node_list = (NODE * num_nodes)()
 
@@ -267,30 +266,12 @@ def read_newick(s):
     return output_tree
 
 
-def ete_to_ctree(tree):
-    # ?
-    # Converting ete 3 tree to a ctree to call findpath
-
-    num_leaves = len(tree.get_tree_root())
-
-    print(num_leaves)
-
-    # TODO somehow create a node_list from an ete3 tree
-    #  and voila the thing is complete!
-    # node_list is a pointer(node)
-
-    # node_list = (NODE * num_nodes)()
-    # Node(parent, children, time)
-
-    # TREE(num_leaves, node_list, -1)
-
-
 def read_nexus(file, c=False):
     # re_tree returns nwk string without the root height and no ; in the end
     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
     # Used to delete the ; and a potential branchlength of the root
     # name_dict = get_mapping_dict(file)  # Save tree label names in dict
-    ete3_regex = re.compile(r'\[[^\]]*\]')
+    brackets = re.compile(r'\[[^\]]*\]')  # Used to delete info in []
 
     trees = []
     with open(file, 'r') as f:
@@ -298,62 +279,21 @@ def read_nexus(file, c=False):
             if re_tree.match(line):
                 if not c:
                     tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'
-                    trees.append(ete3.Tree(re.sub(ete3_regex, "", tree_string)))
+                    trees.append(ete3.Tree(re.sub(brackets, "", tree_string)))
                 else:
-                    trees.append(read_newick(f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'))
+                    tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'
+                    trees.append(read_newick(re.sub(brackets, "", tree_string)))
     return trees
 
 
 if __name__ == '__main__':
 
+    # TODO need one_neighbourhood
+    # TODO need conversion from cTREE to a ete3 tree
+
     import sys
 
-    # ct = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/Dengue/Dengue.trees', c=True)
-    #
-    # sys.exit('Finished')
-
-    d_name = 'dispg2d_australia_small_active_1'
-
-    # ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
+    d_name = 'Dengue'
 
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
-
-    from timeit import default_timer as timer
-    import numpy as np
-    import progressbar
-    import random
-
-    times = []
-    timesc = []
-
-    dM = np.genfromtxt(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/distm_{d_name}.csv',
-                       delimiter=',', dtype=int)
-
-    ind = random.sample(range(len(ct)), 5)
-
-    with progressbar.ProgressBar(max_value=len(ind) ** 2) as bar:
-        for x, i in enumerate(ind):
-            for y, j in enumerate(ind):
-                s = timer()
-                cd = findpath_distance(ct[i], ct[j], True)
-                timesc.append(timer()-s)
-
-                s = timer()
-                d = findpath_distance(t[i], t[j], False)
-                times.append(timer()-s)
-                if cd != d:
-                    print('Error')
-                if dM[i, j] != cd:
-                    print('Error2')
-            bar.update(x*y)
-
-    print(np.mean(times))
-    print(np.mean(timesc))
-
-    # t = read_nexus('/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/RSV2/RSV2.trees', c=False)
-    #
-    # d = findpath_distance(t[10], t[100], False)
-    # print(d)
-    #
-    # sys.exit('Bla')
-
+    ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
