@@ -3,50 +3,16 @@ __author__ = 'Lena Collienne, Lars Berling, Jordan Kettles'
 import re
 import os
 import ete3
-from ctypes import c_long, Structure, POINTER, CDLL, c_int
+from ctypes import POINTER, CDLL
 
+from _converter import ete3_to_ctree
+from _ctrees import TREE, TREE_LIST
 # TODO temporary imports
 import line_profiler
 
 # TODO doumentation for the classes missing
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
-
-
-class NODE(Structure):
-    _fields_ = [('parent', c_long), ('children', c_long * 2),
-                ('time', c_long)]  # The order of arguments here matters! Needs to be the same as in C code!
-
-    def __init_(self, parent, children, time):
-        self.parent = -1
-        self.children = [-1, -1]
-        self.time = 0
-
-
-class TREE(Structure):
-    _fields_ = [('num_leaves', c_long), ('tree', POINTER(NODE)),
-                ('root_time', c_long)]  # Everything from struct definition in C
-
-    def __init_(self, num_leaves, tree, root_time):
-        self.num_leaves = num_leaves
-        self.tree = tree
-        self.root_time = root_time
-
-
-class TREE_LIST(Structure):
-    _fields_ = [('num_trees', c_int), ('trees', POINTER(TREE))]
-
-    def __init_(self, num_trees, trees):
-        self.num_trees = num_trees
-        self.trees = trees
-
-
-# TODO maybe a class TimeTreeSet()
-#  the initialization with a nexus, reading the trees
-#  and saving the mapping dictionary within
-#  access the list of trees with TimeTreeSet.trees
-#  access the mapping dict with TimeTreeSet.map
-#  Write trees with TimeTreeSet.write(index=) or index range or just write() to get all trees as nexus output ?
 
 
 class TimeTree:
@@ -61,18 +27,35 @@ class TimeTree:
         return self.etree.write(format=5)
 
     def write_newick(self, file):
-        # TODO maybe make this a write_nexus function with the correct mapping dict and all
+        # TODO maybe make this a write_nexus function with the correct mapping dict and all ?
         return self.etree.write(outfile=file, format=5)
 
+    def neighbourhood(self):
+
+        # This should return a numpy array with TimeTree objects
+        return 0
+
     # TODO one_neighbourhood function
-    # TODO the mapping dict needs to be saved somewhere, or atleast the string of where to get it
 
 
+class TimeTreeSet:
+    def __init__(self, file):
+        self.map = get_mapping_dict(file)
+        self.trees = read_nexus(file)
 
-# TODO maybe a decorator to get rid of the c parameter ?
+# TODO class should be iterable
+#  the initialization with a nexus, reading the trees
+#  and saving the mapping dictionary within
+#  access the list of trees with TimeTreeSet.trees ?
+#  access the mapping dict with TimeTreeSet.map
+#  Write trees with TimeTreeSet.write(index=) or index range or just write() to get all trees as nexus output ?
+#  len() function for TimeTreeSet
+#  list of trees should be numpy.array(dtype=TimeTree)
+#  Function for remapping, i.e. changing the mapping dict and changing each tree in the list
 
 
 def findpath_path(t1, t2, c=False):
+    # TODO maybe a decorator to get rid of the c parameter ?
     # C function return_findpath, returns python list of TREE objects
     lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
     lib.return_findpath.restype = TREE_LIST
@@ -86,6 +69,7 @@ def findpath_path(t1, t2, c=False):
 
 
 def findpath_distance(t1, t2, c=False):
+    # TODO maybe a decorator to get rid of the c parameter ?
     # This being called with two ete3 trees
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
 
@@ -94,95 +78,6 @@ def findpath_distance(t1, t2, c=False):
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
     return lib.findpath_distance(ct1, ct2)
-
-
-def ctree_to_ete3(ctree):
-    nl = ctree.num_leaves
-    nn = (nl * 2) - 2  # number of nodes - 1, max index in ctree.tree
-
-    def traverse(node):
-        nonlocal ctree
-        nonlocal nl
-
-        # Curent node is an internal node
-        cur_t = ete3.Tree()
-        if node.children[0] >= nl:
-            cur_t.add_child(traverse(ctree.tree[node.children[0]]))
-        else:
-            cur_t.add_child(name=node.children[0] + 1)
-        if node.children[1] >= nl:
-            cur_t.add_child(traverse(ctree.tree[node.children[1]]))
-        else:
-            cur_t.add_child(name=node.children[1] + 1)
-        return cur_t
-
-    t = traverse(ctree.tree[nn])
-    return t
-
-
-# @profile
-def ete3_to_ctree(tree):
-    distances = []
-    node2leaves = tree.get_cached_content()
-    # tree_root = tree.get_tree_root()
-
-    index = 0
-    for node in tree.traverse('levelorder'):
-        if len(node2leaves[node]) != 1:
-            # if node.children:
-            # if not node.is_leaf():
-            if index == 0:
-                node.name = node.dist
-            else:
-                # node.name = node.get_distance(tree_root))  # get_distance() is a very slow function
-                node.name = node.dist + node.up.name  # Top down for loop makes this possible
-            index += 1
-            distances.append(node.name)
-
-    num_nodes = len(node2leaves)  # Number of nodes
-    num_leaves = int(((num_nodes - 1) / 2) + 1)
-    node_list = (NODE * num_nodes)()
-
-    distances = sorted(distances)
-    # if not len(distances.keys()) == num_leaves - 1:
-    if not len(set(distances)) == num_leaves - 1:
-        sys.exit('Distances to root not unique! \n'
-                 'This has to be resolved!')
-    for node in tree.traverse('levelorder'):
-        if len(node2leaves[node]) == 1:
-            # if not node.children:
-            # if node.is_leaf():
-            node_list[int(node.name) - 1].parent = num_nodes - (distances.index(node.up.name) + 1)
-        else:
-            if node.name == 0.0:
-                node_list[num_nodes - (distances.index(node.name) + 1)].parent = num_nodes - 1
-            else:
-                node_list[num_nodes - (distances.index(node.name) + 1)].parent = \
-                    num_nodes - (distances.index(node.up.name) + 1)
-            # current_children = node.get_children()  # get_children() is slow
-            current_children = node.children
-            if len(current_children) != 2:
-                sys.exit('Not a binary tree!')
-
-            # Child 0
-            if len(node2leaves[current_children[0]]) == 1:
-                # if not current_children[0].children:
-                # if current_children[0].is_leaf():
-                node_list[num_nodes - (distances.index(node.name) + 1)].children[0] = \
-                    int(current_children[0].name) - 1
-            else:
-                node_list[num_nodes - (distances.index(node.name) + 1)].children[0] = \
-                    num_nodes - (distances.index(current_children[0].name) + 1)
-            # Child 1
-            if len(node2leaves[current_children[1]]) == 1:
-                # if not current_children[1].children:
-                # if current_children[1].is_leaf():
-                node_list[num_nodes - (distances.index(node.name) + 1)].children[1] = \
-                    int(current_children[1].name) - 1
-            else:
-                node_list[num_nodes - (distances.index(node.name) + 1)].children[1] = \
-                    num_nodes - (distances.index(current_children[1].name) + 1)
-    return TREE(num_leaves, node_list, -1)
 
 
 def get_mapping_dict(file: str) -> dict:
@@ -254,23 +149,23 @@ def my_trees_read(file):
 
 if __name__ == '__main__':
 
-
     # TODO need one_neighbourhood
-    # TODO TREELIST to ete3 trees
-    # TODO TREELIST extract one tree with an index ?
-
 
     import sys
     import random
     from timeit import default_timer as timer
 
-    d_name = 'RSV2'
+    d_name = 'Dengue'
 
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
     
     ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
     
-    # myt = my_trees_read(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    myt = my_trees_read(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    
+    from _converter import ctree_to_ete3
+    
+    ctree_to_ete3(ct[0])
     
     p = findpath_path(ct[0], ct[1], True)
     ep = findpath_path(t[0], t[1], False)
