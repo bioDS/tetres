@@ -271,10 +271,10 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
                 path.moves[path_index][0] = current_mrca;
                 path_index++;
                 // Print progress (in 5% steps from max distance)
-                if (count < (float) path_index / (float) max_dist){
-                     printf("%d Percent of maximum distance reached\n", (int) (100 * count));
-                     count += 0.05;
-                }
+                // if (count < (float) path_index / (float) max_dist){
+                //      printf("%d Percent of maximum distance reached\n", (int) (100 * count));
+                //      count += 0.05;
+                // }
             }
         }
         free(current_tree.tree);
