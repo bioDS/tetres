@@ -36,7 +36,7 @@ def ete3_to_ctree(tree):
 
     distances = []
     node2leaves = tree.get_cached_content()
-    tree_root = tree.get_tree_root()
+    # tree_root = tree.get_tree_root()
 
     index = 0
     for node in tree.traverse('levelorder'):
@@ -126,11 +126,11 @@ def ctree_to_ete3(ctree):
         if node.children[0] >= nl:
             cur_t.add_child(traverse(ctree.tree[node.children[0]]))
         else:
-            cur_t.add_child(name=node.children[0])
+            cur_t.add_child(name=node.children[0]+1)
         if node.children[1] >= nl:
             cur_t.add_child(traverse(ctree.tree[node.children[1]]))
         else:
-            cur_t.add_child(name=node.children[1])
+            cur_t.add_child(name=node.children[1]+1)
         return cur_t
 
     t = traverse(ctree.tree[nn])
