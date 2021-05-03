@@ -3,6 +3,9 @@ __author__ = 'Lena Collienne and Jordan Kettles'
 import os
 import sys
 from ctypes import *  # TODO
+import ete3
+
+# TODO temporary imports
 import line_profiler
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
@@ -94,9 +97,9 @@ def ete3_to_ctree(tree):
     return TREE(num_leaves, node_list, -1)
 
 
-# def smart_findpath():
-
-
+# todo def smart_findpath(): decorator
+# TODO decorator for findpath_distance to check type of given arguments and return the
+#  correct function
 
 
 def findpath_distance(t1, t2, c=False):
@@ -110,8 +113,30 @@ def findpath_distance(t1, t2, c=False):
     return lib.findpath_distance(ct1, ct2)
 
 
-# TODO decorator for findpath_distance to check type of given arguments and return the
-#  correct function
+def ctree_to_ete3(ctree):
+
+    nl = ctree.num_leaves
+    nn = (nl*2) - 2  # number of nodes - 1, max index in ctree.tree
+    def traverse(node):
+        nonlocal ctree
+        nonlocal nl
+
+        # Curent node is an internal node
+        cur_t = ete3.Tree()
+        if node.children[0] >= nl:
+            cur_t.add_child(traverse(ctree.tree[node.children[0]]))
+        else:
+            cur_t.add_child(name=node.children[0])
+        if node.children[1] >= nl:
+            cur_t.add_child(traverse(ctree.tree[node.children[1]]))
+        else:
+            cur_t.add_child(name=node.children[1])
+        return cur_t
+
+    t = traverse(ctree.tree[nn])
+    return t
+
+
 
 
 class TREE_LIST(Structure):
