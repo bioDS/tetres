@@ -2,10 +2,8 @@ __author__ = 'Lena Collienne, Lars Berling, Jordan Kettles'
 
 import re
 import os
-import sys
 import ete3
-from collections import OrderedDict
-from ctypes import c_long, Structure, POINTER, CDLL
+from ctypes import c_long, Structure, POINTER, CDLL, c_int
 
 # TODO temporary imports
 import line_profiler
@@ -13,17 +11,6 @@ import line_profiler
 # TODO doumentation for the classes missing
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
-
-
-def findpath_distance(t1, t2, c=False):
-    # This being called with two ete3 trees
-    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
-
-    if c:
-        return lib.findpath_distance(t1, t2)
-    ct1 = ete3_to_ctree(t1)
-    ct2 = ete3_to_ctree(t2)
-    return lib.findpath_distance(ct1, ct2)
 
 
 class NODE(Structure):
@@ -46,6 +33,14 @@ class TREE(Structure):
         self.root_time = root_time
 
 
+class TREE_LIST(Structure):
+    _fields_ = [('num_trees', c_int), ('trees', POINTER(TREE))]
+
+    def __init_(self, num_trees, trees):
+        self.num_trees = num_trees
+        self.trees = trees
+
+
 class TimeTree:
     def __init__(self, nwk):
         self.etree = ete3.Tree(nwk)
@@ -61,6 +56,29 @@ class TimeTree:
         return self.etree.write(file, format=5)
 
     # TODO one_neighbourhood function
+
+
+
+def findpath_path(t1, t2, c=False):
+    # C function return_findpath
+    lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
+    lib.return_findpath.restype = TREE_LIST
+    if c:
+        return lib.return_findpath(t1, t2)
+    ct1 = ete3_to_ctree(t1)
+    ct2 = ete3_to_ctree(t2)
+    return lib.return_findpath(ct1, ct2)
+
+
+def findpath_distance(t1, t2, c=False):
+    # This being called with two ete3 trees
+    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+
+    if c:
+        return lib.findpath_distance(t1, t2)
+    ct1 = ete3_to_ctree(t1)
+    ct2 = ete3_to_ctree(t2)
+    return lib.findpath_distance(ct1, ct2)
 
 
 def ctree_to_ete3(ctree):
@@ -229,45 +247,16 @@ if __name__ == '__main__':
     import random
     from timeit import default_timer as timer
 
-    d_name = 'RSV2'
+    d_name = 'Dengue'
 
-    # s = timer()
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
-    # print(timer()-s)
-
-    # s = timer()
+    
     ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
-    # print(timer() - s)
-
-    # s = timer()
-    myt = my_trees_read(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
-    # print(timer() - s)
-
-    ind = random.sample(range(len(ct)), 25)
-
-    timesc = []
-    timesete = []
-    timesmy = []
-
-    for i in ind:
-        for j in ind:
-            s = timer()
-            findpath_distance(ct[i], ct[j], True)
-            timesc.append(timer() - s)
-
-            s = timer()
-            findpath_distance(t[i], t[j], False)
-            timesete.append(timer() - s)
-
-            s = timer()
-            myt[i].fp_distance(myt[j])
-            timesmy.append(timer() - s)
-
-    import numpy as np
-
-    print(np.mean(timesc))
-    print(np.mean(timesete))
-    print(np.mean(timesmy))
+    
+    # myt = my_trees_read(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    
+    p = findpath_path(ct[0], ct[1], True)
+    ep = findpath_path(t[0], t[1], False)
 
     # from pympler import asizeof
     #
