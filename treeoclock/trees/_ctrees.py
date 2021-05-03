@@ -1,5 +1,7 @@
 from ctypes import Structure, c_long, c_int, POINTER
 
+# TODO Documentation
+
 class NODE(Structure):
     _fields_ = [('parent', c_long), ('children', c_long * 2),
                 ('time', c_long)]  # The order of arguments here matters! Needs to be the same as in C code!

@@ -1,5 +1,3 @@
-__author__ = 'Lena Collienne, Lars Berling, Jordan Kettles'
-
 import re
 import os
 import ete3

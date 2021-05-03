@@ -1,9 +1,8 @@
-__author__ = 'Lars Berling'
-
 import sys
 import ete3
 from _ctrees import NODE, TREE
 
+# TODO Documentation
 
 def ete3_to_ctree(tree):
     distances = []
