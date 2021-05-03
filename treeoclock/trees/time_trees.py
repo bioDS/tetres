@@ -4,11 +4,37 @@ import re
 import sys
 import ete3
 from collections import OrderedDict
-from call_findpath import TREE, NODE, TREE_LIST, findpath_distance
-from ctypes import c_long
+from ctypes import c_long, Structure, POINTER
 
 # TODO temporary imports
 import line_profiler
+
+
+class NODE(Structure):
+    _fields_ = [('parent', c_long), ('children', c_long * 2),
+                ('time', c_long)]  # The order of arguments here matters! Needs to be the same as in C code!
+
+    def __init_(self, parent, children, time):
+        self.parent = -1
+        self.children = [-1, -1]
+        self.time = 0
+
+
+class TREE(Structure):
+    _fields_ = [('num_leaves', c_long), ('tree', POINTER(NODE)),
+                ('root_time', c_long)]  # Everything from struct definition in C
+
+    def __init_(self, num_leaves, tree, root_time):
+        self.num_leaves = num_leaves
+        self.tree = tree
+        self.root_time = root_time
+
+
+class TimeTree:
+    def __init__(self, nwk):
+        self.etree = ete3.Tree(nwk)
+        self.ctree = ete3_to_ctree(self.etree)
+
 
 
 def ctree_to_ete3(ctree):
@@ -159,10 +185,17 @@ if __name__ == '__main__':
     from timeit import default_timer as timer
     d_name = 'RSV2'
 
+    s = timer()
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
+    print(timer()-s)
+
+    s = timer()
     ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
+    print(timer() - s)
 
-    from pympler import asizeof
 
-    print(asizeof.asizeof(t))
-    print(asizeof.asizeof(ct))
+    # TODO test this for my own class
+    # from pympler import asizeof
+    #
+    # print(asizeof.asizeof(t))
+    # print(asizeof.asizeof(ct))

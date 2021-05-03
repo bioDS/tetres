@@ -1,9 +1,8 @@
 __author__ = 'Lena Collienne and Jordan Kettles'
 
 import os
-from ctypes import *  # TODO
-from time_trees import ete3_to_ctree
-
+from time_trees import ete3_to_ctree, TREE
+from ctypes import POINTER, CDLL, Structure, c_char_p, c_int
 
 # TODO temporary imports
 import line_profiler
@@ -12,30 +11,9 @@ import sys
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
 
-class NODE(Structure):
-    _fields_ = [('parent', c_long), ('children', c_long * 2),
-                ('time', c_long)]  # The order of arguments here matters! Needs to be the same as in C code!
-
-    def __init_(self, parent, children, time):
-        self.parent = -1
-        self.children = [-1, -1]
-        self.time = 0
-
-
-class TREE(Structure):
-    _fields_ = [('num_leaves', c_long), ('tree', POINTER(NODE)),
-                ('root_time', c_long)]  # Everything from struct definition in C
-
-    def __init_(self, num_leaves, tree, root_time):
-        self.num_leaves = num_leaves
-        self.tree = tree
-        self.root_time = root_time
-
-
 # todo def smart_findpath(): decorator
 # TODO decorator for findpath_distance to check type of given arguments and return the
 #  correct function
-
 
 def findpath_distance(t1, t2, c=False):
     # This being called with two ete3 trees
