@@ -41,6 +41,14 @@ class TREE_LIST(Structure):
         self.trees = trees
 
 
+# TODO maybe a class TimeTreeSet()
+#  the initialization with a nexus, reading the trees
+#  and saving the mapping dictionary within
+#  access the list of trees with TimeTreeSet.trees
+#  access the mapping dict with TimeTreeSet.map
+#  Write trees with TimeTreeSet.write(index=) or index range or just write() to get all trees as nexus output ?
+
+
 class TimeTree:
     def __init__(self, nwk):
         self.etree = ete3.Tree(nwk)
@@ -53,21 +61,28 @@ class TimeTree:
         return self.etree.write(format=5)
 
     def write_newick(self, file):
-        return self.etree.write(file, format=5)
+        # TODO maybe make this a write_nexus function with the correct mapping dict and all
+        return self.etree.write(outfile=file, format=5)
 
     # TODO one_neighbourhood function
+    # TODO the mapping dict needs to be saved somewhere, or atleast the string of where to get it
 
+
+
+# TODO maybe a decorator to get rid of the c parameter ?
 
 
 def findpath_path(t1, t2, c=False):
-    # C function return_findpath
+    # C function return_findpath, returns python list of TREE objects
     lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
     lib.return_findpath.restype = TREE_LIST
     if c:
-        return lib.return_findpath(t1, t2)
+        path = lib.return_findpath(t1, t2)
+        return [path.trees[i] for i in range(path.num_trees)]
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
-    return lib.return_findpath(ct1, ct2)
+    path = lib.return_findpath(ct1, ct2)
+    return [path.trees[i] for i in range(path.num_trees)]
 
 
 def findpath_distance(t1, t2, c=False):
@@ -239,15 +254,17 @@ def my_trees_read(file):
 
 if __name__ == '__main__':
 
+
     # TODO need one_neighbourhood
     # TODO TREELIST to ete3 trees
     # TODO TREELIST extract one tree with an index ?
+
 
     import sys
     import random
     from timeit import default_timer as timer
 
-    d_name = 'Dengue'
+    d_name = 'RSV2'
 
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
     
