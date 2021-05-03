@@ -1,13 +1,29 @@
 __author__ = 'Lena Collienne, Lars Berling, Jordan Kettles'
 
 import re
+import os
 import sys
 import ete3
 from collections import OrderedDict
-from ctypes import c_long, Structure, POINTER
+from ctypes import c_long, Structure, POINTER, CDLL
 
 # TODO temporary imports
 import line_profiler
+
+# TODO doumentation for the classes missing
+
+lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
+
+
+def findpath_distance(t1, t2, c=False):
+    # This being called with two ete3 trees
+    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+
+    if c:
+        return lib.findpath_distance(t1, t2)
+    ct1 = ete3_to_ctree(t1)
+    ct2 = ete3_to_ctree(t2)
+    return lib.findpath_distance(ct1, ct2)
 
 
 class NODE(Structure):
@@ -35,12 +51,22 @@ class TimeTree:
         self.etree = ete3.Tree(nwk)
         self.ctree = ete3_to_ctree(self.etree)
 
+    def fp_distance(self, tree):
+        return findpath_distance(self.ctree, tree.ctree, True)
+
+    def get_newick(self):
+        return self.etree.write(format=5)
+
+    def write_newick(self, file):
+        return self.etree.write(file, format=5)
+
+    # TODO one_neighbourhood function
 
 
 def ctree_to_ete3(ctree):
-
     nl = ctree.num_leaves
-    nn = (nl*2) - 2  # number of nodes - 1, max index in ctree.tree
+    nn = (nl * 2) - 2  # number of nodes - 1, max index in ctree.tree
+
     def traverse(node):
         nonlocal ctree
         nonlocal nl
@@ -50,11 +76,11 @@ def ctree_to_ete3(ctree):
         if node.children[0] >= nl:
             cur_t.add_child(traverse(ctree.tree[node.children[0]]))
         else:
-            cur_t.add_child(name=node.children[0]+1)
+            cur_t.add_child(name=node.children[0] + 1)
         if node.children[1] >= nl:
             cur_t.add_child(traverse(ctree.tree[node.children[1]]))
         else:
-            cur_t.add_child(name=node.children[1]+1)
+            cur_t.add_child(name=node.children[1] + 1)
         return cur_t
 
     t = traverse(ctree.tree[nn])
@@ -63,7 +89,6 @@ def ctree_to_ete3(ctree):
 
 # @profile
 def ete3_to_ctree(tree):
-
     distances = []
     node2leaves = tree.get_cached_content()
     # tree_root = tree.get_tree_root()
@@ -71,7 +96,7 @@ def ete3_to_ctree(tree):
     index = 0
     for node in tree.traverse('levelorder'):
         if len(node2leaves[node]) != 1:
-        # if node.children:
+            # if node.children:
             # if not node.is_leaf():
             if index == 0:
                 node.name = node.dist
@@ -168,10 +193,29 @@ def read_nexus(file, c=False):
     with open(file, 'r') as f:
         for line in f:
             if re_tree.match(line):
-                tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'
-                trees.append(ete3.Tree(re.sub(brackets, "", tree_string)))
-    if c:
-        return [ete3_to_ctree(tr) for tr in trees]
+                tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")") + 1]};'
+                if c:
+                    trees.append(ete3_to_ctree(ete3.Tree(re.sub(brackets, "", tree_string))))
+                else:
+                    trees.append(ete3.Tree(re.sub(brackets, "", tree_string)))
+    # if c:
+    #     return [ete3_to_ctree(tr) for tr in trees]
+    return trees
+
+
+def my_trees_read(file):
+    # re_tree returns nwk string without the root height and no ; in the end
+    re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
+    # Used to delete the ; and a potential branchlength of the root
+    # name_dict = get_mapping_dict(file)  # Save tree label names in dict
+    brackets = re.compile(r'\[[^\]]*\]')  # Used to delete info in []
+
+    trees = []
+    with open(file, 'r') as f:
+        for line in f:
+            if re_tree.match(line):
+                tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")") + 1]};'
+                trees.append(TimeTree(re.sub(brackets, "", tree_string)))
     return trees
 
 
@@ -182,20 +226,51 @@ if __name__ == '__main__':
     # TODO TREELIST extract one tree with an index ?
 
     import sys
+    import random
     from timeit import default_timer as timer
+
     d_name = 'RSV2'
 
-    s = timer()
+    # s = timer()
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
-    print(timer()-s)
+    # print(timer()-s)
 
-    s = timer()
+    # s = timer()
     ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
-    print(timer() - s)
+    # print(timer() - s)
 
+    # s = timer()
+    myt = my_trees_read(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    # print(timer() - s)
 
-    # TODO test this for my own class
+    ind = random.sample(range(len(ct)), 25)
+
+    timesc = []
+    timesete = []
+    timesmy = []
+
+    for i in ind:
+        for j in ind:
+            s = timer()
+            findpath_distance(ct[i], ct[j], True)
+            timesc.append(timer() - s)
+
+            s = timer()
+            findpath_distance(t[i], t[j], False)
+            timesete.append(timer() - s)
+
+            s = timer()
+            myt[i].fp_distance(myt[j])
+            timesmy.append(timer() - s)
+
+    import numpy as np
+
+    print(np.mean(timesc))
+    print(np.mean(timesete))
+    print(np.mean(timesmy))
+
     # from pympler import asizeof
     #
     # print(asizeof.asizeof(t))
     # print(asizeof.asizeof(ct))
+    # print(asizeof.asizeof(myt))
