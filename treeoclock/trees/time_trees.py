@@ -6,7 +6,7 @@ from ctypes import POINTER, CDLL
 from _converter import ete3_to_ctree
 from _ctrees import TREE, TREE_LIST
 # TODO temporary imports
-import line_profiler
+# import line_profiler
 
 # TODO doumentation for the classes missing
 
