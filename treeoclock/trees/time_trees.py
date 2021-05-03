@@ -9,6 +9,7 @@ from ctypes import c_long
 
 # TODO temporary imports
 import line_profiler
+from call_findpath import ctree_to_ete3, ete3_to_ctree
 
 
 def get_mapping_dict(file: str) -> dict:
@@ -20,13 +21,7 @@ def get_mapping_dict(file: str) -> dict:
     :return: Dictionary containing the mapping of taxa(values) to int(keys)
     :rtype: dict {int --> str}
     """
-    # Extract a mapping dict from a file dict: int --> taxa
-    # Begin trees;
-    #   Translate
 
-    # ;
-    # trees
-    # End;
     begin_map = re.compile('\tTranslate\n', re.I)
     end = re.compile('\t?;\n?')
 
@@ -58,19 +53,16 @@ def read_nexus(file, c=False):
     with open(file, 'r') as f:
         for line in f:
             if re_tree.match(line):
-                if not c:
-                    tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'
-                    trees.append(ete3.Tree(re.sub(brackets, "", tree_string)))
-                else:
-                    tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'
-                    trees.append(read_newick(re.sub(brackets, "", tree_string)))
+                tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")")+1]};'
+                trees.append(ete3.Tree(re.sub(brackets, "", tree_string)))
+    if c:
+        return [ete3_to_ctree(tr) for tr in trees]
     return trees
 
 
 if __name__ == '__main__':
 
     # TODO need one_neighbourhood
-    # TODO need conversion from cTREE to a ete3 tree
     # TODO TREELIST to ete3 trees
     # TODO TREELIST extract one tree with an index ?
 
@@ -78,12 +70,10 @@ if __name__ == '__main__':
     from timeit import default_timer as timer
     d_name = 'RSV2'
 
-    from call_findpath import ctree_to_ete3, ete3_to_ctree
-
     t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
     cct = [ete3_to_ctree(tr) for tr in t]
     etec = [ctree_to_ete3(tr) for tr in cct]
-
+    ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
 
 
 
