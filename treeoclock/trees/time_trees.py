@@ -1,11 +1,10 @@
 import re
 import os
 import ete3
-import functools
 from ctypes import POINTER, CDLL, c_long
 
-from _converter import ete3_to_ctree, ctree_to_ete3
-from _ctrees import TREE, TREE_LIST
+from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
+from treeoclock.trees._ctrees import TREE, TREE_LIST
 
 # TODO temporary imports
 # import line_profiler
@@ -14,6 +13,7 @@ from _ctrees import TREE, TREE_LIST
 #  How/Where to put away all the functions so that this file only contains the two classes ?
 #  Maybe even split up the two classes in two files ?!
 #  And then all the timetree handling options are done via the classes and its functions
+from treeoclock.trees.findpath_distance import findpath_distance
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
@@ -92,29 +92,6 @@ def findpath_path(t1, t2, c=False):
     return [path.trees[i] for i in range(path.num_trees)]
 
 
-@functools.singledispatch
-def findpath_distance(arg):
-    raise TypeError(type(arg) + " not supported.")
-
-
-@findpath_distance.register(TREE)
-def findpath_distance_c(t1, t2):
-    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
-    return lib.findpath_distance(t1, t2)
-
-
-@findpath_distance.register(ete3.Tree)
-def findpath_distance_ete3(t1, t2):
-    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
-    ct1 = ete3_to_ctree(t1)
-    ct2 = ete3_to_ctree(t2)
-    return lib.findpath_distance(ct1, ct2)
-
-
-@findpath_distance.register(TimeTree)
-def findpath_distance_ete3(t1, t2):
-    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
-    return lib.findpath_distance(t1.ctree, t2.ctree)
 
 
 def get_mapping_dict(file: str) -> dict:
