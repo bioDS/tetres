@@ -3,10 +3,10 @@ import ete3
 from ctypes import POINTER
 
 
-from treeoclock.trees.time_trees import TimeTree
+from treeoclock.trees.time_tree import TimeTree
 from treeoclock.trees._converter import ete3_to_ctree
 from treeoclock.trees._ctrees import TREE, TREE_LIST
-from treeoclock.trees.time_trees import lib
+from treeoclock.trees.time_tree import lib
 
 
 @functools.singledispatch

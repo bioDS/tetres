@@ -4,9 +4,9 @@ from ctypes import POINTER
 
 
 from treeoclock.trees._ctrees import TREE
-from treeoclock.trees.time_trees import lib
+from treeoclock.trees.time_tree import lib
 from treeoclock.trees._converter import ete3_to_ctree
-from treeoclock.trees.time_trees import TimeTree
+from treeoclock.trees.time_tree import TimeTree
 
 
 @functools.singledispatch
