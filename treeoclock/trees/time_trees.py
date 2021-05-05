@@ -1,16 +1,41 @@
 import re
 import os
 import ete3
-from ctypes import POINTER, CDLL
+import functools
+from ctypes import POINTER, CDLL, c_long
 
-from _converter import ete3_to_ctree
+from _converter import ete3_to_ctree, ctree_to_ete3
 from _ctrees import TREE, TREE_LIST
+
 # TODO temporary imports
 # import line_profiler
 
-# TODO doumentation for the classes missing
+# TODO doumentation
+#  How/Where to put away all the functions so that this file only contains the two classes ?
+#  Maybe even split up the two classes in two files ?!
+#  And then all the timetree handling options are done via the classes and its functions
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
+
+
+def neighbourhood(tree):
+    lib.rank_move.argtypes = [POINTER(TREE), c_long]
+
+    num_leaves = len(tree)
+
+    # All possible rank moves
+    print(tree.get_newick(f=9))
+    for i in range(num_leaves - 1):
+        lib.rank_move(tree.ctree, i)  # TODO Changes the tree inline, but that should not be the case!
+        print(ctree_to_ete3(tree.ctree).write(format=9))
+
+    # All NNI moves
+    lib.nni_move.argtypes = [POINTER(TREE), c_long]
+
+    # TODO how to check if nni move is possible for a given index i and i+1 ?
+    #  Maybe get exceptions from the c code ? or do the same logic here so that the c code does not fail
+    # This should return a numpy array with TimeTree objects
+    return 0
 
 
 class TimeTree:
@@ -18,20 +43,18 @@ class TimeTree:
         self.etree = ete3.Tree(nwk)
         self.ctree = ete3_to_ctree(self.etree)
 
+    def __len__(self):
+        return self.ctree.num_leaves
+
     def fp_distance(self, tree):
-        return findpath_distance(self.ctree, tree.ctree, True)
+        return findpath_distance(self.ctree, tree.ctree)
 
-    def get_newick(self):
-        return self.etree.write(format=5)
+    def get_newick(self, f=5):
+        return self.etree.write(format=f)
 
-    def write_newick(self, file):
+    def write_newick(self, file_path, f=5):
         # TODO maybe make this a write_nexus function with the correct mapping dict and all ?
-        return self.etree.write(outfile=file, format=5)
-
-    def neighbourhood(self):
-
-        # This should return a numpy array with TimeTree objects
-        return 0
+        return self.etree.write(outfile=file_path, format=f)
 
     # TODO one_neighbourhood function
 
@@ -39,13 +62,16 @@ class TimeTree:
 class TimeTreeSet:
     def __init__(self, file):
         self.map = get_mapping_dict(file)
-        self.trees = read_nexus(file)
+        self.trees = my_trees_read(file)
 
-# TODO class should be iterable
-#  the initialization with a nexus, reading the trees
-#  and saving the mapping dictionary within
-#  access the list of trees with TimeTreeSet.trees ?
-#  access the mapping dict with TimeTreeSet.map
+    def __getitem__(self, index):
+        return self.trees[index]
+
+    def __len__(self):
+        return len(self.trees)
+
+
+# TODO
 #  Write trees with TimeTreeSet.write(index=) or index range or just write() to get all trees as nexus output ?
 #  len() function for TimeTreeSet
 #  list of trees should be numpy.array(dtype=TimeTree)
@@ -66,16 +92,29 @@ def findpath_path(t1, t2, c=False):
     return [path.trees[i] for i in range(path.num_trees)]
 
 
-def findpath_distance(t1, t2, c=False):
-    # TODO maybe a decorator to get rid of the c parameter ?
-    # This being called with two ete3 trees
-    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+@functools.singledispatch
+def findpath_distance(arg):
+    raise TypeError(type(arg) + " not supported.")
 
-    if c:
-        return lib.findpath_distance(t1, t2)
+
+@findpath_distance.register(TREE)
+def findpath_distance_c(t1, t2):
+    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+    return lib.findpath_distance(t1, t2)
+
+
+@findpath_distance.register(ete3.Tree)
+def findpath_distance_ete3(t1, t2):
+    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
     return lib.findpath_distance(ct1, ct2)
+
+
+@findpath_distance.register(TimeTree)
+def findpath_distance_ete3(t1, t2):
+    lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+    return lib.findpath_distance(t1.ctree, t2.ctree)
 
 
 def get_mapping_dict(file: str) -> dict:
@@ -146,27 +185,31 @@ def my_trees_read(file):
 
 
 if __name__ == '__main__':
-
-    # TODO need one_neighbourhood
-
-    import sys
-    import random
-    from timeit import default_timer as timer
-
     d_name = 'Dengue'
 
-    t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
+    # t = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=False)
+    # ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
+
+    # myt = my_trees_read(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+
+    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+
+    print(myts[1].fp_distance(myts[0]))
+    print(findpath_distance(myts[1], myts[0]))
+    print(findpath_distance(myts[1].ctree, myts[0].ctree))
+    print(findpath_distance(myts[1].etree, myts[0].etree))
     
-    ct = read_nexus(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees', c=True)
-    
-    myt = my_trees_read(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
-    
-    from _converter import ctree_to_ete3
-    
-    ctree_to_ete3(ct[0])
-    
-    p = findpath_path(ct[0], ct[1], True)
-    ep = findpath_path(t[0], t[1], False)
+    # n = neighbourhood(myts[0])
+
+    # print(len(myts[0]))
+    # print(len(myts))
+    #
+    # print(myts[0].fp_distance(myts[0]))
+    #
+    # for t in myts:
+    #     print(t.get_newick())
+    #
+    # print(myts.map)
 
     # from pympler import asizeof
     #
