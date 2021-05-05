@@ -4,7 +4,8 @@ import ete3
 from ctypes import POINTER, CDLL, c_long
 
 from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
-from treeoclock.trees._ctrees import TREE, TREE_LIST
+from treeoclock.trees._ctrees import TREE
+from treeoclock.trees.findpath_distance import findpath_distance
 
 # TODO temporary imports
 # import line_profiler
@@ -13,7 +14,7 @@ from treeoclock.trees._ctrees import TREE, TREE_LIST
 #  How/Where to put away all the functions so that this file only contains the two classes ?
 #  Maybe even split up the two classes in two files ?!
 #  And then all the timetree handling options are done via the classes and its functions
-from treeoclock.trees.findpath_distance import findpath_distance
+
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
@@ -76,22 +77,6 @@ class TimeTreeSet:
 #  len() function for TimeTreeSet
 #  list of trees should be numpy.array(dtype=TimeTree)
 #  Function for remapping, i.e. changing the mapping dict and changing each tree in the list
-
-
-def findpath_path(t1, t2, c=False):
-    # TODO maybe a decorator to get rid of the c parameter ?
-    # C function return_findpath, returns python list of TREE objects
-    lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
-    lib.return_findpath.restype = TREE_LIST
-    if c:
-        path = lib.return_findpath(t1, t2)
-        return [path.trees[i] for i in range(path.num_trees)]
-    ct1 = ete3_to_ctree(t1)
-    ct2 = ete3_to_ctree(t2)
-    path = lib.return_findpath(ct1, ct2)
-    return [path.trees[i] for i in range(path.num_trees)]
-
-
 
 
 def get_mapping_dict(file: str) -> dict:
