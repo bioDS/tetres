@@ -1,6 +1,7 @@
 from ctypes import Structure, c_long, c_int, POINTER
 
-# TODO Documentation
+# TODO Documentation and tests
+
 
 class NODE(Structure):
     _fields_ = [('parent', c_long), ('children', c_long * 2),

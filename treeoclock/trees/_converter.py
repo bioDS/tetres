@@ -2,7 +2,8 @@ import sys
 import ete3
 from _ctrees import NODE, TREE
 
-# TODO Documentation
+# TODO Documentation and tests
+
 
 def ete3_to_ctree(tree):
     distances = []
