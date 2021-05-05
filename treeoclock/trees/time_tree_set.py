@@ -1,21 +1,34 @@
 import re
 
 from treeoclock.trees.time_tree import TimeTree
+from treeoclock.trees.findpath_distance import findpath_distance
+from treeoclock.trees.findpath_path import findpath_path
 
 
 class TimeTreeSet:
     def __init__(self, file):
         self.map = get_mapping_dict(file)
-        self.trees = my_trees_read(file)
+        self.trees = read_nexus(file)
 
     def __getitem__(self, index):
         return self.trees[index]
 
     def __len__(self):
         return len(self.trees)
+    
+    def findpath_distance(self, i, j):
+        return findpath_distance(self.trees[i].ctree, self.trees[j].ctree)
+    
+    def findpath_path(self, i, j):
+        return findpath_path(self.trees[i].ctree, self.trees[j].ctree)
 
 
-def my_trees_read(file):
+# TODO
+#  Write trees with TimeTreeSet.write(index=) or index range or just write() to get all trees as nexus output ?
+#  Function for remapping, i.e. changing the mapping dict and changing each tree in the list
+
+
+def read_nexus(file: str) -> list:
     # re_tree returns nwk string without the root height and no ; in the end
     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
     # Used to delete the ; and a potential branchlength of the root
