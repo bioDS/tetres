@@ -1,4 +1,3 @@
-import re
 import os
 import ete3
 from ctypes import POINTER, CDLL, c_long
@@ -6,15 +5,9 @@ from ctypes import POINTER, CDLL, c_long
 from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
 from treeoclock.trees._ctrees import TREE
 from treeoclock.trees.findpath_distance import findpath_distance
-
-# TODO temporary imports
-# import line_profiler
-
-# TODO doumentation
-#  How/Where to put away all the functions so that this file only contains the two classes ?
-#  Maybe even split up the two classes in two files ?!
-#  And then all the timetree handling options are done via the classes and its functions
+from treeoclock.trees.findpath_path import findpath_path
 from treeoclock.trees.time_tree_set import TimeTreeSet
+
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
@@ -29,22 +22,14 @@ class TimeTree:
 
     def fp_distance(self, tree):
         return findpath_distance(self.ctree, tree.ctree)
+    
+    def fp_path(self, tree):
+        return findpath_path(self.ctree, tree.ctree)
 
     def get_newick(self, f=5):
         return self.etree.write(format=f)
 
-    def write_newick(self, file_path, f=5):
-        # TODO maybe make this a write_nexus function with the correct mapping dict and all ?
-        return self.etree.write(outfile=file_path, format=f)
-
     # TODO one_neighbourhood function
-
-
-# TODO
-#  Write trees with TimeTreeSet.write(index=) or index range or just write() to get all trees as nexus output ?
-#  len() function for TimeTreeSet
-#  list of trees should be numpy.array(dtype=TimeTree)
-#  Function for remapping, i.e. changing the mapping dict and changing each tree in the list
 
 
 def neighbourhood(tree):
