@@ -73,22 +73,22 @@ def findpath_distance(arg, *args):
     # raise TypeError(type(arg) + " not supported.")
 
 
-@findpath_distance.register(TREE)
-def findpath_distance_c(t1, t2):
+@findpath_distance.register
+def _(t1: TREE, t2: TREE):
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     return lib.findpath_distance(t1, t2)
 
 
-@findpath_distance.register(ete3.Tree)
-def findpath_distance_ete3(t1, t2):
+@findpath_distance.register
+def _(t1: ete3.Tree, t2: ete3.Tree):
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
     return lib.findpath_distance(ct1, ct2)
 
 
-@findpath_distance.register(TimeTree)
-def findpath_distance_ete3(t1, t2):
+@findpath_distance.register
+def _(t1: TimeTree, t2: TimeTree):
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     return lib.findpath_distance(t1.ctree, t2.ctree)
 
