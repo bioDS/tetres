@@ -1,4 +1,5 @@
 import re
+import sys
 import os
 import ete3
 import functools
@@ -59,18 +60,6 @@ class TimeTree:
     # TODO one_neighbourhood function
 
 
-class TimeTreeSet:
-    def __init__(self, file):
-        self.map = get_mapping_dict(file)
-        self.trees = my_trees_read(file)
-
-    def __getitem__(self, index):
-        return self.trees[index]
-
-    def __len__(self):
-        return len(self.trees)
-
-
 # TODO
 #  Write trees with TimeTreeSet.write(index=) or index range or just write() to get all trees as nexus output ?
 #  len() function for TimeTreeSet
@@ -78,23 +67,10 @@ class TimeTreeSet:
 #  Function for remapping, i.e. changing the mapping dict and changing each tree in the list
 
 
-def findpath_path(t1, t2, c=False):
-    # TODO maybe a decorator to get rid of the c parameter ?
-    # C function return_findpath, returns python list of TREE objects
-    lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
-    lib.return_findpath.restype = TREE_LIST
-    if c:
-        path = lib.return_findpath(t1, t2)
-        return [path.trees[i] for i in range(path.num_trees)]
-    ct1 = ete3_to_ctree(t1)
-    ct2 = ete3_to_ctree(t2)
-    path = lib.return_findpath(ct1, ct2)
-    return [path.trees[i] for i in range(path.num_trees)]
-
-
 @functools.singledispatch
 def findpath_distance(arg, *args):
-    raise TypeError(type(arg) + " not supported.")
+    sys.exit(f'Unsupported argtype {type(arg)} for findpath_distance!')
+    # raise TypeError(type(arg) + " not supported.")
 
 
 @findpath_distance.register(TREE)
@@ -115,6 +91,33 @@ def findpath_distance_ete3(t1, t2):
 def findpath_distance_ete3(t1, t2):
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     return lib.findpath_distance(t1.ctree, t2.ctree)
+
+
+# TODO singledispatch
+def findpath_path(t1, t2, c=False):
+    # TODO maybe a decorator to get rid of the c parameter ?
+    # C function return_findpath, returns python list of TREE objects
+    lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
+    lib.return_findpath.restype = TREE_LIST
+    if c:
+        path = lib.return_findpath(t1, t2)
+        return [path.trees[i] for i in range(path.num_trees)]
+    ct1 = ete3_to_ctree(t1)
+    ct2 = ete3_to_ctree(t2)
+    path = lib.return_findpath(ct1, ct2)
+    return [path.trees[i] for i in range(path.num_trees)]
+
+
+class TimeTreeSet:
+    def __init__(self, file):
+        self.map = get_mapping_dict(file)
+        self.trees = read_nexus(file)
+
+    def __getitem__(self, index):
+        return self.trees[index]
+
+    def __len__(self):
+        return len(self.trees)
 
 
 def get_mapping_dict(file: str) -> dict:
@@ -147,28 +150,7 @@ def get_mapping_dict(file: str) -> dict:
     return mapping
 
 
-def read_nexus(file, c=False):
-    # re_tree returns nwk string without the root height and no ; in the end
-    re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
-    # Used to delete the ; and a potential branchlength of the root
-    # name_dict = get_mapping_dict(file)  # Save tree label names in dict
-    brackets = re.compile(r'\[[^\]]*\]')  # Used to delete info in []
-
-    trees = []
-    with open(file, 'r') as f:
-        for line in f:
-            if re_tree.match(line):
-                tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")") + 1]};'
-                if c:
-                    trees.append(ete3_to_ctree(ete3.Tree(re.sub(brackets, "", tree_string))))
-                else:
-                    trees.append(ete3.Tree(re.sub(brackets, "", tree_string)))
-    # if c:
-    #     return [ete3_to_ctree(tr) for tr in trees]
-    return trees
-
-
-def my_trees_read(file):
+def read_nexus(file):
     # re_tree returns nwk string without the root height and no ; in the end
     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
     # Used to delete the ; and a potential branchlength of the root
