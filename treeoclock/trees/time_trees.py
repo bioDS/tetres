@@ -5,8 +5,8 @@ import ete3
 import functools
 from ctypes import POINTER, CDLL, c_long
 
-from _converter import ete3_to_ctree, ctree_to_ete3
-from _ctrees import TREE, TREE_LIST
+from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
+from treeoclock.trees._ctrees import TREE, TREE_LIST
 
 # TODO temporary imports
 # import line_profiler
