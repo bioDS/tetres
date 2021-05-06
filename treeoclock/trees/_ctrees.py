@@ -14,8 +14,8 @@ class NODE(Structure):
 
 
 class TREE(Structure):
-    _fields_ = [('num_leaves', c_int), ('tree', POINTER(NODE)),
-                ('root_time', c_int)]  # Everything from struct definition in C
+    _fields_ = [('num_leaves', c_long), ('tree', POINTER(NODE)),
+                ('root_time', c_long)]  # Everything from struct definition in C
 
     def __init_(self, num_leaves, tree, root_time):
         self.num_leaves = num_leaves
