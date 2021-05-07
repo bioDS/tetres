@@ -1,14 +1,12 @@
 from treeoclock.trees.time_trees import TimeTree
 
+
 def test_fp_distance(five_taxa_newick_list):
     out = []
-    t0 = TimeTree(five_taxa_newick_list[0])
-    t1 = TimeTree(five_taxa_newick_list[1])
-    out.append(t0.fp_distance(t0))
-    out.append(t1.fp_distance(t1))
-    out.append(t0.fp_distance(t1))
-    out.append(t1.fp_distance(t0))
-    assert out == [0, 0, 1, 1], f'fp_distance wrong {out} instead of [0,0,1,1]'
+    t = [TimeTree(i) for i in five_taxa_newick_list]
+    for i in t:
+        out.extend([i.fp_distance(j) for j in t])
+    assert out == [0, 1, 2, 1, 0, 3, 2, 3, 0], f'fp_distance wrong {out}'
 
 
 def test_fp_path():
