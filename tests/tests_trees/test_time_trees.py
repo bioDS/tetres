@@ -1,7 +1,7 @@
 import ete3
 
 
-from treeoclock.trees.time_trees import TimeTree, findpath_distance
+from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict
 from treeoclock.trees._converter import ete3_to_ctree
 
 
@@ -54,3 +54,39 @@ def test_findpath_distance_ete3tree(five_taxa_newick_list, five_taxa_newick_list
         for j in t:
             out.append(findpath_distance(i, j))
     assert out == five_taxa_newick_list_distances, f"findpath_distances for c-TREE class wrong {out}"
+
+
+def test_findpath_path_timetree(five_taxa_newick_list, five_taxa_newick_list_distances):
+    t = [TimeTree(i) for i in five_taxa_newick_list]
+    out = []
+    for i in t:
+        for j in t:
+            out.append(len(findpath_path(i, j)))
+    assert out == five_taxa_newick_list_distances, f"findpath_distances for TimeTree class wrong {out}"
+
+
+def test_findpath_path_ctree(five_taxa_newick_list, five_taxa_newick_list_distances):
+    t = [ete3.Tree(i) for i in five_taxa_newick_list]
+    out = []
+    for i in t:
+        for j in t:
+            out.append(len(findpath_path(i, j)))
+    assert out == five_taxa_newick_list_distances, f"findpath_distances for ete3.Tree class wrong {out}"
+
+
+def test_findpath_path_ete3tree(five_taxa_newick_list, five_taxa_newick_list_distances):
+    t = [ete3_to_ctree(ete3.Tree(i)) for i in five_taxa_newick_list]
+    out = []
+    for i in t:
+        for j in t:
+            out.append(len(findpath_path(i, j)))
+    assert out == five_taxa_newick_list_distances, f"findpath_distances for c-TREE class wrong {out}"
+
+
+def test_get_mapping_dict(dir, five_taxa_nexus_string):
+    dir.write("test.nex", five_taxa_nexus_string)
+    d = get_mapping_dict(f"{dir.path}/test.nex")
+    f = open(f"{dir.path}/test.nex", "r")
+    for l in f:
+        print(l)
+    assert d == {}, f"Is {d}"
