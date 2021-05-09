@@ -17,7 +17,7 @@ def five_taxa_newick_list():
 
 
 @pytest.fixture
-def five_taxa_newick_list_distances():
+def five_taxa_list_distances():
     return [0, 1, 2, 1, 0, 3, 2, 3, 0]
 
 
