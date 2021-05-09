@@ -1,6 +1,6 @@
 import ete3
 
-
+from treeoclock.trees._ctrees import TREE, NODE, TREE_LIST
 from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict
 from treeoclock.trees._converter import ete3_to_ctree
 
@@ -87,6 +87,4 @@ def test_get_mapping_dict(dir, five_taxa_nexus_string):
     dir.write("test.nex", five_taxa_nexus_string)
     d = get_mapping_dict(f"{dir.path}/test.nex")
     f = open(f"{dir.path}/test.nex", "r")
-    for l in f:
-        print(l)
-    assert d == {}, f"Is {d}"
+    assert d == {1: 't1', 2: 't5', 3: "t4", 4: "t3", 5: "t2"}
