@@ -34,8 +34,8 @@ def test_timetree_copy(five_taxa_newick_list):
     out = [i.copy() for i in t]
     bout = []
     for i in range(len(out)):
-        bout.append(out[i].get_newick == t[i].get_newick)
-    assert bout, "Copying a TimeTree failed!"
+        bout.append(out[i].get_newick() == t[i].get_newick())
+    assert bout.count(False) == 0, f"Copying a TimeTree failed!"
 
 def test_findpath_distance_timetree(five_taxa_newick_list, five_taxa_list_distances):
     t = [TimeTree(i) for i in five_taxa_newick_list]
@@ -131,4 +131,12 @@ def test_get_rank_neighbours(five_taxa_newick_list):
     t = TimeTree(five_taxa_newick_list[0])
     rn = get_rank_neighbours(t)
     nwk = rn[0].write(format=3)
-    assert nwk == "((4:3,(3:1,2:1)I1:2)I3:1,(1:2,5:2)I2:2);"
+    assert nwk == "((4:3,(3:1,2:1)I1:2)I3:1,(1:2,5:2)I2:2);", "Rank neighbours wrong!"
+
+
+def test_get_rank_neighbours2(seventeen_taxa_tree_newick, seventeen_taxa_rank_neighbours_newick):
+    t = TimeTree(seventeen_taxa_tree_newick)
+    rn = get_rank_neighbours(t)
+    b = [seventeen_taxa_rank_neighbours_newick[i] == rn[i] for i in range(len(rn))]
+    assert b.count(False) == 0
+    # assert seventeen_taxa_rank_neighbours_newick == [i.get_newick(f=3) for i in rn], "Rank neighbours wrong!"
