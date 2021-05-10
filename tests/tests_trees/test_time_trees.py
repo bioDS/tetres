@@ -14,7 +14,6 @@ def test_timetree_fp_distance(five_taxa_newick_list, five_taxa_list_distances):
 
 def test_timetree_fp_path(five_taxa_newick_list, five_taxa_list_distances):
     out = []
-    # TODO this test only the length of the path and not the path itself
     t = [TimeTree(i) for i in five_taxa_newick_list]
     for i in t:
         out.extend([len(i.fp_path(j)) for j in t])
@@ -28,6 +27,14 @@ def test_timetree_get_newick(five_taxa_newick_list):
         out.append(i.get_newick())
     assert out == five_taxa_newick_list, "TimeTree does not return correct newick strings"
 
+
+def test_timetree_copy(five_taxa_newick_list):
+    t = [TimeTree(i) for i in five_taxa_newick_list]
+    out = [i.copy() for i in t]
+    bout = []
+    for i in range(len(out)):
+        bout.append(out[i].get_newick == t[i].get_newick)
+    assert bout
 
 def test_findpath_distance_timetree(five_taxa_newick_list, five_taxa_list_distances):
     t = [TimeTree(i) for i in five_taxa_newick_list]
