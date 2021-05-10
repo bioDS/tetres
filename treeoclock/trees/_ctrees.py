@@ -1,6 +1,6 @@
 from ctypes import Structure, c_long, c_int, POINTER
 
-# TODO Documentation and tests
+# TODO Documentation
 
 
 class NODE(Structure):
@@ -21,6 +21,9 @@ class TREE(Structure):
         self.num_leaves = num_leaves
         self.tree = tree
         self.root_time = root_time
+
+    def __getitem__(self, item):
+        return self.tree[item]
 
 
 class TREE_LIST(Structure):
