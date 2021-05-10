@@ -25,7 +25,7 @@ class TimeTree:
     def fp_path(self, tree):
         return findpath_path(self.ctree, tree.ctree)
 
-    def get_newick(self, f=5):
+    def get_newick(self, f=3):
         return self.etree.write(format=f)
     
     def copy(self):
@@ -40,15 +40,14 @@ def neighbourhood(tree: TimeTree):
     num_leaves = len(tree)
 
     # All possible rank moves
-    print(tree.get_newick(f=9))
-    copy = tree.copy()
-    for rank in range(num_leaves - 1):
-        lib.rank_move(copy.ctree, rank)  # TODO Changes the tree inline, but that should not be the case!
-        print(ctree_to_ete3(copy.ctree).write(format=9) == ctree_to_ete3(tree.ctree).write(format=9))
+    print(tree.get_newick())
+    for rank in range(num_leaves, num_leaves + num_leaves - 2):
+        # Only do a rank move if it is possible!
+        if not tree.ctree[rank].parent == rank + 1:
+            working_copy = tree.copy()
+            lib.rank_move(working_copy.ctree, rank)  # TODO Changes the tree inline, but that should not be the case!
+            print(rank-num_leaves, ctree_to_ete3(working_copy.ctree).write(format=3))
 
-    print("------")
-    print(ctree_to_ete3(tree.ctree).write(format=9))
-    print(ctree_to_ete3(copy.ctree).write(format=9))
     # All NNI moves
     lib.nni_move.argtypes = [POINTER(TREE), c_long, c_int]
     # for rank in range(num_leaves - 1):
@@ -186,9 +185,11 @@ if __name__ == '__main__':
 
     d_name = 'Dengue'
 
-    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
-    n = neighbourhood(myts[0])
+    # myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+
+    n = neighbourhood(myts)
 
     # print(len(myts[0]))
     # print(len(myts))

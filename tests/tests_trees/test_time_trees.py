@@ -34,7 +34,7 @@ def test_timetree_copy(five_taxa_newick_list):
     bout = []
     for i in range(len(out)):
         bout.append(out[i].get_newick == t[i].get_newick)
-    assert bout
+    assert bout, "Copying a TimeTree failed!"
 
 def test_findpath_distance_timetree(five_taxa_newick_list, five_taxa_list_distances):
     t = [TimeTree(i) for i in five_taxa_newick_list]
