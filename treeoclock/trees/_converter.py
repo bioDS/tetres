@@ -2,7 +2,7 @@ import sys
 import ete3
 from treeoclock.trees._ctrees import NODE, TREE
 
-# TODO Documentation and tests
+# TODO Documentation
 
 
 def ete3_to_ctree(tree):
@@ -77,17 +77,22 @@ def ctree_to_ete3(ctree):
         nonlocal ctree
         nonlocal nl
 
-        # Curent node is an internal node
-        cur_t = ete3.Tree()
+        # Initializing current tree with the dist
+        cur_t = ete3.Tree(dist=node.parent - ctree[node.children[1]].parent)
         if node.children[0] >= nl:
-            cur_t.add_child(traverse(ctree.tree[node.children[0]]))
+            # Internal Node, setting dist as the difference between rank of parent and node itself
+            cur_t.add_child(traverse(ctree[node.children[0]]))
         else:
-            cur_t.add_child(name=node.children[0] + 1)
+            # Leaf node, dist is the rank of the parent node
+            cur_t.name = f"I{ctree[node.children[1]].parent-nl+1}"
+            cur_t.add_child(name=node.children[0] + 1, dist=ctree[node.children[0]].parent-nl+1)
         if node.children[1] >= nl:
-            cur_t.add_child(traverse(ctree.tree[node.children[1]]))
+            # Internal Node, setting dist as the difference between rank of parent and node itself
+            cur_t.add_child(traverse(ctree[node.children[1]]))
         else:
-            cur_t.add_child(name=node.children[1] + 1)
+            # Leaf node, dist is the rank of the parent node
+            cur_t.name = f"I{ctree[node.children[1]].parent-nl+1}"
+            cur_t.add_child(name=node.children[1] + 1, dist=ctree[node.children[1]].parent-nl+1)
         return cur_t
-
     t = traverse(ctree.tree[nn])
     return t
