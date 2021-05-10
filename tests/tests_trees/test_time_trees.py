@@ -1,6 +1,7 @@
 import ete3
 
-from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict, TimeTreeSet
+from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
+    TimeTreeSet, get_rank_neighbours
 from treeoclock.trees._converter import ete3_to_ctree
 
 
@@ -124,3 +125,10 @@ def test_timetreeset_fp_path(dir, five_taxa_nexus_string, five_taxa_list_distanc
     for i in range(len(t)):
         out.extend([len(t[i].fp_path(t[j])) for j in range(len(t))])
     assert out == five_taxa_list_distances, 'TimeTreeSet fp_path() wrong!'
+
+
+def test_get_rank_neighbours(five_taxa_newick_list):
+    t = TimeTree(five_taxa_newick_list[0])
+    rn = get_rank_neighbours(t)
+    nwk = rn[0].write(format=3)
+    assert nwk == "((4:3,(3:1,2:1)I1:2)I3:1,(1:2,5:2)I2:2);"
