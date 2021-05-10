@@ -35,21 +35,14 @@ class TimeTree:
 
 
 def neighbourhood(tree: TimeTree):
-    lib.rank_move.argtypes = [POINTER(TREE), c_long]
 
-    num_leaves = len(tree)
 
-    # All possible rank moves
-    print(tree.get_newick())
-    for rank in range(num_leaves, num_leaves + num_leaves - 2):
-        # Only do a rank move if it is possible!
-        if not tree.ctree[rank].parent == rank + 1:
-            working_copy = tree.copy()
-            lib.rank_move(working_copy.ctree, rank)  # TODO Changes the tree inline, but that should not be the case!
-            print(rank-num_leaves, ctree_to_ete3(working_copy.ctree).write(format=3))
+    rank_neighbours = get_rank_neighbours(tree)
+    for i in rank_neighbours:
+        print(i.write(format=3))
 
     # All NNI moves
-    lib.nni_move.argtypes = [POINTER(TREE), c_long, c_int]
+    # lib.nni_move.argtypes = [POINTER(TREE), c_long, c_int]
     # for rank in range(num_leaves - 1):
         # First logic part: does the parent have rank+1:
             # lib.nni_move
@@ -60,10 +53,31 @@ def neighbourhood(tree: TimeTree):
     return 0
 
 
+def get_rank_neighbours(tree: TimeTree):
+    lib.rank_move.argtypes = [POINTER(TREE), c_long]
+    num_leaves = len(tree)
+    rank_neighbours = []
+    for rank in range(num_leaves, num_leaves + num_leaves - 2):
+        # Only do a rank move if it is possible!
+        if not tree.ctree[rank].parent == rank + 1:
+            # TODO how to get the correct newick from the rank moved tree, and the correct ete3 tree then ?
+            working_copy = tree.copy()
+            lib.rank_move(working_copy.ctree, rank)
+            rank_neighbours.append(ctree_to_ete3(working_copy.ctree))
+            print(findpath_distance(working_copy, tree))
+            # TODO add a distance computation here , should be 1 otherwise throw error!
+
+    return rank_neighbours
+
+
 class TimeTreeSet:
-    def __init__(self, file):
-        self.map = get_mapping_dict(file)
-        self.trees = read_nexus(file)
+    def __init__(self, file=None):
+        if file is not None:
+            self.map = get_mapping_dict(file)
+            self.trees = read_nexus(file)
+        else:
+            self.map = {}
+            self.trees = []
 
     def __getitem__(self, index):
         return self.trees[index]
