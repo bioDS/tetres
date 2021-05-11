@@ -12,8 +12,8 @@ lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 
 
 class TimeTree:
-    def __init__(self, nwk):
-        self.etree = ete3.Tree(nwk)
+    def __init__(self, nwk, f=0):
+        self.etree = ete3.Tree(nwk, format=f)
         self.ctree = ete3_to_ctree(self.etree)
 
     def __len__(self):
@@ -25,7 +25,7 @@ class TimeTree:
     def fp_path(self, tree):
         return findpath_path(self.ctree, tree.ctree)
 
-    def get_newick(self, f=3):
+    def get_newick(self, f=5):
         return self.etree.write(format=f)
     
     def copy(self):
@@ -38,8 +38,6 @@ def neighbourhood(tree: TimeTree):
 
 
     rank_neighbours = get_rank_neighbours(tree)
-    for i in rank_neighbours:
-        print(i.write(format=3))
 
     # All NNI moves
     # lib.nni_move.argtypes = [POINTER(TREE), c_long, c_int]
@@ -50,7 +48,7 @@ def neighbourhood(tree: TimeTree):
     # TODO how to check if nni move is possible for a given index i and i+1 ?
     #  Maybe get exceptions from the c code ? or do the same logic here so that the c code does not fail
     # This should return a numpy array with TimeTree objects
-    return 0
+    return rank_neighbours  # TODO correct return
 
 
 def get_rank_neighbours(tree: TimeTree):
@@ -60,13 +58,11 @@ def get_rank_neighbours(tree: TimeTree):
     for rank in range(num_leaves, num_leaves + num_leaves - 2):
         # Only do a rank move if it is possible!
         if not tree.ctree[rank].parent == rank + 1:
-            # TODO how to get the correct newick from the rank moved tree, and the correct ete3 tree then ?
             working_copy = tree.copy()
             lib.rank_move(working_copy.ctree, rank)
-            rank_neighbours.append(ctree_to_ete3(working_copy.ctree))
-            print(findpath_distance(working_copy, tree))
-            # TODO add a distance computation here , should be 1 otherwise throw error!
-
+            rank_neighbours.append(TimeTree(ctree_to_ete3(working_copy.ctree).write(format=5)))
+            if findpath_distance(working_copy, tree) != 1:
+                raise ValueError("Distance of a neighbour is supposed to be 1, something went wrong!")
     return rank_neighbours
 
 
@@ -201,9 +197,32 @@ if __name__ == '__main__':
 
     myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
-    # myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    print(myts[0].get_newick())
+    print(ctree_to_ete3(myts[0].ctree).write(format=3))
+    n = neighbourhood(myts[0])
 
-    n = neighbourhood(myts)
+
+    # def my_layout(node):
+    #     if node.is_leaf():
+    #         # If terminal node, draws its name
+    #         name_face = ete3.AttrFace("name")
+    #     else:
+    #         # If internal node, draws label with smaller font size
+    #         name_face = ete3.AttrFace("name", fsize=10)
+    #     # Adds the name face to the image at the preferred position
+    #     ete3.faces.add_face_to_node(name_face, node, column=0, position="branch-right")
+    #
+    #
+    # # n[0].render(f'/Users/larsberling/Desktop/CodingMA/test.png')
+    # ts = ete3.TreeStyle()
+    # ts.show_leaf_name = False
+    # ts.layout_fn = my_layout
+    # ts.show_branch_length = True
+    # ts.show_scale = False
+    # n[0].show(tree_style=ts)
+    for i in n:
+        print(i.get_newick())
 
     # print(len(myts[0]))
     # print(len(myts))
