@@ -100,29 +100,45 @@ See the :mod:`ete3` `documentation <http://etetoolkit.org/docs/latest/tutorial/t
 The TimeTreeSet class
 =====================
 
-The TimeTreeSet class is an iterable list of TimeTree objects.
+A :class:`TimeTreeSet` is an iterable list of :class:`TimeTree` objects, which can be initialized with a nexus file.
 
-
-include the class documentation herer
+========================================     ========================================================================================================
+   Method                                       Description
+========================================     ========================================================================================================
+:attr:`TimeTreeSet.map`                      a dictionary conataining the taxa to integer translation from the nexus file
+:attr:`TimeTreeSet.trees`                    a list of :class:`TimeTree` objects
+:attr:`TimeTreeSet[i]`                       returns the :class:`TimeTree` at :attr:`TimeTreeSet.trees[i]`
+:attr:`len(TimeTreeSet)`                     returns the number of trees in the list :attr:`TimeTreeSet.trees`
+:attr:`TimeTreeSet.fp_distance(i, j)`        returns the distances between the trees at postition i and j
+:attr:`TimeTreeSet.fp_path(i, j)`            returns a shortest path (list of :class:`TREE`) between the trees at postition i and j
+========================================     ========================================================================================================
 
 Reading Trees
 -------------
 
 A TimeTreeSet object can be initialized with a path to a nexus file.
 
-
 .. code-block:: python
 
-    from treeoclock.trees import time_trees
+    from treeoclock.trees.time_trees import TimeTreeSet
 
-    tts = TimeTreeSet(path_to_nexus_file.nex)
+
+    # Initializing with a path to a nexus tree file
+    tts = TimeTreeSet("path_to_nexus_file.nex")
+
+    tts.map  # a dictionary keys:int and values:string(taxa)
+
+    tts.trees  # A list of TimeTree objects
 
     for tree in tts:
         # tree is a TimeTree object
-        print(tree.get_newick(f=9))
+        ...
     tts[0]  # trees are accessible via the index
+
     len(tts)  # Returns the number of trees in the TimeTreeSet object
 
+    tts.fp_distance(i, j)  # Returns the distance between trees i and j
+    tts.fp_path(i, j)  # Returns a shortest path between trees i and j
 
 
 Writing trees
@@ -135,99 +151,68 @@ Random trees
 STILL WIP
 
 
-## Random tree generation via ete3
-
-## Random tree set generation
-
-
-
-
-Comparing trees
-===============
-
-Findpath
-++++++++
-
-To calculate the distance between two time trees it is possible to either just compute the distance as an integer or
-to get a shortest path of time trees as a list of TREE(MISSING LINK and still WIP) objects.
-
-.. code-block:: python
-
-    from treeoclock.trees.findpath_distance import findpath_distance
-
-    from treeoclock.trees.findpath_path import findpath_path
-
-
-
-
-
-
 Combining multiple TimeTreeSets
 ===============================
 
 Still WIP
 
-More functions
-==============
+General Functions
+=================
+
+List all functions
+
+===========================================     =========================================
+   Function                                       Description
+===========================================     =========================================
+    :attr:`time_trees.neighbourhood(tree)`
+
+===========================================     =========================================
+
+MISSING CODEBLOCK of how to call these functions
+
 
 .. _c classes:
 
 Classes for the c library
--------------------------
+=========================
 
-These are found in the _ctrees.py module.
+These classes are found in the :file:`_ctrees.py` module.
+The corresponding CDLL c library is generated from :file:`findpath.c`.
 
-The TREE and NODE class are the tree representation in the c code.
+NODE
+----
 
-The TREELIST class is the output when computing a shortest path with the findpath algorithm in c.
+- :attr:`parent`: index of the parent node (int, defaults to -1)
+- :attr:`children[2]`: index of the two children ([int], defaults to [-1, -1])
+- :attr:`time`: Time of the node (int, defaults to 0)
 
+.. note::
+    The attribute :attr:`time` is currently not being used!
+
+TREE
+----
+
+- :attr:`num_leaves`: Number of leaves in the tree (int)
+- :attr:`tree`: Points to a :class:`NODE` object (POINTER(:class:`NODE`))
+- :attr:`root_time`: Time of the root :class:`Node` (int)
+
+.. note::
+    The attribute :attr:`root_time` is currently not being used!
+
+TREELIST
+--------
+
+- :attr:`num_trees`: Number of trees in the list (int)
+- :attr:`trees`: List of trees (POINTER(:class:`TREE`))
 
 Class converter functions
--------------------------
+=========================
 
-These are found in the _converter.py module.
+These are found in :file:`_converter.py`.
 
-
-
-The CTREE doc
-=============
-
-# Data structures
-
-## Node
-- int parent -- index of parent
-- int children[2] -- index of children
-- int time -- Time of the node
-- Each internal node is assigned a unique time. All leaves have times of 0. If the node is a leaf node, the children are -1.
-
-## Tree
-- Node * tree -- The nodes of the tree. Length of 2*n-1.
-- leaves:
-    - in first n positions of array
-    - children of leaves: -1, int parent = n + rank of parent - 1
-- internal nodes:
-    - in last n-1 positions of array => internal node of rank r has index n + r - 1
-    - parent of root: -1
-- double * leaves -- Leaf lengths of the tree.
-- double scale -- Scaling value used to convert DCT tree back to a time tree.
-- long num_leaves -- Number of leaves.
-- long root_time -- Time of the root node.
-- long sos_d -- Sum of squared distances of the tree to each tree in a given tree list. Used to summarize trees. Otherwise -1.
-
-## Tree_List
-- Tree * -- list of trees (as described above)
-- int num_trees -- length of the tree list
-
-## Paths
-- long moves[path_length][2] -- The path matrix.
-- long length -- The distance value of the path.
-- Each row path[i] represents a move (i + 1)th move on path
-- in first column: index of rank of lower node bounding interval of move: path[i][0] = k if move i happens on interval [k,k+1]. If the move was a length move, this column represents the node index of the move.
-- in second column: path[i][1] in {0,1,2,3,4} ; 0 if rank move, 1 if NNI move where children[0] stays child of lower node, 2 if NNI move where children[1] stays child of lower node, 3 if length move where k.time was increased, 4 if length move where k.time was decreased.
-
-## Centroid List
-- char ** tree_strings -- List of trees represented as Strings.
-- double ** leavesarray -- The leaf lengths of each tree.
-- long * distances -- The sum of squared distances of each tree.
-- double * scales -- The scaling value of each tree, used to convert trees back to time trees.
-- long length -- The length of the arrays.
+===========================================     ================================================================
+   Function                                       Description
+===========================================     ================================================================
+    :attr:`_converter.ete3_to_ctree(tree)`      traverses an :class:`ete3.Tree` and construct the correct :class:`TREE`
+    :attr:`_converter.ctree_to_ete3(ctree)`     recursively traverses a :class:`TREE` and generates an :class:`ete3.Tree`
+===========================================     ================================================================
