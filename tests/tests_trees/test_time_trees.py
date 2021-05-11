@@ -1,7 +1,7 @@
 import ete3
 
 from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
-    TimeTreeSet, get_rank_neighbours
+    TimeTreeSet, get_rank_neighbours, get_nni_neighbours
 from treeoclock.trees._converter import ete3_to_ctree
 
 
@@ -138,3 +138,11 @@ def test_get_rank_neighbours2(seventeen_taxa_tree_newick, seventeen_taxa_rank_ne
     t = TimeTree(seventeen_taxa_tree_newick)
     rn = get_rank_neighbours(t)
     assert seventeen_taxa_rank_neighbours_newick == [i.get_newick(f=5) for i in rn], "Rank neighbours wrong!"
+
+
+def test_get_nni_neighbours(five_taxa_newick_list, five_taxa_0_nni_neighbours):
+    t = TimeTree(five_taxa_newick_list[0])
+    nn = get_nni_neighbours(t)
+    nwk = [i.get_newick() for i in nn]
+    assert set(nwk) == set(five_taxa_0_nni_neighbours), "Wrong NNI neighbours!"
+
