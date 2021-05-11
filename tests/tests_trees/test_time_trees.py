@@ -172,6 +172,7 @@ def test_get_nni_neighbours2(seventeen_taxa_tree_newick, seventeen_taxa_nni_neig
     nn = get_nni_neighbours(t)
     assert set(seventeen_taxa_nni_neighbours_newick) == set([i.get_newick(f=5) for i in nn]), "NNI neighbours wrong!"
 
+
 def test_neighbourhood(five_taxa_newick_list, five_taxa_0_all_neighbours):
     t = TimeTree(five_taxa_newick_list[0])
     n = neighbourhood(t)

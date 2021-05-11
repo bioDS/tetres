@@ -3,7 +3,7 @@ import os
 import re
 
 import ete3
-from ctypes import POINTER, CDLL, c_long, c_int, memmove, sizeof, byref
+from ctypes import POINTER, CDLL, c_long, c_int
 
 from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
 from treeoclock.trees._ctrees import TREE, TREE_LIST
@@ -116,7 +116,6 @@ class TimeTreeSet:
 
     def fp_path(self, i, j):
         return findpath_path(self.trees[i].ctree, self.trees[j].ctree)
-    # TODO make it possible to iterate over a TimeTreeSet for i in TTS: i is then the tree
 
 
 def read_nexus(file: str) -> list:
@@ -230,10 +229,6 @@ if __name__ == '__main__':
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
     # print(myts[0].get_newick())
     # print(ctree_to_ete3(myts[0].ctree).write(format=3))
-    
-    n = get_nni_neighbours(myts[0])
-    for i in n:
-        print(i.get_newick())
 
     # def my_layout(node):
     #     if node.is_leaf():
