@@ -78,20 +78,19 @@ def ctree_to_ete3(ctree):
         nonlocal nl
 
         # Initializing current tree with the dist
-        cur_t = ete3.Tree(dist=node.parent - ctree[node.children[1]].parent)
+        cur_t = ete3.Tree(dist=node.parent - ctree[node.children[1]].parent,
+                          name=f"I{ctree[node.children[1]].parent - nl + 1}")
         if node.children[0] >= nl:
             # Internal Node, setting dist as the difference between rank of parent and node itself
             cur_t.add_child(traverse(ctree[node.children[0]]))
         else:
             # Leaf node, dist is the rank of the parent node
-            cur_t.name = f"I{ctree[node.children[1]].parent-nl+1}"
             cur_t.add_child(name=node.children[0] + 1, dist=ctree[node.children[0]].parent-nl+1)
         if node.children[1] >= nl:
             # Internal Node, setting dist as the difference between rank of parent and node itself
             cur_t.add_child(traverse(ctree[node.children[1]]))
         else:
             # Leaf node, dist is the rank of the parent node
-            cur_t.name = f"I{ctree[node.children[1]].parent-nl+1}"
             cur_t.add_child(name=node.children[1] + 1, dist=ctree[node.children[1]].parent-nl+1)
         return cur_t
     t = traverse(ctree.tree[nn])
