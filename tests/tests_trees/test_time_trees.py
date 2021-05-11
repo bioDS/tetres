@@ -130,13 +130,11 @@ def test_timetreeset_fp_path(dir, five_taxa_nexus_string, five_taxa_list_distanc
 def test_get_rank_neighbours(five_taxa_newick_list):
     t = TimeTree(five_taxa_newick_list[0])
     rn = get_rank_neighbours(t)
-    nwk = rn[0].write(format=3)
-    assert nwk == "((4:3,(3:1,2:1)I1:2)I3:1,(1:2,5:2)I2:2);", "Rank neighbours wrong!"
+    nwk = rn[0].get_newick()
+    assert nwk == "((4:3,(3:1,2:1):2):1,(1:2,5:2):2);", "Rank neighbour wrong!"
 
 
 def test_get_rank_neighbours2(seventeen_taxa_tree_newick, seventeen_taxa_rank_neighbours_newick):
     t = TimeTree(seventeen_taxa_tree_newick)
     rn = get_rank_neighbours(t)
-    b = [seventeen_taxa_rank_neighbours_newick[i] == rn[i] for i in range(len(rn))]
-    assert b.count(False) == 0
-    # assert seventeen_taxa_rank_neighbours_newick == [i.get_newick(f=3) for i in rn], "Rank neighbours wrong!"
+    assert seventeen_taxa_rank_neighbours_newick == [i.get_newick(f=5) for i in rn], "Rank neighbours wrong!"
