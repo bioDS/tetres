@@ -130,25 +130,35 @@ def test_timetreeset_fp_path(dir, five_taxa_nexus_string, five_taxa_list_distanc
 def test_get_rank_neighbours(five_taxa_newick_list):
     t = TimeTree(five_taxa_newick_list[0])
     rn = get_rank_neighbours(t)
-    nwk = rn[0].get_newick()
-    assert nwk == "((4:3,(3:1,2:1):2):1,(1:2,5:2):2);", "Rank neighbour wrong!"
+    assert rn[0].get_newick() == "((4:3,(3:1,2:1):2):1,(1:2,5:2):2);", "Rank neighbour wrong!"
 
 
 def test_get_rank_neighbours2(seventeen_taxa_tree_newick, seventeen_taxa_rank_neighbours_newick):
     t = TimeTree(seventeen_taxa_tree_newick)
     rn = get_rank_neighbours(t)
-    assert seventeen_taxa_rank_neighbours_newick == [i.get_newick(f=5) for i in rn], "Rank neighbours wrong!"
+    assert set(seventeen_taxa_rank_neighbours_newick) == set([i.get_newick(f=5) for i in rn]), "Rank neighbours wrong!"
 
 
 def test_get_nni_neighbours(five_taxa_newick_list, five_taxa_0_nni_neighbours):
     t = TimeTree(five_taxa_newick_list[0])
     nn = get_nni_neighbours(t)
-    nwk = [i.get_newick() for i in nn]
-    assert set(nwk) == set(five_taxa_0_nni_neighbours), "Wrong NNI neighbours!"
+    assert set([i.get_newick() for i in nn]) == set(five_taxa_0_nni_neighbours), "NNI neighbours wrong!"
 
+
+def test_get_nni_neighbours2(seventeen_taxa_tree_newick, seventeen_taxa_nni_neighbours_newick):
+    t = TimeTree(seventeen_taxa_tree_newick)
+    nn = get_nni_neighbours(t)
+    assert set(seventeen_taxa_nni_neighbours_newick) == set([i.get_newick(f=5) for i in nn]), "NNI neighbours wrong!"
 
 def test_neighbourhood(five_taxa_newick_list, five_taxa_0_all_neighbours):
     t = TimeTree(five_taxa_newick_list[0])
-    nn = neighbourhood(t)
-    nwk = [i.get_newick() for i in nn]
-    assert set(nwk) == set(five_taxa_0_all_neighbours)
+    n = neighbourhood(t)
+    assert set([i.get_newick() for i in n]) == set(five_taxa_0_all_neighbours), "Neighbourhood wrong!"
+
+
+def test_neighbourhood2(seventeen_taxa_tree_newick, seventeen_taxa_nni_neighbours_newick,
+                        seventeen_taxa_rank_neighbours_newick):
+    t = TimeTree(seventeen_taxa_tree_newick)
+    n = neighbourhood(t)
+    assert set([i.get_newick() for i in n]) == \
+           set(seventeen_taxa_nni_neighbours_newick+seventeen_taxa_rank_neighbours_newick), "Neighbourhood wrong!"
