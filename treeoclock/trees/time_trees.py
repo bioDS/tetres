@@ -222,8 +222,32 @@ def _(t1, t2):
 
 if __name__ == '__main__':
 
-    d_name = 'Dengue'
+    tt = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
+    tt.etree.render(f'/Users/larsberling/Desktop/CodingMA/test.png')
+
+    # Defining a layout to display internal node names in the plot
+    def my_layout(node):
+        if node.is_leaf():
+            # If terminal node, draws its name
+            name_face = ete3.AttrFace("name")
+        else:
+            # If internal node, draws label with smaller font size
+            name_face = ete3.AttrFace("name", fsize=10)
+        # Adds the name face to the image at the preferred position
+        ete3.faces.add_face_to_node(name_face, node, column=0, position="branch-right")
+
+
+    ts = ete3.TreeStyle()
+    ts.show_leaf_name = False
+    ts.layout_fn = my_layout
+    ts.show_branch_length = True
+    ts.show_scale = False
+
+
+    tt.etree.show(tree_style=ts)
+
+    d_name = 'Dengue'
     # myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
