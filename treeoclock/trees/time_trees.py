@@ -30,8 +30,15 @@ class TimeTree:
     
     def copy(self):
         return TimeTree(self.get_newick())
-
-    # TODO one_neighbourhood function
+    
+    def neighbours(self):
+        return neighbourhood(self)
+    
+    def rank_neighbours(self):
+        return get_rank_neighbours(self)
+    
+    def nni_neighbours(self):
+        return get_nni_neighbours(self)
 
 
 def neighbourhood(tree: TimeTree):
@@ -216,26 +223,17 @@ def _(t1, t2):
 
 if __name__ == '__main__':
 
-    d_name = 'RSV2'
+    d_name = 'Dengue'
 
     # myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
     # print(myts[0].get_newick())
     # print(ctree_to_ete3(myts[0].ctree).write(format=3))
-    from timeit import default_timer as timer
     
-    s = timer()
-    n = neighbourhood(myts[0])
-    print(timer()-s)
-    s = timer()
-    n1 = get_nni_neighbours(myts[0])
-    n2 = get_rank_neighbours(myts[0])
-    print(timer() - s)
-    
-    # n = neighbourhood(myts)
-    # for i in n:
-    #     print(i.get_newick())
+    n = get_nni_neighbours(myts[0])
+    for i in n:
+        print(i.get_newick())
 
     # def my_layout(node):
     #     if node.is_leaf():

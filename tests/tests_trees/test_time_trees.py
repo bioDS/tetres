@@ -5,6 +5,10 @@ from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_pa
 from treeoclock.trees._converter import ete3_to_ctree
 
 
+def test_timetree_construction(five_taxa_newick_list):
+    assert TimeTree(five_taxa_newick_list[0]), "Construction not possible!"
+
+
 def test_timetree_fp_distance(five_taxa_newick_list, five_taxa_list_distances):
     out = []
     t = [TimeTree(i) for i in five_taxa_newick_list]
@@ -36,6 +40,24 @@ def test_timetree_copy(five_taxa_newick_list):
     for i in range(len(out)):
         bout.append(out[i].get_newick() == t[i].get_newick())
     assert bout.count(False) == 0, f"Copying a TimeTree failed!"
+
+
+def test_timetree_neighbours(five_taxa_newick_list, five_taxa_0_all_neighbours):
+    t = TimeTree(five_taxa_newick_list[0])
+    n = t.neighbours()
+    assert set([i.get_newick() for i in n]) == set(five_taxa_0_all_neighbours), "TimeTree neighbours wrong!"
+
+
+def test_timetree_rank_neighbours(five_taxa_newick_list):
+    t = TimeTree(five_taxa_newick_list[0])
+    n = t.rank_neighbours()
+    assert n[0].get_newick() == "((4:3,(3:1,2:1):2):1,(1:2,5:2):2);", "TimeTree rank neighbour wrong!"
+
+def test_timetree_nni_neighbours(five_taxa_newick_list, five_taxa_0_nni_neighbours):
+    t = TimeTree(five_taxa_newick_list[0])
+    n = t.nni_neighbours()
+    assert set([i.get_newick() for i in n]) == set(five_taxa_0_nni_neighbours), "TimeTree nni neighbours wrong!"
+
 
 def test_findpath_distance_timetree(five_taxa_newick_list, five_taxa_list_distances):
     t = [TimeTree(i) for i in five_taxa_newick_list]
