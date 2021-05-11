@@ -159,16 +159,23 @@ Still WIP
 General Functions
 =================
 
-List all functions
+A list of the direct functions and their arguments.
 
-===========================================     =========================================
+=============================================    =====================================================================================
    Function                                       Description
-===========================================     =========================================
-    :attr:`time_trees.neighbourhood(tree)`
+=============================================    =====================================================================================
+:attr:`time_trees.neighbourhood(tree)`              returns a list of :class:`TimeTree` objects containing the one-neighbours of tree
+:attr:`time_trees.get_rank_neighbours(tree)`        returns a list of :class:`TimeTree` objects containing the rank neighbours of tree
+:attr:`time_trees.get_nni_neighbours(tree)`         returns a list of :class:`TimeTree` objects containing the NNI neighbours of tree
+:attr:`time_trees.read_nexus(file)`                 returns a list of :class:`TimeTree` objects contained in given the nexus file
+:attr:`time_trees.get_mapping_dict(file)`           returns a dictionary containg the taxa to integer transaltion of the given file
+:attr:`time_trees.findpath_distance(t1, t2)`        Computes the distance between t1 and t2
+:attr:`time_trees.findpath_path(t1, t2)`            Computes the path between t1 and t2
+=============================================    =====================================================================================
 
-===========================================     =========================================
-
-MISSING CODEBLOCK of how to call these functions
+.. note::
+    Both functions :attr:`time_trees.findpath_distance(t1, t2)` and :attr:`time_trees.findpath_path(t1, t2)`
+    can be called with t1 and t2 being either a :class:`TREE`, :class:`TimeTree` or :class:`ete3.Tree`
 
 
 .. _c classes:
