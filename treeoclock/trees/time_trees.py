@@ -36,19 +36,10 @@ class TimeTree:
 
 def neighbourhood(tree: TimeTree):
 
-
     rank_neighbours = get_rank_neighbours(tree)
+    nni_neighbours = get_nni_neighbours(tree)
 
-    # All NNI moves
-    # lib.nni_move.argtypes = [POINTER(TREE), c_long, c_int]
-    # for rank in range(num_leaves - 1):
-        # First logic part: does the parent have rank+1:
-            # lib.nni_move
-
-    # TODO how to check if nni move is possible for a given index i and i+1 ?
-    #  Maybe get exceptions from the c code ? or do the same logic here so that the c code does not fail
-    # This should return a numpy array with TimeTree objects
-    return rank_neighbours  # TODO correct return
+    return rank_neighbours.extend(nni_neighbours)  # TODO correct return
 
 
 def get_rank_neighbours(tree: TimeTree):
@@ -61,9 +52,24 @@ def get_rank_neighbours(tree: TimeTree):
             working_copy = tree.copy()
             lib.rank_move(working_copy.ctree, rank)
             rank_neighbours.append(TimeTree(ctree_to_ete3(working_copy.ctree).write(format=5)))
-            if findpath_distance(working_copy, tree) != 1:
+            if findpath_distance(rank_neighbours[-1], tree) != 1:
                 raise ValueError("Distance of a neighbour is supposed to be 1, something went wrong!")
     return rank_neighbours
+
+
+def get_nni_neighbours(tree: TimeTree):
+    lib.nni_move.argtypes = [POINTER(TREE), c_long, c_int]
+    num_leaves = len(tree)
+    nni_neighbours = []
+    for rank in range(num_leaves, num_leaves + num_leaves - 2):
+        if tree.ctree[rank].parent == rank + 1:
+            for i in [0, 1]:
+                working_copy = tree.copy()
+                lib.nni_move(working_copy.ctree, rank, i)
+                nni_neighbours.append(TimeTree(ctree_to_ete3(working_copy.ctree).write(format=5)))
+                if findpath_distance(nni_neighbours[-1], tree) != 1:
+                    raise ValueError("Distance of a neighbour is supposed to be 1, something went wrong!")
+    return nni_neighbours
 
 
 class TimeTreeSet:
@@ -197,11 +203,12 @@ if __name__ == '__main__':
 
     myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
-    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
-    print(myts[0].get_newick())
-    print(ctree_to_ete3(myts[0].ctree).write(format=3))
-    n = neighbourhood(myts[0])
-
+    # myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    # print(myts[0].get_newick())
+    # print(ctree_to_ete3(myts[0].ctree).write(format=3))
+    n = get_nni_neighbours(myts)
+    for i in n:
+        print(i.get_newick())
 
     # def my_layout(node):
     #     if node.is_leaf():
@@ -221,8 +228,7 @@ if __name__ == '__main__':
     # ts.show_branch_length = True
     # ts.show_scale = False
     # n[0].show(tree_style=ts)
-    for i in n:
-        print(i.get_newick())
+
 
     # print(len(myts[0]))
     # print(len(myts))
