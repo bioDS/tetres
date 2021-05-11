@@ -35,11 +35,28 @@ class TimeTree:
 
 
 def neighbourhood(tree: TimeTree):
+    lib.rank_move.argtypes = [POINTER(TREE), c_long]
+    lib.nni_move.argtypes = [POINTER(TREE), c_long, c_int]
+    num_leaves = len(tree)
+    neighbours = []
 
-    rank_neighbours = get_rank_neighbours(tree)
-    nni_neighbours = get_nni_neighbours(tree)
+    for rank in range(num_leaves, num_leaves + num_leaves - 2):
+        # Only do a rank move if it is possible!
+        if not tree.ctree[rank].parent == rank + 1:
+            working_copy = tree.copy()
+            lib.rank_move(working_copy.ctree, rank)
+            neighbours.append(TimeTree(ctree_to_ete3(working_copy.ctree).write(format=5)))
+            if findpath_distance(neighbours[-1], tree) != 1:
+                raise ValueError("Distance of a neighbour is supposed to be 1, something went wrong!")
+        elif tree.ctree[rank].parent == rank + 1:
+            for i in [0, 1]:
+                working_copy = tree.copy()
+                lib.nni_move(working_copy.ctree, rank, i)
+                neighbours.append(TimeTree(ctree_to_ete3(working_copy.ctree).write(format=5)))
+                if findpath_distance(neighbours[-1], tree) != 1:
+                    raise ValueError("Distance of a neighbour is supposed to be 1, something went wrong!")
 
-    return rank_neighbours.extend(nni_neighbours)  # TODO correct return
+    return neighbours
 
 
 def get_rank_neighbours(tree: TimeTree):
@@ -199,16 +216,26 @@ def _(t1, t2):
 
 if __name__ == '__main__':
 
-    d_name = 'Dengue'
+    d_name = 'RSV2'
 
-    myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
+    # myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
-    # myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
     # print(myts[0].get_newick())
     # print(ctree_to_ete3(myts[0].ctree).write(format=3))
-    n = get_nni_neighbours(myts)
-    for i in n:
-        print(i.get_newick())
+    from timeit import default_timer as timer
+    
+    s = timer()
+    n = neighbourhood(myts[0])
+    print(timer()-s)
+    s = timer()
+    n1 = get_nni_neighbours(myts[0])
+    n2 = get_rank_neighbours(myts[0])
+    print(timer() - s)
+    
+    # n = neighbourhood(myts)
+    # for i in n:
+    #     print(i.get_newick())
 
     # def my_layout(node):
     #     if node.is_leaf():
