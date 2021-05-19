@@ -1,0 +1,444 @@
+
+
+<!doctype html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Working with time trees &#8212; treeoclock 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to treeoclock’s documentation!" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to treeoclock’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Working with time trees</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="working-with-time-trees">
+<h1><a class="toc-backref" href="#id1">Working with time trees</a><a class="headerlink" href="#working-with-time-trees" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#working-with-time-trees" id="id1">Working with time trees</a></p>
+<ul>
+<li><p><a class="reference internal" href="#the-timetree-class" id="id2">The TimeTree class</a></p>
+<ul>
+<li><p><a class="reference internal" href="#timetree-attributes" id="id3">TimeTree attributes</a></p></li>
+<li><p><a class="reference internal" href="#ete3-functionalities" id="id4">ete3 functionalities</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#the-timetreeset-class" id="id5">The TimeTreeSet class</a></p>
+<ul>
+<li><p><a class="reference internal" href="#reading-trees" id="id6">Reading Trees</a></p></li>
+<li><p><a class="reference internal" href="#writing-trees" id="id7">Writing trees</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#random-trees" id="id8">Random trees</a></p></li>
+<li><p><a class="reference internal" href="#combining-multiple-timetreesets" id="id9">Combining multiple TimeTreeSets</a></p></li>
+<li><p><a class="reference internal" href="#general-functions" id="id10">General Functions</a></p></li>
+<li><p><a class="reference internal" href="#classes-for-the-c-library" id="id11">Classes for the c library</a></p>
+<ul>
+<li><p><a class="reference internal" href="#node" id="id12">NODE</a></p></li>
+<li><p><a class="reference internal" href="#tree" id="id13">TREE</a></p></li>
+<li><p><a class="reference internal" href="#treelist" id="id14">TREELIST</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#class-converter-functions" id="id15">Class converter functions</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="the-timetree-class">
+<h2><a class="toc-backref" href="#id2">The TimeTree class</a><a class="headerlink" href="#the-timetree-class" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> can be initialized with a given newick string using the <a class="reference external" href="http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#trees">ete3.Tree</a> constructor and its <a class="reference external" href="http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#reading-and-writing-newick-trees">format options</a>.
+Additionally, a <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> object (<a class="reference internal" href="#c-classes"><span class="std std-ref">Classes for the c library</span></a>) is generated and saved in the <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> and used for efficient distance computations.</p>
+<div class="section" id="timetree-attributes">
+<h3><a class="toc-backref" href="#id3">TimeTree attributes</a><a class="headerlink" href="#timetree-attributes" title="Permalink to this headline">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 74%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.etree</span></code></p></td>
+<td><p>returns the <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code> object</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.ctree</span></code></p></td>
+<td><p>returns the respective <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> object</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">len(TimeTree)</span></code></p></td>
+<td><p>returns the number of leaves of the <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.fp_distance(t)</span></code></p></td>
+<td><p>returns the findpath distance to another <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> <em>t</em></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.fp_path(t)</span></code></p></td>
+<td><p>returns a <em>list</em> of <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> objects</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.get_newick(format)</span></code></p></td>
+<td><p>returns the <em>write()</em> function of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code> with the specified <em>format</em>, defaults to <em>format=5</em></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.copy()</span></code></p></td>
+<td><p>returns a deep copy of the current <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> (specifically used to generate a new <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> object)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.neighbours()</span></code></p></td>
+<td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code>’s containing all neighbours at distance <em>1</em></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.rank_neighbours()</span></code></p></td>
+<td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code>’s containing only neighbours one <em>rank move</em> away</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.nni_neighbours()</span></code></p></td>
+<td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code>’s containing only neighbours one <em>NNI move</em> away</p></td>
+</tr>
+</tbody>
+</table>
+<p>This is an example of how to access the different attributes of a TimeTree object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTree</span>
+
+
+<span class="c1"># Initialize a time tree from a newick string</span>
+<span class="n">tt</span> <span class="o">=</span> <span class="n">TimeTree</span><span class="p">(</span><span class="s2">&quot;((1:3,5:3):1,(4:2,(3:1,2:1):1):2);&quot;</span><span class="p">)</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">ctree</span>  <span class="c1"># the TREE class object</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">etree</span>  <span class="c1"># the ete3.Tree object</span>
+
+<span class="nb">len</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>  <span class="c1"># Number of leaves in the tree tt --&gt; 5</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">fp_distance</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>  <span class="c1"># Distance to another TimeTree --&gt; 0</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">fp_path</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>  <span class="c1"># A shortest path to another TimeTree --&gt; []</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">get_newick</span><span class="p">()</span>  <span class="c1"># Returns the newick string in ete3 format=5</span>
+
+<span class="n">ttc</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># ttc contains a deep copy of the TimeTree tt</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">neighbours</span><span class="p">()</span>  <span class="c1"># a list of TimeTree objects each at distance one to tt</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">rank_neighbours</span><span class="p">()</span>  <span class="c1"># list of TimeTree obtained by doing all possible rank moves on tt</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">nni_neighbours</span><span class="p">()</span>  <span class="c1"># list of TimeTree obtained by doing all possible NNI moves on tt</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ete3-functionalities">
+<h3><a class="toc-backref" href="#id4">ete3 functionalities</a><a class="headerlink" href="#ete3-functionalities" title="Permalink to this headline">¶</a></h3>
+<p>Via the <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code> object the respective function of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">ete3</span></code> package are available for a <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> object.
+For example drawing and saving a tree to a file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTree</span>
+
+<span class="n">tt</span> <span class="o">=</span> <span class="n">TimeTree</span><span class="p">(</span><span class="s2">&quot;((1:3,5:3):1,(4:2,(3:1,2:1):1):2);&quot;</span><span class="p">)</span>
+
+<span class="c1"># Automatically save the tree to a specific file_path location</span>
+<span class="n">tt</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;file_path_string&#39;</span><span class="p">)</span>
+
+<span class="c1"># Defining a layout to display internal node names in the plot</span>
+<span class="k">def</span> <span class="nf">my_layout</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">():</span>
+        <span class="c1"># If terminal node, draws its name</span>
+        <span class="n">name_face</span> <span class="o">=</span> <span class="n">ete3</span><span class="o">.</span><span class="n">AttrFace</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If internal node, draws label with smaller font size</span>
+        <span class="n">name_face</span> <span class="o">=</span> <span class="n">ete3</span><span class="o">.</span><span class="n">AttrFace</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">fsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="c1"># Adds the name face to the image at the preferred position</span>
+    <span class="n">ete3</span><span class="o">.</span><span class="n">faces</span><span class="o">.</span><span class="n">add_face_to_node</span><span class="p">(</span><span class="n">name_face</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s2">&quot;branch-right&quot;</span><span class="p">)</span>
+
+<span class="n">ts</span> <span class="o">=</span> <span class="n">ete3</span><span class="o">.</span><span class="n">TreeStyle</span><span class="p">()</span>
+<span class="n">ts</span><span class="o">.</span><span class="n">show_leaf_name</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">ts</span><span class="o">.</span><span class="n">layout_fn</span> <span class="o">=</span> <span class="n">my_layout</span>
+<span class="n">ts</span><span class="o">.</span><span class="n">show_branch_length</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">ts</span><span class="o">.</span><span class="n">show_scale</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Will open a separate plot window, which also allows interactive changes and saving the image</span>
+<span class="n">tt</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">tree_style</span><span class="o">=</span><span class="n">ts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See the <code class="xref py py-mod docutils literal notranslate"><span class="pre">ete3</span></code> <a class="reference external" href="http://etetoolkit.org/docs/latest/tutorial/tutorial_drawing.html">documentation</a> for more options.</p>
+</div>
+</div>
+<div class="section" id="the-timetreeset-class">
+<h2><a class="toc-backref" href="#id5">The TimeTreeSet class</a><a class="headerlink" href="#the-timetreeset-class" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTreeSet</span></code> is an iterable list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects, which can be initialized with a nexus file.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.map</span></code></p></td>
+<td><p>a dictionary conataining the taxa to integer translation from the nexus file</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.trees</span></code></p></td>
+<td><p>a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet[i]</span></code></p></td>
+<td><p>returns the <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> at <code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.trees[i]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">len(TimeTreeSet)</span></code></p></td>
+<td><p>returns the number of trees in the list <code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.trees</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.fp_distance(i,</span> <span class="pre">j)</span></code></p></td>
+<td><p>returns the distances between the trees at postition i and j</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.fp_path(i,</span> <span class="pre">j)</span></code></p></td>
+<td><p>returns a shortest path (list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code>) between the trees at postition i and j</p></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="reading-trees">
+<h3><a class="toc-backref" href="#id6">Reading Trees</a><a class="headerlink" href="#reading-trees" title="Permalink to this headline">¶</a></h3>
+<p>A TimeTreeSet object can be initialized with a path to a nexus file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span>
+
+
+<span class="c1"># Initializing with a path to a nexus tree file</span>
+<span class="n">tts</span> <span class="o">=</span> <span class="n">TimeTreeSet</span><span class="p">(</span><span class="s2">&quot;path_to_nexus_file.nex&quot;</span><span class="p">)</span>
+
+<span class="n">tts</span><span class="o">.</span><span class="n">map</span>  <span class="c1"># a dictionary keys:int and values:string(taxa)</span>
+
+<span class="n">tts</span><span class="o">.</span><span class="n">trees</span>  <span class="c1"># A list of TimeTree objects</span>
+
+<span class="k">for</span> <span class="n">tree</span> <span class="ow">in</span> <span class="n">tts</span><span class="p">:</span>
+    <span class="c1"># tree is a TimeTree object</span>
+    <span class="o">...</span>
+<span class="n">tts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># trees are accessible via the index</span>
+
+<span class="nb">len</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span>  <span class="c1"># Returns the number of trees in the TimeTreeSet object</span>
+
+<span class="n">tts</span><span class="o">.</span><span class="n">fp_distance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>  <span class="c1"># Returns the distance between trees i and j</span>
+<span class="n">tts</span><span class="o">.</span><span class="n">fp_path</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>  <span class="c1"># Returns a shortest path between trees i and j</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="writing-trees">
+<h3><a class="toc-backref" href="#id7">Writing trees</a><a class="headerlink" href="#writing-trees" title="Permalink to this headline">¶</a></h3>
+<p>Still WIP</p>
+</div>
+</div>
+<div class="section" id="random-trees">
+<h2><a class="toc-backref" href="#id8">Random trees</a><a class="headerlink" href="#random-trees" title="Permalink to this headline">¶</a></h2>
+<p>STILL WIP</p>
+</div>
+<div class="section" id="combining-multiple-timetreesets">
+<h2><a class="toc-backref" href="#id9">Combining multiple TimeTreeSets</a><a class="headerlink" href="#combining-multiple-timetreesets" title="Permalink to this headline">¶</a></h2>
+<p>Still WIP</p>
+</div>
+<div class="section" id="general-functions">
+<h2><a class="toc-backref" href="#id10">General Functions</a><a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h2>
+<p>A list of the direct functions and their arguments.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.neighbourhood(tree)</span></code></p></td>
+<td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects containing the one-neighbours of tree</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.get_rank_neighbours(tree)</span></code></p></td>
+<td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects containing the rank neighbours of tree</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.get_nni_neighbours(tree)</span></code></p></td>
+<td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects containing the NNI neighbours of tree</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.read_nexus(file)</span></code></p></td>
+<td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects contained in given the nexus file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.get_mapping_dict(file)</span></code></p></td>
+<td><p>returns a dictionary containg the taxa to integer transaltion of the given file</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_distance(t1,</span> <span class="pre">t2)</span></code></p></td>
+<td><p>Computes the distance between t1 and t2</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_path(t1,</span> <span class="pre">t2)</span></code></p></td>
+<td><p>Computes the path between t1 and t2</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Both functions <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_distance(t1,</span> <span class="pre">t2)</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_path(t1,</span> <span class="pre">t2)</span></code>
+can be called with t1 and t2 being either a <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code></p>
+</div>
+</div>
+<div class="section" id="classes-for-the-c-library">
+<span id="c-classes"></span><h2><a class="toc-backref" href="#id11">Classes for the c library</a><a class="headerlink" href="#classes-for-the-c-library" title="Permalink to this headline">¶</a></h2>
+<p>These classes are found in the <code class="file docutils literal notranslate"><span class="pre">_ctrees.py</span></code> module.
+The corresponding CDLL c library is generated from <code class="file docutils literal notranslate"><span class="pre">findpath.c</span></code>.</p>
+<div class="section" id="node">
+<h3><a class="toc-backref" href="#id12">NODE</a><a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">parent</span></code>: index of the parent node (int, defaults to -1)</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">children[2]</span></code>: index of the two children ([int], defaults to [-1, -1])</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">time</span></code>: Time of the node (int, defaults to 0)</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">time</span></code> is currently not being used!</p>
+</div>
+</div>
+<div class="section" id="tree">
+<h3><a class="toc-backref" href="#id13">TREE</a><a class="headerlink" href="#tree" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">num_leaves</span></code>: Number of leaves in the tree (int)</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">tree</span></code>: Points to a <code class="xref py py-class docutils literal notranslate"><span class="pre">NODE</span></code> object (POINTER(<code class="xref py py-class docutils literal notranslate"><span class="pre">NODE</span></code>))</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">root_time</span></code>: Time of the root <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code> (int)</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">root_time</span></code> is currently not being used!</p>
+</div>
+</div>
+<div class="section" id="treelist">
+<h3><a class="toc-backref" href="#id14">TREELIST</a><a class="headerlink" href="#treelist" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">num_trees</span></code>: Number of trees in the list (int)</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">trees</span></code>: List of trees (POINTER(<code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code>))</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="class-converter-functions">
+<h2><a class="toc-backref" href="#id15">Class converter functions</a><a class="headerlink" href="#class-converter-functions" title="Permalink to this headline">¶</a></h2>
+<p>These are found in <code class="file docutils literal notranslate"><span class="pre">_converter.py</span></code>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">_converter.ete3_to_ctree(tree)</span></code></p></td>
+<td><p>traverses an <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code> and construct the correct <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">_converter.ctree_to_ete3(ctree)</span></code></p></td>
+<td><p>recursively traverses a <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> and generates an <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Working with time trees</a><ul>
+<li><a class="reference internal" href="#the-timetree-class">The TimeTree class</a><ul>
+<li><a class="reference internal" href="#timetree-attributes">TimeTree attributes</a></li>
+<li><a class="reference internal" href="#ete3-functionalities">ete3 functionalities</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-timetreeset-class">The TimeTreeSet class</a><ul>
+<li><a class="reference internal" href="#reading-trees">Reading Trees</a></li>
+<li><a class="reference internal" href="#writing-trees">Writing trees</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#random-trees">Random trees</a></li>
+<li><a class="reference internal" href="#combining-multiple-timetreesets">Combining multiple TimeTreeSets</a></li>
+<li><a class="reference internal" href="#general-functions">General Functions</a></li>
+<li><a class="reference internal" href="#classes-for-the-c-library">Classes for the c library</a><ul>
+<li><a class="reference internal" href="#node">NODE</a></li>
+<li><a class="reference internal" href="#tree">TREE</a></li>
+<li><a class="reference internal" href="#treelist">TREELIST</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#class-converter-functions">Class converter functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to treeoclock’s documentation!</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/trees.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to treeoclock’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Working with time trees</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Lars Berling, Lena Collienne, Jordan Kettles.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+*.o
+__pycache__
+.python-version
+*.so
+*.trees
+*.py.lprof
+*.nex
+*.tree
+.DS_Store
+.idea/
+
+# Compiled python modules.
+*.pyc
+# Setuptools distribution folder.
+/dist/
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
