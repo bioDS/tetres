@@ -14,12 +14,17 @@ def test_centroid_construction():
 
 def test_centroid_compute_centroid_var_error():
     with pytest.raises(ValueError):
-        Centroid(variation="TEST").compute_centroid(TimeTreeSet())
+        Centroid(variation="TEST", n_cores=1).compute_centroid(TimeTreeSet())
+
+
+def test_centroid_compute_centroid_n_cores_error():
+    with pytest.raises(ValueError):
+        Centroid(variation="greedy", n_cores=0.6).compute_centroid(TimeTreeSet())
 
 
 def test_centroid_greedy():
     # TODO Needs to be adapted
-    assert Centroid(variation="greedy").compute_centroid(TimeTreeSet()) == "Hello World", "Greedy Variation Failed"
+    assert Centroid(variation="greedy", n_cores=4).compute_centroid(TimeTreeSet()) == "Hello World", "Greedy Variation Failed"
 
 
 
