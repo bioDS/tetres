@@ -6,11 +6,19 @@ def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n
 
     neighbourhood = t.neighbours()
     better_neighbours = []
+    cur_best = t_value
     for n in neighbourhood:
         sos = compute_sos(t=n, trees=trees, n_cores=n_cores)
-        if sos < t_value:
+        if sos < cur_best:
+            cur_best = sos
+            better_neighbours = [n]
+        elif sos == cur_best and sos < t_value:
             better_neighbours.append(n)
-    # TODO put the neighbours in a priority queue with the sos value ?
 
-    return better_neighbours[1]
+    if len(better_neighbours) == 1:
+        # Only one neighbour with smallest value found
+        return better_neighbours[0]
+
+    # TODO select one neighbour with a specified selection = [last, first, random?]
+    return better_neighbours
 
