@@ -105,16 +105,16 @@ class TimeTreeSet:
             self.map = {}
             self.trees = []
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         return self.trees[index]
 
     def __len__(self):
         return len(self.trees)
 
-    def fp_distance(self, i, j):
+    def fp_distance(self, i: int, j: int):
         return findpath_distance(self.trees[i].ctree, self.trees[j].ctree)
 
-    def fp_path(self, i, j):
+    def fp_path(self, i: int, j: int):
         return findpath_path(self.trees[i].ctree, self.trees[j].ctree)
 
 
