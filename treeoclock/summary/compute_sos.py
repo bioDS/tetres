@@ -1,4 +1,4 @@
-from multiprocessing import Pool, Array
+from multiprocessing import Pool
 
 from treeoclock.trees.time_trees import TimeTree, TimeTreeSet, findpath_distance
 
