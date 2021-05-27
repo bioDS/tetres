@@ -2,13 +2,13 @@
 from ..trees.time_trees import TimeTree, TimeTreeSet
 from .compute_sos import compute_sos
 
-def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n_cores=None):
+def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int):
 
     neighbourhood = t.neighbours()
     better_neighbours = []
     cur_best = t_value
     for n in neighbourhood:
-        sos = compute_sos(t=n, trees=trees, n_cores=n_cores)
+        sos = compute_sos(t=n, trees=trees)
         if sos < cur_best:
             cur_best = sos
             better_neighbours = [n]

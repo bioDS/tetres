@@ -2,9 +2,6 @@ from multiprocessing import Pool, Array
 
 from treeoclock.trees.time_trees import TimeTree, TimeTreeSet, findpath_distance
 
-global gtrees
-gtrees = []
-
 
 def compute_sos_mp(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
     """
@@ -27,24 +24,27 @@ def compute_sos_mp(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
 
 
 def compute_sos(t: TimeTree, trees: TimeTreeSet):
+    """
+        Computes the sum of squared distances for the tree t and the set trees
+
+        Currently faster than using multiple cores, as this uses the ctree structure directly without the need of converting
+
+        :param t: A tree
+        :type t: TimeTree
+        :param trees: A set of trees
+        :type trees: TimeTreeSet
+        :return: The sum of squared distances
+        :rtype: int
+        """
     sos = 0
     for i in trees:
         sos += findpath_distance(t.ctree, i.ctree)**2
     return sos
 
+
 if __name__ == '__main__':
-    d_name = 'dispg2d_newzealand_large_time_1'
+    d_name = 'RSV2'
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
-
-    from timeit import default_timer as timer
-
-    start = timer()
-    f = compute_sos_mp(myts[0], myts)
-    print(timer()-start)
-
-    start = timer()
-    s = compute_sos(myts[0], myts)
-    print(timer()-start)
-
-    print(f, s)
+    compute_sos(myts[0], myts)
+    compute_sos_mp(myts[0], myts)
