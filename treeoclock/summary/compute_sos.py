@@ -25,17 +25,17 @@ def compute_sos_mt(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
 
 def compute_sos(t: TimeTree, trees: TimeTreeSet):
     """
-        Computes the sum of squared distances for the tree t and the set trees
+    Computes the sum of squared distances for the tree t and the set trees
 
-        Currently faster than using multiple cores, as this uses the ctree structure directly without the need of converting
+    Currently faster than using multiple cores, as this uses the ctree structure directly without the need of converting
 
-        :param t: A tree
-        :type t: TimeTree
-        :param trees: A set of trees
-        :type trees: TimeTreeSet
-        :return: The sum of squared distances
-        :rtype: int
-        """
+    :param t: A tree
+    :type t: TimeTree
+    :param trees: A set of trees
+    :type trees: TimeTreeSet
+    :return: The sum of squared distances
+    :rtype: int
+    """
     sos = 0
     for i in trees:
         sos += findpath_distance(t.ctree, i.ctree)**2
@@ -68,4 +68,3 @@ if __name__ == '__main__':
     
     import numpy as np
     print(np.mean(times), np.mean(times_mp))
-    
