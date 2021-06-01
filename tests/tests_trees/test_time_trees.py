@@ -129,7 +129,6 @@ def test_timetreeset_construction_empty():
     assert type(TimeTreeSet()) is TimeTreeSet, "Empty construction failed!"
 
 
-
 def test_timetreeset_len(dir, five_taxa_nexus_string):
     dir.write("test.nex", five_taxa_nexus_string)
     t = TimeTreeSet(f'{dir.path}/test.nex')
