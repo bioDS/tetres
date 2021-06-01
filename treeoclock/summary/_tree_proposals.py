@@ -1,8 +1,11 @@
 from ..trees.time_trees import TimeTree, TimeTreeSet
 from .compute_sos import compute_sos_mt
+from ._constants import SELECT_LIST
+
+from random import choice
 
 
-def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n_cores=None):
+def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n_cores=None, select='first'):
     neighbourhood = t.neighbours()
     better_neighbours = []
     cur_best = t_value
@@ -18,6 +21,13 @@ def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n
         # Only one neighbour with smallest value found
         return better_neighbours[0]
 
-    # TODO select one neighbour with a specified selection = [last, first, random?],
-    #  currently the first in the list!
-    return better_neighbours[0]
+    # multiple neighbours with same SOS value found, choosing by the given selection method
+    if select == 'first':
+        return better_neighbours[0]
+    elif select == 'last':
+        return better_neighbours[-1]
+    elif select == 'random':
+        return choice(better_neighbours)
+
+    raise ValueError(f"The 'select' parameter should be"
+                     f" in {SELECT_LIST} but {select} was given.")
