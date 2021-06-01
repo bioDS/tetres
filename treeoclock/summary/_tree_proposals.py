@@ -1,14 +1,13 @@
-
 from ..trees.time_trees import TimeTree, TimeTreeSet
-from .compute_sos import compute_sos
+from .compute_sos import compute_sos_mt
 
-def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int):
 
+def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n_cores=None):
     neighbourhood = t.neighbours()
     better_neighbours = []
     cur_best = t_value
     for n in neighbourhood:
-        sos = compute_sos(t=n, trees=trees)
+        sos = compute_sos_mt(t=n, trees=trees, n_cores=n_cores)
         if sos < cur_best:
             cur_best = sos
             better_neighbours = [n]
@@ -19,6 +18,6 @@ def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int):
         # Only one neighbour with smallest value found
         return better_neighbours[0]
 
-    # TODO select one neighbour with a specified selection = [last, first, random?]
-    return better_neighbours
-
+    # TODO select one neighbour with a specified selection = [last, first, random?],
+    #  currently the first in the list!
+    return better_neighbours[0]
