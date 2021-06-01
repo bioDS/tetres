@@ -30,6 +30,4 @@ class Centroid:
             raise ValueError(f"The 'variation' parameter should be"
                              f" in {START_LIST} but {self.start} was given.")
 
-        return getattr(_variations, self.variation)(trees)
-
-        return 0
+        return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, start=self.start)
