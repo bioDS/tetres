@@ -1,4 +1,4 @@
-import _variations
+from treeoclock.summary import _variations
 from treeoclock.summary._constants import VAR_LIST, SELECT_LIST
 from treeoclock.trees.time_trees import TimeTreeSet
 
