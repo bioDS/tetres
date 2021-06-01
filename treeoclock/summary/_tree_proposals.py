@@ -1,6 +1,6 @@
-from ..trees.time_trees import TimeTree, TimeTreeSet
-from .compute_sos import compute_sos_mt
-from ._constants import SELECT_LIST
+from treeoclock.trees.time_trees import TimeTree, TimeTreeSet
+from treeoclock.summary.compute_sos import compute_sos_mt
+from treeoclock.summary._constants import SELECT_LIST
 
 from random import choice
 
