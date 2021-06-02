@@ -117,6 +117,9 @@ class TimeTreeSet:
     def fp_path(self, i: int, j: int):
         return findpath_path(self.trees[i].ctree, self.trees[j].ctree)
 
+    def copy(self):
+        return self.trees.copy()
+
 
 def read_nexus(file: str) -> list:
     # re_tree returns nwk string without the root height and no ; in the end
@@ -191,6 +194,7 @@ def _(t1, t2):
 
 @functools.singledispatch
 def findpath_path(arg):
+    # Function does not contain the last tree, so findpath_path(x,y)=list of trees [x, z1, z2, ...]
     raise TypeError(type(arg) + " not supported.")
 
 
