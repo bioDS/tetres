@@ -1,4 +1,4 @@
-VAR_LIST = ["inc-sub", "greedy"]
+VAR_LIST = ["inc_sub", "greedy"]
 
 SELECT_LIST = ["first", "last", "random"]
 
