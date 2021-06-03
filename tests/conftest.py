@@ -1,7 +1,7 @@
 import pytest
 
 from testfixtures import TempDirectory
-
+from treeoclock.trees.time_trees import TimeTreeSet
 
 @pytest.fixture()
 def dir():
@@ -19,6 +19,12 @@ def five_taxa_newick_list():
 @pytest.fixture
 def five_taxa_list_distances():
     return [0, 1, 2, 1, 0, 3, 2, 3, 0]
+
+
+@pytest.fixture
+def five_taxa_tts(dir, five_taxa_nexus_string):
+    dir.write("test.nex", five_taxa_nexus_string)
+    return TimeTreeSet(f'{dir.path}/test.nex')
 
 
 @pytest.fixture
