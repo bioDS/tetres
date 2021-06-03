@@ -11,6 +11,13 @@ class NoBetterNeighbourFound(Exception):
 
 
 def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n_cores=None, select='first'):
+
+    if select not in SELECT_LIST:
+        raise ValueError(f"The 'select' parameter should be"
+                         f" in {SELECT_LIST} but {select} was given.")
+
+    # TODO add search for commonalities, if common subtrees are not contained discard the neighbour
+
     neighbourhood = t.neighbours()
     better_neighbours = []
     cur_best = t_value
@@ -37,5 +44,3 @@ def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n
     elif select == 'random':
         return choice(better_neighbours), cur_best
 
-    raise ValueError(f"The 'select' parameter should be"
-                     f" in {SELECT_LIST} but {select} was given.")
