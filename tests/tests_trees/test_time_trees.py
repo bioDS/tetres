@@ -224,3 +224,8 @@ def test_nwk_to_cluster_exception4():
     # To many closing brackets )
     with pytest.raises(Exception):
         nwk_to_cluster("((A:1,B:1)):1, C:2);")
+
+
+def test_get_common_clades(five_taxa_tts):
+    clades = five_taxa_tts.get_common_clades()
+    assert clades == set([frozenset(["2", "1"]), frozenset(["3", "4", "5"])])

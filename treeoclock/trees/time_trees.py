@@ -125,7 +125,7 @@ class TimeTreeSet:
     def copy(self):
         return self.trees.copy()
 
-    def get_common_subtrees(self):
+    def get_common_clades(self):
         if len(self.common_clades) == 0:
             self.common_clades = self.trees[0].get_clades()
             for i in range(1, len(self.trees)):
@@ -294,9 +294,7 @@ if __name__ == '__main__':
 
     # clades = iterative(myts[0].etree)
 
-    my_nwk = myts.get_common_subtrees()
-    print(my_nwk)
-    my_nwk = myts.get_common_subtrees()
+    my_nwk = myts.get_common_clades()
     print(my_nwk)
     # my_nwk = nwk(myts[0].get_newick(f=9))
 

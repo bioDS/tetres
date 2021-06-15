@@ -3,6 +3,7 @@ import pytest
 from testfixtures import TempDirectory
 from treeoclock.trees.time_trees import TimeTreeSet
 
+
 @pytest.fixture()
 def dir():
     with TempDirectory() as dir:
