@@ -1,7 +1,8 @@
 import ete3
+import pytest
 
 from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
-    TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood
+    TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood, nwk_to_cluster
 from treeoclock.trees._converter import ete3_to_ctree
 
 
@@ -196,3 +197,30 @@ def test_get_clades(five_taxa_newick_list):
     out = t.get_clades()
     assert out == {frozenset({"1", "5"}), frozenset({"2", "3"}), frozenset({"2", "3", "4"})}, "Function get_clades failed!"
 
+
+def test_nwk_to_cluster():
+    assert nwk_to_cluster("((A:1,B:1):1, C:2);"), "Function nwk_to_cluster failed!"
+
+
+def test_nwk_to_cluster_exception1():
+    # No semicolon in the end
+    with pytest.raises(Exception):
+        nwk_to_cluster("((A:1,B:1):1, C:2)")
+
+
+def test_nwk_to_cluster_exception2():
+    # No bracket at position -2
+    with pytest.raises(Exception):
+        nwk_to_cluster("((A:1,B:1):1, C:2;")
+
+
+def test_nwk_to_cluster_exception3():
+    # To many opening brackets (
+    with pytest.raises(Exception):
+        nwk_to_cluster("(((A:1,B:1):1, C:2);")
+
+
+def test_nwk_to_cluster_exception4():
+    # To many closing brackets )
+    with pytest.raises(Exception):
+        nwk_to_cluster("((A:1,B:1)):1, C:2);")
