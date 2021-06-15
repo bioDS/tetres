@@ -5,6 +5,8 @@ import re
 import ete3
 from ctypes import POINTER, CDLL, c_long, c_int
 
+from line_profiler_pycharm import profile
+
 from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
 from treeoclock.trees._ctrees import TREE, TREE_LIST
 
@@ -21,25 +23,27 @@ class TimeTree:
 
     def fp_distance(self, tree):
         return findpath_distance(self.ctree, tree.ctree)
-    
+
     def fp_path(self, tree):
         return findpath_path(self.ctree, tree.ctree)
 
     def get_newick(self, f=5):
         return self.etree.write(format=f)
-    
+
     def copy(self):
         return TimeTree(self.get_newick())
-    
+
     def neighbours(self):
         return neighbourhood(self)
-    
+
     def rank_neighbours(self):
         return get_rank_neighbours(self)
-    
+
     def nni_neighbours(self):
         return get_nni_neighbours(self)
 
+    def get_clades(self):
+        return nwk(self.get_newick(f=9))
 
 def neighbourhood(tree: TimeTree):
     lib.rank_move.argtypes = [POINTER(TREE), c_long]
@@ -119,6 +123,11 @@ class TimeTreeSet:
 
     def copy(self):
         return self.trees.copy()
+
+    def get_common_subtrees(self):
+
+        self.common_subtrees = []
+        return 0
 
 
 def read_nexus(file: str) -> list:
@@ -223,38 +232,71 @@ def _(t1, t2):
     path = lib.return_findpath(t1.ctree, t2.ctree)
     return [path.trees[i] for i in range(path.num_trees)]
 
+@profile
+def nwk(treestr):
+    clades = set()
+    if not (treestr[0] == '(' and treestr[-2] == ')'):
+        raise Exception("Invalid tree string given!")
+    opend = []
+    re_brackets = re.compile(r"\(|\)")
+    for i in range(1, len(treestr) - 2):
+        if treestr[i] == '(':
+            opend.append(i)
+        elif treestr[i] == ')':
+            cur = treestr[opend[-1]:i]
+            clades.add(frozenset(re.sub(re_brackets, '', cur).split(',')))
+            del opend[-1]
+    if opend:
+        print('ERROR?')
+    # If length of clades not n-1 throw error as well?
+    return clades
+
 
 if __name__ == '__main__':
+    # tt = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
+    #
+    # tt.etree.render(f'/Users/larsberling/Desktop/CodingMA/test.png')
+    #
+    # # Defining a layout to display internal node names in the plot
+    # def my_layout(node):
+    #     if node.is_leaf():
+    #         # If terminal node, draws its name
+    #         name_face = ete3.AttrFace("name")
+    #     else:
+    #         # If internal node, draws label with smaller font size
+    #         name_face = ete3.AttrFace("name", fsize=10)
+    #     # Adds the name face to the image at the preferred position
+    #     ete3.faces.add_face_to_node(name_face, node, column=0, position="branch-right")
+    #
+    #
+    # ts = ete3.TreeStyle()
+    # ts.show_leaf_name = False
+    # ts.layout_fn = my_layout
+    # ts.show_branch_length = True
+    # ts.show_scale = False
+    #
+    #
+    # tt.etree.show(tree_style=ts)
 
-    tt = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
-
-    tt.etree.render(f'/Users/larsberling/Desktop/CodingMA/test.png')
-
-    # Defining a layout to display internal node names in the plot
-    def my_layout(node):
-        if node.is_leaf():
-            # If terminal node, draws its name
-            name_face = ete3.AttrFace("name")
-        else:
-            # If internal node, draws label with smaller font size
-            name_face = ete3.AttrFace("name", fsize=10)
-        # Adds the name face to the image at the preferred position
-        ete3.faces.add_face_to_node(name_face, node, column=0, position="branch-right")
-
-
-    ts = ete3.TreeStyle()
-    ts.show_leaf_name = False
-    ts.layout_fn = my_layout
-    ts.show_branch_length = True
-    ts.show_scale = False
-
-
-    tt.etree.show(tree_style=ts)
-
-    d_name = 'Dengue'
+    d_name = 'RSV2'
     # myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    from line_profiler_pycharm import profile
+
+    #
+
+    from timeit import default_timer as timer
+
+    # clades = iterative(myts[0].etree)
+
+    my_nwk = myts[0].get_clades()
+    # my_nwk = nwk(myts[0].get_newick(f=9))
+    print(len(my_nwk))
+    print(my_nwk)
+
+    # myts[0]
+
     # print(myts[0].get_newick())
     # print(ctree_to_ete3(myts[0].ctree).write(format=3))
 
@@ -277,7 +319,6 @@ if __name__ == '__main__':
     # ts.show_scale = False
     # n[0].show(tree_style=ts)
 
-
     # print(len(myts[0]))
     # print(len(myts))
     #
@@ -293,4 +334,3 @@ if __name__ == '__main__':
     # print(asizeof.asizeof(t))
     # print(asizeof.asizeof(ct))
     # print(asizeof.asizeof(myt))
-
