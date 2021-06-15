@@ -43,7 +43,7 @@ class TimeTree:
         return get_nni_neighbours(self)
 
     def get_clades(self):
-        return nwk(self.get_newick(f=9))
+        return nwk_to_cluster(self.get_newick(f=9))
 
 def neighbourhood(tree: TimeTree):
     lib.rank_move.argtypes = [POINTER(TREE), c_long]
@@ -108,6 +108,7 @@ class TimeTreeSet:
         else:
             self.map = {}
             self.trees = []
+        self.common_clades = set()
 
     def __getitem__(self, index: int):
         return self.trees[index]
@@ -125,9 +126,11 @@ class TimeTreeSet:
         return self.trees.copy()
 
     def get_common_subtrees(self):
-
-        self.common_subtrees = []
-        return 0
+        if len(self.common_clades) == 0:
+            self.common_clades = self.trees[0].get_clades()
+            for i in range(1, len(self.trees)):
+                self.common_clades = set.intersection(self.common_clades, self[i].get_clades())
+        return self.common_clades
 
 
 def read_nexus(file: str) -> list:
@@ -232,23 +235,24 @@ def _(t1, t2):
     path = lib.return_findpath(t1.ctree, t2.ctree)
     return [path.trees[i] for i in range(path.num_trees)]
 
-@profile
-def nwk(treestr):
+
+def nwk_to_cluster(treestr):
     clades = set()
-    if not (treestr[0] == '(' and treestr[-2] == ')'):
-        raise Exception("Invalid tree string given!")
+    if not (treestr[0] == '(' and treestr[-2] == ')' and treestr[-1] == ';'):
+        raise Exception("Invalid tree string given! (no ';' at the end)")
     opend = []
     re_brackets = re.compile(r"\(|\)")
     for i in range(1, len(treestr) - 2):
         if treestr[i] == '(':
             opend.append(i)
         elif treestr[i] == ')':
+            if not opend:
+                raise Exception("Invalid tree string given! (to many ')')")
             cur = treestr[opend[-1]:i]
             clades.add(frozenset(re.sub(re_brackets, '', cur).split(',')))
             del opend[-1]
     if opend:
-        print('ERROR?')
-    # If length of clades not n-1 throw error as well?
+        raise Exception("Invalid tree string given! (to many '(')")
     return clades
 
 
@@ -278,7 +282,7 @@ if __name__ == '__main__':
     #
     # tt.etree.show(tree_style=ts)
 
-    d_name = 'RSV2'
+    d_name = 'Dengue'
     # myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
@@ -290,10 +294,11 @@ if __name__ == '__main__':
 
     # clades = iterative(myts[0].etree)
 
-    my_nwk = myts[0].get_clades()
-    # my_nwk = nwk(myts[0].get_newick(f=9))
-    print(len(my_nwk))
+    my_nwk = myts.get_common_subtrees()
     print(my_nwk)
+    my_nwk = myts.get_common_subtrees()
+    print(my_nwk)
+    # my_nwk = nwk(myts[0].get_newick(f=9))
 
     # myts[0]
 
