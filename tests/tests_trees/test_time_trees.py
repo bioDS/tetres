@@ -189,3 +189,10 @@ def test_neighbourhood2(seventeen_taxa_tree_newick, seventeen_taxa_nni_neighbour
     n = neighbourhood(t)
     assert set([i.get_newick() for i in n]) == \
            set(seventeen_taxa_nni_neighbours_newick+seventeen_taxa_rank_neighbours_newick), "Neighbourhood wrong!"
+
+
+def test_get_clades(five_taxa_newick_list):
+    t = TimeTree(five_taxa_newick_list[0])
+    out = t.get_clades()
+    assert out == {frozenset({"1", "5"}), frozenset({"2", "3"}), frozenset({"2", "3", "4"})}, "Function get_clades failed!"
+
