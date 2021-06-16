@@ -10,15 +10,34 @@ class NoBetterNeighbourFound(Exception):
     pass
 
 
+def intelligent_neighbourhood(t: TimeTree, clades):
+
+    neighbours_int = []
+
+    # sample all NNI neighbours that do contain all clades
+    nn = t.nni_neighbours()
+    for i in nn:
+        cur_clades = i.get_clades()
+        if all(x in cur_clades for x in clades):
+            neighbours_int.append(i)
+
+    # only compute rank neighbours if t contains all clades
+    tclades = t.get_clades()
+    if all(x in tclades for x in clades):
+        neighbours_int.extend(t.rank_neighbours())
+
+    return neighbours_int
+
+
 def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n_cores=None, select='first'):
 
     if select not in SELECT_LIST:
         raise ValueError(f"The 'select' parameter should be"
                          f" in {SELECT_LIST} but {select} was given.")
 
-    # TODO add search for commonalities, if common subtrees are not contained discard the neighbour
+    trees.get_common_clades()
+    neighbourhood = intelligent_neighbourhood(t, trees.common_clades)
 
-    neighbourhood = t.neighbours()
     better_neighbours = []
     cur_best = t_value
     for n in neighbourhood:
@@ -43,4 +62,3 @@ def search_neighbourhood_greedy(t: TimeTree, trees: TimeTreeSet, t_value: int, n
         return better_neighbours[-1], cur_best
     elif select == 'random':
         return choice(better_neighbours), cur_best
-
