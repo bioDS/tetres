@@ -1,0 +1,232 @@
+
+
+<!doctype html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Summarizing trees &#8212; treeoclock 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Working with time trees" href="trees.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="trees.html" title="Working with time trees"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Summarizing trees</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="summarizing-trees">
+<h1><a class="toc-backref" href="#id1">Summarizing trees</a><a class="headerlink" href="#summarizing-trees" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#summarizing-trees" id="id1">Summarizing trees</a></p>
+<ul>
+<li><p><a class="reference internal" href="#the-centroid-class" id="id2">The Centroid class</a></p>
+<ul>
+<li><p><a class="reference internal" href="#centroid-attributes" id="id3">Centroid attributes</a></p></li>
+<li><p><a class="reference internal" href="#centroid-variations" id="id4">Centroid variations</a></p></li>
+<li><p><a class="reference internal" href="#computing-the-sos" id="id5">Computing the SoS</a></p></li>
+<li><p><a class="reference internal" href="#sampling-the-neighbourhood" id="id6">Sampling the neighbourhood</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#frechet-mean" id="id7">Frechet Mean</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="the-centroid-class">
+<h2><a class="toc-backref" href="#id2">The Centroid class</a><a class="headerlink" href="#the-centroid-class" title="Permalink to this headline">¶</a></h2>
+<p>TODO: Change the start default to the Frechet Mean algorithm instead of last</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">,</span> <span class="n">n_cores</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                  <span class="n">select</span><span class="o">=</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s1">&#39;last&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Applying a variation of the centroid algorithm on a set of trees.</p>
+<div class="section" id="centroid-attributes">
+<h3><a class="toc-backref" href="#id3">Centroid attributes</a><a class="headerlink" href="#centroid-attributes" title="Permalink to this headline">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 76%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">Centroid.variation</span></code></p></td>
+<td><p>Accesses the variation parameter which has to be in the list of specified variations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">Centroid.n_cores</span></code></p></td>
+<td><p>Accesses the number of Threads that will be used to compute the SoS value, using ThreadPool.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">Centroid.select</span></code></p></td>
+<td><p>Accesses the selection parameter, in case of multiple options choose a selected tree i.e. the first, last or a random tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">Centroid.start</span></code></p></td>
+<td><p>Accesses the start parameter, specifying at which point to start the centroid computation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">Centroid.compute_centroid(trees)</span></code></p></td>
+<td><p>Computes the centroid for a given set of trees, using the options that were selected via the other attributes of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Centroid</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Examples of how to set and use the attributes of a <code class="xref py py-class docutils literal notranslate"><span class="pre">Centroid</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span>
+<span class="kn">from</span> <span class="nn">treeoclock.summary.centroid</span> <span class="kn">import</span> <span class="n">Centroid</span>
+
+
+<span class="c1"># Initializing an empty Centroid class</span>
+<span class="n">mycen</span> <span class="o">=</span> <span class="n">Centroid</span><span class="p">()</span>
+
+<span class="n">mycen</span><span class="o">.</span><span class="n">variation</span> <span class="o">=</span> <span class="s2">&quot;inc_sub&quot;</span>  <span class="c1"># Changing the variation</span>
+
+<span class="n">mycen</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># Setting the number of Threads to use</span>
+
+<span class="n">mycen</span><span class="o">.</span><span class="n">select</span> <span class="o">=</span> <span class="s2">&quot;first&quot;</span>  <span class="c1"># Selection parameter set to the first tree found</span>
+
+<span class="n">mycen</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># Starting the algorithm from the sixth tree in the set (Error if non-existant)</span>
+
+<span class="c1"># Computing the centroid for an empty TimeTreeSet</span>
+<span class="n">cen_tree</span><span class="p">,</span> <span class="n">sos</span> <span class="o">=</span> <span class="n">mycen</span><span class="o">.</span><span class="n">compute_centroid</span><span class="p">(</span><span class="n">TimeTreeSet</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="centroid-variations">
+<h3><a class="toc-backref" href="#id4">Centroid variations</a><a class="headerlink" href="#centroid-variations" title="Permalink to this headline">¶</a></h3>
+<p>The variation parameter of a <code class="xref py py-class docutils literal notranslate"><span class="pre">Centroid</span></code> has to be one in [“inc_sub”, “greedy”] (TODO: Still WIP).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 79%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variation</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>greedy</p></td>
+<td><p>Computes a centroid via the greedy path and neighbourhood search. Only considering the tree with the most imporved SoS value in each iteration.</p></td>
+</tr>
+<tr class="row-odd"><td><p>inc_sub</p></td>
+<td><p>Starts with a subsample of trees from the set, computes the greedy centroid variant and adds more trees to the subsample until all trees are part of the sample.</p></td>
+</tr>
+<tr class="row-even"><td><p>WIP</p></td>
+<td><p>WIP</p></td>
+</tr>
+<tr class="row-odd"><td><p>WIP</p></td>
+<td><p>WIP</p></td>
+</tr>
+<tr class="row-even"><td><p>WIP</p></td>
+<td><p>WIP</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="computing-the-sos">
+<h3><a class="toc-backref" href="#id5">Computing the SoS</a><a class="headerlink" href="#computing-the-sos" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="sampling-the-neighbourhood">
+<h3><a class="toc-backref" href="#id6">Sampling the neighbourhood</a><a class="headerlink" href="#sampling-the-neighbourhood" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="frechet-mean">
+<h2><a class="toc-backref" href="#id7">Frechet Mean</a><a class="headerlink" href="#frechet-mean" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Summarizing trees</a><ul>
+<li><a class="reference internal" href="#the-centroid-class">The Centroid class</a><ul>
+<li><a class="reference internal" href="#centroid-attributes">Centroid attributes</a></li>
+<li><a class="reference internal" href="#centroid-variations">Centroid variations</a></li>
+<li><a class="reference internal" href="#computing-the-sos">Computing the SoS</a></li>
+<li><a class="reference internal" href="#sampling-the-neighbourhood">Sampling the neighbourhood</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#frechet-mean">Frechet Mean</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="trees.html"
+                        title="previous chapter">Working with time trees</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/summary.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="trees.html" title="Working with time trees"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Summarizing trees</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Lars Berling, Lena Collienne, Jordan Kettles.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>
