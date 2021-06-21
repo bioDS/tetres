@@ -4,6 +4,7 @@ __pycache__
 *.so
 *.trees
 *.py.lprof
+*.py.pclprof
 *.nex
 *.tree
 .DS_Store
