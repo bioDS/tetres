@@ -12,6 +12,8 @@ Welcome to treeoclock's documentation!
 
    trees
 
+   summary
+
 
 Indices and tables
 ==================
