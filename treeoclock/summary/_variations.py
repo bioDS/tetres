@@ -22,7 +22,6 @@ def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
 
 
 def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
-
     # Initializing all parameters
     sample = TimeTreeSet()
     cen = start
@@ -47,20 +46,22 @@ def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
 
 
 def iter_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
-    
-    sub_size = 200  # TODO sample size parameter?
-    
-    new_sos = 0
-    
-    while new_sos <= sos:
-        sos = new_sos
+    # Initializing all parameters
+    sample = TimeTreeSet()
+    cen = start
+    sos = compute_sos_mt(start, trees, n_cores=n_cores)
+    tree_len = len(trees)
 
-        cur_sample = [] # subsample = rand.sample(trees, min(subsample_size, len(trees)))
+    while True:
+        sample.trees = [trees[(random.randrange(len(trees)))]
+                        for _ in range(min(kwargs["subsample_size"], tree_len))]
 
-        new_cen, _ = greedy(cur_sample, n_cores=n_cores, select=select, start=start)
-        new_sos = compute_sos_mt(new_cen, trees, n_cores)
-    
-    
-    
-    
-    return 0
+        new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=start)
+        new_sos = compute_sos_mt(cen, trees, n_cores=n_cores)
+
+        if new_sos <= sos:
+            sos = new_sos
+            cen = new_cen
+        else:
+            break
+    return cen, sos
