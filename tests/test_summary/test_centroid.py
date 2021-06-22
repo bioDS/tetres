@@ -1,7 +1,7 @@
 import pytest
 
 from treeoclock.summary.centroid import Centroid
-from treeoclock.trees.time_trees import TimeTreeSet
+from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
 
 
 def test_centroid_construction_empty():
@@ -37,6 +37,8 @@ def test_centroid_compute_centroid_start_oor_error():
         Centroid(variation="TEST", n_cores=1, start=1).compute_centroid(TimeTreeSet())
 
 
-# def test_centroid_greedy():
-#     # TODO Needs to be adapted
-#     assert Centroid(variation="greedy").compute_centroid(TimeTreeSet()) == 0, "Greedy Variation Failed"
+def test_centroid_greedy(five_taxa_tts):
+    cen, sos = Centroid(variation="greedy").compute_centroid(five_taxa_tts)
+    t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy centroid variation failed!"
+
