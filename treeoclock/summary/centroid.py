@@ -23,9 +23,9 @@ class Centroid:
     def compute_centroid(self, trees: TimeTreeSet):
 
         # Checking if all parameters are correctly set up
-        if self.variation not in VAR_LIST:
-            raise ValueError(f"The 'variation' parameter should be"
-                             f" in {VAR_LIST} but {self.variation} was given.")
+        if not hasattr(_variations, self.variation):
+            raise ValueError(f"The 'variation' parameter should be in _variations.py"
+                             f" but {self.variation} was given.")
         if not (isinstance(self.n_cores, int) or self.n_cores is None):
             raise ValueError(f"The 'n_cores' parameter should be an integer"
                              f" but {self.n_cores} was given.")
