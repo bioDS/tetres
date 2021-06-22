@@ -14,11 +14,12 @@ class Centroid:
     """
 
     # TODO Default start is going to be FM, not implemented yet
-    def __init__(self, variation="greedy", n_cores=None, select='random', start='FM'):
+    def __init__(self, variation="greedy", n_cores=None, select='random', start='FM', subsample_size=200):
         self.variation = variation  # Which centroid variation to compute
         self.n_cores = n_cores  # How many cores to use whenever Multiprocessing is/will be used
         self.select = select  # Specifying which tree to choose in case of multiple options with the same quality
         self.start = start  # Specifying the starting position for the centroid algorithm
+        self.subsample_size = subsample_size
 
     def compute_centroid(self, trees: TimeTreeSet):
 
@@ -49,7 +50,7 @@ class Centroid:
             starting_tree = frechet_mean(trees)
 
         return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,
-                                                    start=starting_tree)
+                                                    start=starting_tree, subsample_size=self.subsample_size)
 
 
 if __name__ == '__main__':
@@ -57,7 +58,7 @@ if __name__ == '__main__':
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
 
-    mycen = Centroid(start="FM")
+    mycen = Centroid(start="FM", variation="inc_sub")
 
     from timeit import default_timer as timer
 
