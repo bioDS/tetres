@@ -1,7 +1,9 @@
 from treeoclock.summary import _variations
 from treeoclock.summary._constants import VAR_LIST, SELECT_LIST, START_LIST
 from treeoclock.trees.time_trees import TimeTreeSet
+from treeoclock.summary.frechet_mean import frechet_mean
 
+import random
 
 # TODO Tests and Documentation
 
@@ -34,18 +36,28 @@ class Centroid:
             raise ValueError(f"The 'start' parameter should be in {START_LIST} or "
                              f"an integer between 0 and {len(trees)-1}!")
 
-        # TODO add a starting parameter to the class, FM, eFM, index, ...
+        # Computing/selecting the starting tree with the specified variation
+        starting_tree = trees[0]  # Initializing with the case "first"
 
-        # Curently starting computation at the last tree of the set
-        return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select, start=trees[-1])
+        if self.start == "last":
+            starting_tree = trees[-1]
+        elif self.start == "random":
+            starting_tree = trees[random.sample(range(len(trees)), 1)[0]]
+        elif isinstance(self.start, int):
+            starting_tree = trees[self.start]
+        elif self.start == "FM":
+            starting_tree = frechet_mean(trees)
+
+        return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,
+                                                    start=starting_tree)
 
 
 if __name__ == '__main__':
-    d_name = "40_800_005"
+    d_name = "Dengue"
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
 
-    mycen = Centroid()
+    mycen = Centroid(start="FM")
 
     from timeit import default_timer as timer
 
@@ -54,11 +66,11 @@ if __name__ == '__main__':
     times = []
     for _ in range(1):
         s = timer()
-        cen = mycen.compute_centroid(myts)
+        cen, sos = mycen.compute_centroid(myts)
+        print(sos)
         times.append(timer()-s)
     print(np.mean(times))
 
-    from treeoclock.summary.compute_sos import compute_sos_mt
+    # 22485 all
+    # 1.2970010868 seconds for 10
 
-    print(compute_sos_mt(t=myts[-1], trees=myts))
-    print(compute_sos_mt(t=cen, trees=myts))
