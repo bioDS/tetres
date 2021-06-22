@@ -42,3 +42,7 @@ def test_centroid_greedy(five_taxa_tts):
     t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
     assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy centroid variation failed!"
 
+
+def test_centroid_compute_centroid_var_error():
+    with pytest.raises(ValueError):
+        Centroid(variation="Greedy", n_cores=1).compute_centroid(TimeTreeSet())
