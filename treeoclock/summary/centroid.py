@@ -19,7 +19,7 @@ class Centroid:
         self.n_cores = n_cores  # How many cores to use whenever Multiprocessing is/will be used
         self.select = select  # Specifying which tree to choose in case of multiple options with the same quality
         self.start = start  # Specifying the starting position for the centroid algorithm
-        self.subsample_size = subsample_size
+        self.subsample_size = subsample_size  # Size of the subsamples for some of the centroid variations
 
     def compute_centroid(self, trees: TimeTreeSet):
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     import numpy as np
 
     times = []
-    for _ in range(1):
+    for _ in range(10):
         s = timer()
         cen, sos = mycen.compute_centroid(myts)
         print(sos)

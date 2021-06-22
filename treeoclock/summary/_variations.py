@@ -2,6 +2,10 @@ from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound
 
+import random
+
+from line_profiler_pycharm import profile
+
 
 def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
@@ -19,22 +23,27 @@ def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
 
 def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
 
-    sub_size = kwargs["subsample_size"]  # TODO sample size parameter?
-
-    sample = trees  # TODO subsample the set of trees
+    # Initializing all parameters
+    sample = TimeTreeSet()
+    cen = start
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
+    trees_copy = trees.copy()
+    cur_length = len(trees_copy)
 
-    # subsample.extend(
-    #     [copy_trees.pop(rand.randrange(len(copy_trees))) for _ in range(min(subsample_size, len(copy_trees)))])
-    # while cp_trees:
-    while True:
-        # TODO increase subsample
-        cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=start)
+    while cur_length > 0:
+        sample.trees.extend([trees_copy.pop(random.randrange(len(trees_copy)))
+                             for _ in range(min(kwargs["subsample_size"], cur_length))])
+        cur_length -= kwargs["subsample_size"]
+
+        new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=start)
         new_sos = compute_sos_mt(cen, trees, n_cores=n_cores)
+
         if new_sos <= sos:
             sos = new_sos
+            cen = new_cen
         else:
             break
+    return cen, sos
 
 
 def iter_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
