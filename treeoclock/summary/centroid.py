@@ -14,7 +14,7 @@ class Centroid:
     """
 
     # TODO Default start is going to be FM, not implemented yet
-    def __init__(self, variation="greedy", n_cores=None, select='random', start='last'):
+    def __init__(self, variation="greedy", n_cores=None, select='random', start='FM'):
         self.variation = variation  # Which centroid variation to compute
         self.n_cores = n_cores  # How many cores to use whenever Multiprocessing is/will be used
         self.select = select  # Specifying which tree to choose in case of multiple options with the same quality
