@@ -4,8 +4,6 @@ from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBe
 
 import random
 
-from line_profiler_pycharm import profile
-
 
 def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
