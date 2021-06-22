@@ -12,7 +12,7 @@ def test_centroid_construction():
     assert Centroid(variation="greedy", n_cores=4, select='last', start='first'), "Construction not possible!"
 
 
-def test_centroid_compute_centroid_var_error():
+def test_centroid_compute_centroid_var_error1():
     with pytest.raises(ValueError):
         Centroid(variation="TEST", n_cores=1).compute_centroid(TimeTreeSet())
 
@@ -43,6 +43,6 @@ def test_centroid_greedy(five_taxa_tts):
     assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy centroid variation failed!"
 
 
-def test_centroid_compute_centroid_var_error():
+def test_centroid_compute_centroid_var_error2():
     with pytest.raises(ValueError):
         Centroid(variation="Greedy", n_cores=1).compute_centroid(TimeTreeSet())
