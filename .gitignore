@@ -2,7 +2,6 @@
 __pycache__
 .python-version
 *.so
-*.trees
 *.py.lprof
 *.py.pclprof
 *.nex

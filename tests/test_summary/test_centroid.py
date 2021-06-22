@@ -1,5 +1,7 @@
 import pytest
 
+from pathlib import Path
+
 from treeoclock.summary.centroid import Centroid
 from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
 
@@ -46,3 +48,9 @@ def test_centroid_greedy(five_taxa_tts):
 def test_centroid_compute_centroid_var_error2():
     with pytest.raises(ValueError):
         Centroid(variation="Greedy", n_cores=1).compute_centroid(TimeTreeSet())
+
+
+def test_centroid_greedy_20data():
+    TimeTreeSet(f"{Path(__file__).parent.absolute()}/data/20Taxa.trees")
+    assert True
+# TODO new variations testing, include a bigger dataset via a trees file
