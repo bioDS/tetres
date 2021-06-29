@@ -1,6 +1,7 @@
 from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
 from treeoclock.summary.compute_sos import compute_sos_mt
-from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound
+from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, \
+    search_neighbourhood_area51, search_neighbourhood_separate
 
 import random
 
@@ -63,3 +64,67 @@ def iter_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **k
         else:
             break
     return cen, sos
+
+
+def separate(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    sos = compute_sos_mt(start, trees, n_cores=n_cores)
+    centroid = start
+
+    rank = False
+    switch = True
+    while True:
+        try:
+            centroid, sos = search_neighbourhood_separate(t=centroid, trees=trees, t_value=sos,
+                                                          n_cores=n_cores, select=select, rank=rank)
+            switch = True
+        except NoBetterNeighbourFound:
+            # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
+            if not switch:
+                break
+            rank = not rank
+            switch = False
+    return centroid, sos
+
+
+def onlyone(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    sos = compute_sos_mt(start, trees, n_cores=n_cores)
+    centroid = start
+
+    # rank = False
+    main_move = True  # If False: prefers the NNI move, if True: prefers the Rank move
+    switch = True
+    while True:
+        try:
+            # Doing NNI moves
+            centroid, sos = search_neighbourhood_separate(t=centroid, trees=trees, t_value=sos,
+                                                          n_cores=n_cores, select=select, rank=main_move)
+            switch = True
+        except NoBetterNeighbourFound:
+            # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
+            try:
+                # Doing one rank move
+                centroid, sos = search_neighbourhood_separate(t=centroid, trees=trees, t_value=sos, n_cores=n_cores,
+                                                              rank=not main_move)
+                switch = True
+            except NoBetterNeighbourFound:
+                if not switch:
+                    break
+                # rank = not rank
+                switch = False
+    return centroid, sos
+
+
+def area51(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    # TODO Testing and analysing the number of rank vs. nni moves
+    sos = compute_sos_mt(start, trees, n_cores=n_cores)
+    centroid = start
+    plot_list = []
+
+    while True:
+        try:
+            centroid, sos, plot_list = search_neighbourhood_area51(t=centroid, trees=trees, t_value=sos,
+                                                                   n_cores=n_cores, select=select, plot_list=plot_list)
+        except NoBetterNeighbourFound:
+            # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
+            break
+    return centroid, sos, plot_list
