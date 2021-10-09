@@ -70,7 +70,7 @@ def separate(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **k
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
     centroid = start
 
-    rank = False
+    rank = True
     switch = True
     while True:
         try:
@@ -112,19 +112,3 @@ def onlyone(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
                 # rank = not rank
                 switch = False
     return centroid, sos
-
-
-def area51(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
-    # TODO Testing and analysing the number of rank vs. nni moves
-    sos = compute_sos_mt(start, trees, n_cores=n_cores)
-    centroid = start
-    plot_list = []
-
-    while True:
-        try:
-            centroid, sos, plot_list = search_neighbourhood_area51(t=centroid, trees=trees, t_value=sos,
-                                                                   n_cores=n_cores, select=select, plot_list=plot_list)
-        except NoBetterNeighbourFound:
-            # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
-            break
-    return centroid, sos, plot_list
