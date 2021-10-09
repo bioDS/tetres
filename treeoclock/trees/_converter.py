@@ -23,6 +23,7 @@ def ete3_to_ctree(tree):
             index += 1
             distances.append(node.name)
 
+    # TODO node.time = ? needs to be set to the correct rank of each node!
     num_nodes = len(node2leaves)  # Number of nodes
     num_leaves = int(((num_nodes - 1) / 2) + 1)
     node_list = (NODE * num_nodes)()
@@ -30,6 +31,7 @@ def ete3_to_ctree(tree):
     distances = sorted(distances)
     # if not len(distances.keys()) == num_leaves - 1:
     if not len(set(distances)) == num_leaves - 1:
+        # TODO raise exception?!
         sys.exit('Distances to root not unique! \n'
                  'This has to be resolved!')
     for node in tree.traverse('levelorder'):
