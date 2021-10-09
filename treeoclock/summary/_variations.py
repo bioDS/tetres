@@ -1,12 +1,13 @@
 from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, \
-    search_neighbourhood_area51, search_neighbourhood_separate
+    search_neighbourhood_separate
 
 import random
 
 
 def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    # Chooses always the first tree with better value in the neighbourhood
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
     centroid = start
 
@@ -21,6 +22,8 @@ def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
 
 
 def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    # Starts with a subset of the trees and then computes the centroid while incrementally increasing the subset
+
     # Initializing all parameters
     sample = TimeTreeSet()
     cen = start
@@ -45,6 +48,9 @@ def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
 
 
 def iter_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    # Computes the centroid for a subset and repeats this sampling a new subset but starting computation from
+    # previously computed centroid
+
     # Initializing all parameters
     sample = TimeTreeSet()
     cen = start
@@ -67,6 +73,8 @@ def iter_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **k
 
 
 def separate(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    # Separates the moves and only computes the rank neighbours if the tree contains all clades of the input set
+
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
     centroid = start
 
@@ -87,6 +95,8 @@ def separate(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **k
 
 
 def onlyone(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    # Prefers to do one move (NNI vs. Rank) and only switches if a local optimum is reached
+
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
     centroid = start
 
