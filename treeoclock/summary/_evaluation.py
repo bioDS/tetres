@@ -6,6 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import timeit
 
+# Code used for timing and comparing different centroid variations
+
 
 def eval_plot(data, name):
     data = pd.DataFrame(data, columns=["Variation", "Type", "Value"])
@@ -59,5 +61,6 @@ def eval_func(name):
 
 
 if __name__ == '__main__':
-    for d_name in ['Dengue', 'RSV2', '75_800_005_0', '100_800_005_1']:
-        eval_func(d_name)
+    # for d_name in ['Dengue', 'RSV2', '75_800_005_0', '100_800_005_1']:
+    #     eval_func(d_name)
+    eval_func('Dengue')
