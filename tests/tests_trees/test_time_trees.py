@@ -2,7 +2,7 @@ import ete3
 import pytest
 
 from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
-    TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood, nwk_to_cluster
+    TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood, nwk_to_cluster, DifferentNbrTaxa
 from treeoclock.trees._converter import ete3_to_ctree
 
 
@@ -16,6 +16,16 @@ def test_timetree_fp_distance(five_taxa_newick_list, five_taxa_list_distances):
     for i in t:
         out.extend([i.fp_distance(j) for j in t])
     assert out == five_taxa_list_distances, f'fp_distance wrong {out}'
+
+
+def test_timetree_fp_distance_error(five_taxa_tts, twelve_taxa_tts):
+    with pytest.raises(DifferentNbrTaxa):
+        five_taxa_tts[0].fp_distance(twelve_taxa_tts[0])
+    # assert True
+    # todo
+
+# TODO catch the error for the fp_path
+#  also add the test for all different data types that could be used
 
 
 def test_timetree_fp_path(five_taxa_newick_list, five_taxa_list_distances):
@@ -229,3 +239,13 @@ def test_nwk_to_cluster_exception4():
 def test_get_common_clades(five_taxa_tts):
     clades = five_taxa_tts.get_common_clades()
     assert clades == set([frozenset(["2", "1"]), frozenset(["3", "4", "5"])])
+
+
+def test_apply_new_taxa_map():
+    # Todo
+    assert True, "apply_new_taxa_map failed!"
+
+
+def test_change_mapping():
+    # Todo
+    assert True, "change_mapping failed!"
