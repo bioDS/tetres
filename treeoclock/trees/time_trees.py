@@ -4,13 +4,15 @@ import re
 
 import ete3
 from ctypes import POINTER, CDLL, c_long, c_int
-
-from line_profiler_pycharm import profile
-
 from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
 from treeoclock.trees._ctrees import TREE, TREE_LIST
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
+
+
+class DifferentNbrTaxa(Exception):
+    """Raised when two trees have differnt number of taxa (findpath call)"""
+    pass
 
 
 class TimeTree:
@@ -44,6 +46,16 @@ class TimeTree:
 
     def get_clades(self):
         return nwk_to_cluster(self.get_newick(f=9))
+
+    def apply_new_taxa_map(self, new_map, old_map):
+        # todo function apply_new_map(self.get_newick(f=9), new_map, old_map)
+        new_newick = ""
+        return TimeTree(new_newick)
+
+
+# def apply_new_map(tree: ) todo
+
+
 
 def neighbourhood(tree: TimeTree):
     lib.rank_move.argtypes = [POINTER(TREE), c_long]
@@ -132,6 +144,18 @@ class TimeTreeSet:
                 self.common_clades = set.intersection(self.common_clades, self[i].get_clades())
         return self.common_clades
 
+    def change_mapping(self, new_map):
+        # Todo test for this function needs to be added
+
+        # todo Check: if maps are identical break
+        #  Check if maps are for the same taxa and same number of taxa!
+
+        for index, t in enumerate(self.trees):
+            # apply the mapping to each tree in the set!
+            self.trees[index] = t.apply_new_taxa_map(new_map, self.map)  # ?
+        # change the self.map in the end!
+        self.map = new_map
+
 
 def read_nexus(file: str) -> list:
     # re_tree returns nwk string without the root height and no ; in the end
@@ -186,12 +210,16 @@ def findpath_distance(arg):
 
 @findpath_distance.register(TREE)
 def _(t1, t2):
+    if not t1.num_leaves == t2.num_leaves:
+        raise DifferentNbrTaxa
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     return lib.findpath_distance(t1, t2)
 
 
 @findpath_distance.register(ete3.Tree)
 def _(t1, t2):
+    if not len(t1.get_tree_root()) == len(t2.get_tree_root()):
+        raise DifferentNbrTaxa
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
@@ -200,6 +228,8 @@ def _(t1, t2):
 
 @findpath_distance.register(TimeTree)
 def _(t1, t2):
+    if not len(t1) == len(t2):
+        raise DifferentNbrTaxa
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     return lib.findpath_distance(t1.ctree, t2.ctree)
 
@@ -208,6 +238,8 @@ def _(t1, t2):
 def findpath_path(arg):
     # Function does not contain the last tree, so findpath_path(x,y)=list of trees [x, z1, z2, ...]
     raise TypeError(type(arg) + " not supported.")
+
+# todo raising the exception if different number of taxa
 
 
 @findpath_path.register(TREE)
