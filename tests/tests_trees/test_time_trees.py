@@ -18,11 +18,19 @@ def test_timetree_fp_distance(five_taxa_newick_list, five_taxa_list_distances):
     assert out == five_taxa_list_distances, f'fp_distance wrong {out}'
 
 
-def test_timetree_fp_distance_error(five_taxa_tts, twelve_taxa_tts):
+def test_timetree_fp_distance_ctree_differentnbrtaxa(five_taxa_tts, twelve_taxa_tts):
     with pytest.raises(DifferentNbrTaxa):
-        five_taxa_tts[0].fp_distance(twelve_taxa_tts[0])
-    # assert True
-    # todo
+        findpath_distance(five_taxa_tts[0].ctree, twelve_taxa_tts[0].ctree)
+
+
+def test_timetree_fp_distance_etree_differentnbrtaxa(five_taxa_tts, twelve_taxa_tts):
+    with pytest.raises(DifferentNbrTaxa):
+        findpath_distance(five_taxa_tts[0].etree, twelve_taxa_tts[0].etree)
+
+
+def test_timetree_fp_distance_timetree_differentnbrtaxa(five_taxa_tts, twelve_taxa_tts):
+    with pytest.raises(DifferentNbrTaxa):
+        findpath_distance(five_taxa_tts[0], twelve_taxa_tts[0])
 
 # TODO catch the error for the fp_path
 #  also add the test for all different data types that could be used
