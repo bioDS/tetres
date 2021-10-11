@@ -37,7 +37,7 @@ def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
         cur_length -= kwargs["subsample_size"]
 
         new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=start)
-        new_sos = compute_sos_mt(cen, trees, n_cores=n_cores)
+        new_sos = compute_sos_mt(new_cen, trees, n_cores=n_cores)
 
         if new_sos <= sos:
             sos = new_sos
