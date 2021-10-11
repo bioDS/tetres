@@ -32,6 +32,7 @@ def test_timetree_fp_distance_timetree_differentnbrtaxa(five_taxa_tts, twelve_ta
     with pytest.raises(DifferentNbrTaxa):
         findpath_distance(five_taxa_tts[0], twelve_taxa_tts[0])
 
+
 # TODO catch the error for the fp_path
 #  also add the test for all different data types that could be used
 
