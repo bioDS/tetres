@@ -35,8 +35,18 @@ def twenty_taxa_tts():
 
 
 @pytest.fixture
+def twenty_taxa_tts_start():
+    return TimeTreeSet(f"{Path(__file__).parent.absolute()}/data/20Taxa_start.trees")
+
+
+@pytest.fixture
 def twelve_taxa_tts():
     return TimeTreeSet(f"{Path(__file__).parent.absolute()}/data/12Taxa.trees")
+
+
+@pytest.fixture
+def twelve_taxa_tts_start():
+    return TimeTreeSet(f"{Path(__file__).parent.absolute()}/data/12Taxa_start.trees")
 
 
 @pytest.fixture
