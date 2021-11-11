@@ -49,6 +49,9 @@ class TimeTree:
 
     def apply_new_taxa_map(self, new_map, old_map):
         # todo function apply_new_map(self.get_newick(f=9), new_map, old_map)
+
+        # todo write test for this function
+
         new_newick = ""
         return TimeTree(new_newick)
 
@@ -147,8 +150,12 @@ class TimeTreeSet:
     def change_mapping(self, new_map):
         # Todo test for this function needs to be added
 
-        # todo Check: if maps are identical break
-        #  Check if maps are for the same taxa and same number of taxa!
+        if new_map == self.map:
+            raise ValueError("New map is identical to old one!")
+        if not sorted(self.map.keys()) == sorted(new_map.keys()):
+            raise ValueError("New map does not fit, taxa should be encoded by integers 1,...,n!")
+        if not sorted(self.map.values()) == sorted(new_map.values()):
+            raise ValueError("New map does not fit, different taxa names!")
 
         for index, t in enumerate(self.trees):
             # apply the mapping to each tree in the set!

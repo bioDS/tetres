@@ -250,6 +250,31 @@ def test_get_common_clades(five_taxa_tts):
     assert clades == set([frozenset(["2", "1"]), frozenset(["3", "4", "5"])])
 
 
+def test_change_mapping_samemap_error(five_taxa_tts):
+    with pytest.raises(ValueError):
+        five_taxa_tts.change_mapping(five_taxa_tts.map)
+
+
+def test_change_mapping_difftaxa_more_error(five_taxa_tts):
+    with pytest.raises(ValueError):
+        five_taxa_tts.change_mapping({1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5", 6: "t6"})
+
+
+def test_change_mapping_difftaxa_less_error(five_taxa_tts):
+    with pytest.raises(ValueError):
+        five_taxa_tts.change_mapping({1: "t1", 4: "t2", 3: "t3", 5: "t5"})
+
+
+def test_change_mapping_difftaxanames_error(five_taxa_tts):
+    with pytest.raises(ValueError):
+        five_taxa_tts.change_mapping({1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5"})
+
+
+def test_change_mapping(five_taxa_tts):
+    # todo!!!
+    assert five_taxa_tts.change_mapping({1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5"})
+
+
 def test_apply_new_taxa_map():
     # Todo
     assert True, "apply_new_taxa_map failed!"
