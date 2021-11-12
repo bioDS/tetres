@@ -267,7 +267,29 @@ def test_change_mapping_difftaxa_less_error(five_taxa_tts):
 
 def test_change_mapping_difftaxanames_error(five_taxa_tts):
     with pytest.raises(ValueError):
-        five_taxa_tts.change_mapping({1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5"})
+        five_taxa_tts.change_mapping({1: "ta1", 2: "ta2", 3: "ta3", 4: "ta4", 5: "ta5"})
+
+
+def test_apply_new_taxa_map_difftaxa_more_error(five_taxa_tts):
+    with pytest.raises(ValueError):
+        five_taxa_tts[0].apply_new_taxa_map({1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5", 6: "t6"}, five_taxa_tts.map)
+
+
+def test_apply_new_taxa_map_difftaxa_less_error(five_taxa_tts):
+    with pytest.raises(ValueError):
+        five_taxa_tts[0].apply_new_taxa_map({1: "t1", 4: "t2", 3: "t3", 5: "t5"}, five_taxa_tts.map)
+
+
+def test_apply_new_taxa_map_difftaxanames_error(five_taxa_tts):
+    with pytest.raises(ValueError):
+        five_taxa_tts[0].apply_new_taxa_map({1: "ta1", 2: "ta2", 3: "ta3", 4: "ta4", 5: "ta5"}, five_taxa_tts.map)
+
+
+def test_apply_new_taxa_map_same_map(five_taxa_tts):
+    new_t = five_taxa_tts[0].apply_new_taxa_map(five_taxa_tts.map, five_taxa_tts.map)
+    assert [new_t.fp_distance(five_taxa_tts[0]),
+            new_t.fp_distance(five_taxa_tts[1]),
+            new_t.fp_distance(five_taxa_tts[2])] == [0, 1, 2], 'Apply new map does not work!'
 
 
 def test_change_mapping(five_taxa_tts):
@@ -280,6 +302,5 @@ def test_apply_new_taxa_map():
     assert True, "apply_new_taxa_map failed!"
 
 
-def test_change_mapping():
-    # Todo
+def test_change_mapping(five_taxa_tts):
     assert True, "change_mapping failed!"

@@ -48,16 +48,21 @@ class TimeTree:
         return nwk_to_cluster(self.get_newick(f=9))
 
     def apply_new_taxa_map(self, new_map, old_map):
-        # todo function apply_new_map(self.get_newick(f=9), new_map, old_map)
 
-        # todo write test for this function
+        if not sorted(new_map.keys()) == sorted(old_map.keys()):
+            raise ValueError("New map does not fit, taxa should be encoded by integers 1,...,n!")
+        if not sorted(new_map.values()) == sorted(old_map.values()):
+            raise ValueError("New map does not fit, different taxa names!")
+        # todo tests for this function
+        cur_nwk = self.get_newick()
+        re_taxa = re.compile('([0-9]+)(\[|:)')
+        new_map_reversed = {v: k for (k, v) in new_map.items()}
+        new_newick = re_taxa.sub(lambda m: m.group().replace(m.group(1),
+                                                             str(new_map_reversed[
+                                                                     old_map[int(m.group(1))]]))
+                                 , cur_nwk)
 
-        new_newick = ""
         return TimeTree(new_newick)
-
-
-# def apply_new_map(tree: ) todo
-
 
 
 def neighbourhood(tree: TimeTree):
@@ -246,6 +251,7 @@ def findpath_path(arg):
     # Function does not contain the last tree, so findpath_path(x,y)=list of trees [x, z1, z2, ...]
     raise TypeError(type(arg) + " not supported.")
 
+
 # todo raising the exception if different number of taxa
 
 
@@ -325,6 +331,12 @@ if __name__ == '__main__':
     # myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    NT = myts[0].apply_new_taxa_map(myts.map, myts.map)
+
+    print(myts[0].fp_distance(myts[10]))
+    print(NT.fp_distance(myts[10]))
+
+
     from line_profiler_pycharm import profile
 
     #
@@ -333,8 +345,8 @@ if __name__ == '__main__':
 
     # clades = iterative(myts[0].etree)
 
-    my_nwk = myts.get_common_clades()
-    print(my_nwk)
+    # my_nwk = myts.get_common_clades()
+    # print(my_nwk)
     # my_nwk = nwk(myts[0].get_newick(f=9))
 
     # myts[0]
