@@ -58,7 +58,9 @@ class Centroid:
             if not len(trees[0]) == len(self.start[0]):
                 raise ValueError(f"The given starting tree has different number of taxa! "
                                  f"({len(trees[0])} vs. {len(self.start[0])})")
-            # todo check the mapping and change accordingly if nessecary
+            if not trees.map == self.start.map:
+                self.start.change_mapping(new_map=trees.map)
+
             starting_tree = self.start[0]  # Setting the start to the only tree in the set
 
         return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,

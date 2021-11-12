@@ -108,17 +108,18 @@ def test_centroid_onlyone_12data(twelve_taxa_tts):
     assert sos == 288830, "Wrong SoS value for twelve taxa dataset!"
 
 
-def test_centroid_start_TTS_lengthError(twelve_taxa_tts):
+def test_centroid_start_tts_lengthError(twelve_taxa_tts):
     with pytest.raises(ValueError):
         Centroid(variation="inc_sub", n_cores=1, start=twelve_taxa_tts).compute_centroid(twelve_taxa_tts)
 
 
-def test_centroid_start_TTS_taxaerror(twelve_taxa_tts, twenty_taxa_tts_start):
+def test_centroid_start_tts_wrong_taxa_error(twelve_taxa_tts, twenty_taxa_tts_start):
     with pytest.raises(ValueError):
         Centroid(variation="inc_sub", n_cores=1, start=twenty_taxa_tts_start).compute_centroid(twelve_taxa_tts)
 
-# todo need test for when mapping is wrong
-# test the general case if works
-# test the error if wrong number of taxa
-# test the error only one tree in the starting tree set
+
+def test_centroid_start_tts_wrong_map(twelve_taxa_tts, twelve_taxa_tts_start):
+    assert Centroid(variation="inc_sub", n_cores=1, start=twelve_taxa_tts_start).compute_centroid(twelve_taxa_tts),\
+        "Centroid start with TTS different map failed!"
+
 
