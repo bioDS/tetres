@@ -155,7 +155,7 @@ class TimeTreeSet:
         if new_map == self.map:
             raise ValueError("New map is identical to old one!")
         if not sorted(self.map.keys()) == sorted(new_map.keys()):
-            raise ValueError("New map does not fit, taxa should be encoded by integers 1,...,n!")
+            raise ValueError("New map does not fit, different encodings of the taxa (Should generally be 1,...,n)!")
         if not sorted(self.map.values()) == sorted(new_map.values()):
             raise ValueError("New map does not fit, different taxa names!")
 

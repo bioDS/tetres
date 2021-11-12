@@ -108,18 +108,20 @@ def test_centroid_onlyone_12data(twelve_taxa_tts):
     assert sos == 288830, "Wrong SoS value for twelve taxa dataset!"
 
 
-def test_centroid_start_tts_lengthError(twelve_taxa_tts):
-    with pytest.raises(ValueError):
-        Centroid(variation="inc_sub", n_cores=1, start=twelve_taxa_tts).compute_centroid(twelve_taxa_tts)
-
-
 def test_centroid_start_tts_wrong_taxa_error(twelve_taxa_tts, twenty_taxa_tts_start):
     with pytest.raises(ValueError):
         Centroid(variation="inc_sub", n_cores=1, start=twenty_taxa_tts_start).compute_centroid(twelve_taxa_tts)
 
 
-def test_centroid_start_tts_wrong_map(twelve_taxa_tts, twelve_taxa_tts_start):
-    assert Centroid(variation="inc_sub", n_cores=1, start=twelve_taxa_tts_start).compute_centroid(twelve_taxa_tts),\
+def test_centroid_start_tts_wrong_map_check_map(twelve_taxa_tts, twelve_taxa_tts_start):
+    my_cen = Centroid(variation="inc_sub", n_cores=1, start=twelve_taxa_tts_start)
+    assert my_cen.start[0].fp_distance(twelve_taxa_tts[2279]) == 0,\
+        "Centroid with TTS start different map failed to change map!"
+
+
+def test_centroid_start_tts_wrong_map_running(twelve_taxa_tts, twelve_taxa_tts_start):
+    my_cen = Centroid(variation="inc_sub", n_cores=1, start=twelve_taxa_tts_start)
+    assert my_cen.compute_centroid(twelve_taxa_tts),\
         "Centroid start with TTS different map failed!"
 
 
