@@ -53,9 +53,8 @@ class TimeTree:
             raise ValueError("New map does not fit, taxa should be encoded by integers 1,...,n!")
         if not sorted(new_map.values()) == sorted(old_map.values()):
             raise ValueError("New map does not fit, different taxa names!")
-        # todo tests for this function
         cur_nwk = self.get_newick()
-        re_taxa = re.compile('([0-9]+)(\[|:)')
+        re_taxa = re.compile('([0-9]+)([\\[:])')
         new_map_reversed = {v: k for (k, v) in new_map.items()}
         new_newick = re_taxa.sub(lambda m: m.group().replace(m.group(1),
                                                              str(new_map_reversed[
@@ -153,8 +152,6 @@ class TimeTreeSet:
         return self.common_clades
 
     def change_mapping(self, new_map):
-        # Todo test for this function needs to be added
-
         if new_map == self.map:
             raise ValueError("New map is identical to old one!")
         if not sorted(self.map.keys()) == sorted(new_map.keys()):

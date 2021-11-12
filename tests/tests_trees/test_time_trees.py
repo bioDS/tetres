@@ -292,15 +292,23 @@ def test_apply_new_taxa_map_same_map(five_taxa_tts):
             new_t.fp_distance(five_taxa_tts[2])] == [0, 1, 2], 'Apply new map does not work!'
 
 
-def test_change_mapping(five_taxa_tts):
-    # todo!!!
-    assert five_taxa_tts.change_mapping({1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5"})
+def test_apply_new_taxa_map(five_taxa_tts):
+    new_t = five_taxa_tts[0].apply_new_taxa_map(old_map=five_taxa_tts.map,
+                                                new_map={1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5"})
+    assert new_t.fp_distance(five_taxa_tts[0]) == 5, "Apply new map failed!"
 
 
-def test_apply_new_taxa_map():
-    # Todo
-    assert True, "apply_new_taxa_map failed!"
+def test_change_mapping(five_taxa_tts, five_taxa_list_distances):
+    new_trees = five_taxa_tts
+    new_trees.change_mapping({1: "t1", 2: "t2", 3: "t3", 4: "t4", 5: "t5"})
+    out = []
+    for i in new_trees:
+        out.extend([i.fp_distance(j) for j in new_trees])
+    assert out == five_taxa_list_distances, f'Change_mapping failed!'
 
 
-def test_change_mapping(five_taxa_tts):
-    assert True, "change_mapping failed!"
+def test_change_mapping_more(twelve_taxa_tts, twelve_taxa_tts_start):
+    new_start = twelve_taxa_tts_start
+    new_start.change_mapping(twelve_taxa_tts.map)
+    assert new_start[0].fp_distance(twelve_taxa_tts[2279]) == 0, "Change mapping failed!"
+
