@@ -13,12 +13,16 @@ class Centroid:
     Class to compute the centroid algorithm with a set of parameters
     """
 
-    def __init__(self, variation="greedy", n_cores=None, select='random', start='FM', subsample_size=200):
+    def __init__(self, variation="greedy", n_cores=None, select='random', start='FM', subsample_size=200,
+                 tree_log_file="", log_every=0):
         self.variation = variation  # Which centroid variation to compute
         self.n_cores = n_cores  # How many cores to use whenever Multiprocessing is/will be used
         self.select = select  # Specifying which tree to choose in case of multiple options with the same quality
         self.start = start  # Specifying the starting position for the centroid algorithm
         self.subsample_size = subsample_size  # Size of the subsamples for some of the centroid variations
+        # todo testing the logfile option
+        self.tree_log_file = tree_log_file
+        self.log_every = log_every
 
     def compute_centroid(self, trees: TimeTreeSet):
 
@@ -32,8 +36,6 @@ class Centroid:
         if self.select not in SELECT_LIST:
             raise ValueError(f"The 'select' parameter should be"
                              f" in {SELECT_LIST} but {self.select} was given.")
-        # TODO self.start isinstance(TimeTree) and then this tree will be the starting tree
-        #  Check for the mapping, and if not correct change accordingly
         if not (self.start in START_LIST or (isinstance(self.start, int) and self.start in range(len(trees)))
                 or isinstance(self.start, TimeTreeSet)):
             raise ValueError(f"The 'start' parameter should be in {START_LIST} or "
@@ -62,34 +64,14 @@ class Centroid:
             # todo maybe change the index with parameter at some point in the future
 
         return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,
-                                                    start=starting_tree, subsample_size=self.subsample_size)
+                                                    start=starting_tree, subsample_size=self.subsample_size,
+                                                    tree_log_file=self.tree_log_file, log_every=self.log_every)
 
 
 if __name__ == '__main__':
 
-    from timeit import default_timer as timer
+    myts = TimeTreeSet('/Users/larsberling/Desktop/CodingMA/Git/Summary/Simulations/25_800_005_24/25_800_005_24.trees')
 
-    import numpy as np
-
-    # d_name = "binary_K047_no_error_including_burnin"
-
-    mystart = TimeTreeSet('/Users/larsberling/Desktop/CodingMA/Git/Summary/Simulations/31_800_005_0/conv_centroid.tree')
-
-    myts = TimeTreeSet('/Users/larsberling/Desktop/CodingMA/Git/Summary/Simulations/31_800_005_0/31_800_005_0.trees')
-
-    mycen = Centroid(start=mystart, variation="inc_sub")
-
+    mycen = Centroid(start="FM", variation="inc_sub", tree_log_file="", log_every=5)
     cen, sos = mycen.compute_centroid(myts)
-
     print(sos)
-
-    # d_name = 'RSV2'
-    #
-    # for i in range(2):
-    #     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
-    #
-    #     mycen = Centroid(start="FM", variation="inc_sub")
-    #
-    #     cen, sos = mycen.compute_centroid(myts)
-    #
-    #     print(sos)
