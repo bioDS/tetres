@@ -10,6 +10,10 @@ def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
     # Chooses always the first tree with better value in the neighbourhood
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
     centroid = start
+    count = 0  # Used to name the trees for the logfile
+    if kwargs["tree_log_file"]:
+        with open(kwargs["tree_log_file"], "a") as log:
+            log.write(f"tree start = {centroid.get_newick()}\n")
 
     while True:
         try:
@@ -18,6 +22,15 @@ def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
         except NoBetterNeighbourFound:
             # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
             break
+        if kwargs["tree_log_file"]:
+         with open(kwargs["tree_log_file"], "a") as log:
+            log.write(f"tree {count} = {centroid.get_newick()}\n")
+            count += 1
+
+    if kwargs["tree_log_file"]:
+        with open(kwargs["tree_log_file"], "a") as log:
+            log.write("End;")
+
     return centroid, sos
 
 
