@@ -139,10 +139,18 @@ def test_centroid_treelogfile_warning(twelve_taxa_tts):
 
 
 # todo test for it working
-def test_centroid_logfile(twelve_taxa_tts):
+def test_centroid_treelogfile_greedy(twelve_taxa_tts):
     my_cen = Centroid(tree_log_file=f'{Path(__file__).parent.parent.absolute()}/data/logfile_12.trees')
     with warnings.catch_warnings():
         # Catching the warning so that it is not displayed for testing
         warnings.filterwarnings("ignore", category=UserWarning)
         assert my_cen.compute_centroid(twelve_taxa_tts)
 
+
+def test_centroid_treelogfile_incsub(twelve_taxa_tts):
+    my_cen = Centroid(variation="inc_sub",
+                      tree_log_file=f'{Path(__file__).parent.parent.absolute()}/data/logfile_12.trees')
+    with warnings.catch_warnings():
+        # Catching the warning so that it is not displayed for testing
+        warnings.filterwarnings("ignore", category=UserWarning)
+        assert my_cen.compute_centroid(twelve_taxa_tts)

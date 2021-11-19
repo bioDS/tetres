@@ -6,15 +6,15 @@ from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBe
 import random
 
 
-def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, tree_log_file='',**kwargs):
     # Chooses always the first tree with better value in the neighbourhood
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
     centroid = start
     count = 0  # Used to name the trees for the logfile
-    if kwargs["tree_log_file"]:
-        with open(kwargs["tree_log_file"], "a") as log:
-            log.write(f"tree start = {centroid.get_newick()}\n")
-
+    if tree_log_file:
+        with open(tree_log_file, "a") as log:
+            log.write(f"tree {count} = {centroid.get_newick()}\n")
+            count += 1
     while True:
         try:
             centroid, sos = search_neighbourhood_greedy(t=centroid, trees=trees, t_value=sos,
@@ -22,13 +22,13 @@ def greedy(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
         except NoBetterNeighbourFound:
             # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
             break
-        if kwargs["tree_log_file"]:
-         with open(kwargs["tree_log_file"], "a") as log:
-            log.write(f"tree {count} = {centroid.get_newick()}\n")
-            count += 1
+        if tree_log_file:
+            with open(tree_log_file, "a") as log:
+                log.write(f"tree {count} = {centroid.get_newick()}\n")
+                count += 1
 
-    if kwargs["tree_log_file"]:
-        with open(kwargs["tree_log_file"], "a") as log:
+    if tree_log_file:
+        with open(tree_log_file, "a") as log:
             log.write("End;")
 
     return centroid, sos
@@ -39,7 +39,12 @@ def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
 
     # Initializing all parameters
     sample = TimeTreeSet()
-    cen = start
+    centroid = start
+    count = 0  # Used to name the trees for the logfile
+    if kwargs["tree_log_file"]:
+        with open(kwargs["tree_log_file"], "a") as log:
+            log.write(f"tree {count} = {centroid.get_newick()}\n")
+            count += 1
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
     trees_copy = trees.copy()
     cur_length = len(trees_copy)
@@ -54,10 +59,19 @@ def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
 
         if new_sos <= sos:
             sos = new_sos
-            cen = new_cen
+            centroid = new_cen
+            if kwargs["tree_log_file"]:
+                with open(kwargs["tree_log_file"], "a") as log:
+                    log.write(f"tree {count} = {centroid.get_newick()}\n")
+                    count += 1
         else:
             break
-    return cen, sos
+
+    if kwargs["tree_log_file"]:
+        with open(kwargs["tree_log_file"], "a") as log:
+            log.write("End;")
+
+    return centroid, sos
 
 
 def iter_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
