@@ -3,7 +3,9 @@ from treeoclock.summary._constants import SELECT_LIST, START_LIST
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.frechet_mean import frechet_mean
 
+import os
 import random
+import warnings
 
 # TODO Tests and Documentation
 
@@ -14,7 +16,7 @@ class Centroid:
     """
 
     def __init__(self, variation="greedy", n_cores=None, select='random', start='FM', subsample_size=200,
-                 tree_log_file="", log_every=0):
+                 tree_log_file=""):
         self.variation = variation  # Which centroid variation to compute
         self.n_cores = n_cores  # How many cores to use whenever Multiprocessing is/will be used
         self.select = select  # Specifying which tree to choose in case of multiple options with the same quality
@@ -22,9 +24,12 @@ class Centroid:
         self.subsample_size = subsample_size  # Size of the subsamples for some of the centroid variations
         # todo testing the logfile option
         self.tree_log_file = tree_log_file
-        self.log_every = log_every
 
     def compute_centroid(self, trees: TimeTreeSet):
+
+        # todo check the logfile parameters if the os.path.exists (directory)
+        #  and if the other is an integer that makes sense
+        #  check if the actual file exists already if so it should stop and not overwrite it ?
 
         # Checking if all parameters are correctly set up
         if not hasattr(_variations, self.variation):
@@ -63,15 +68,28 @@ class Centroid:
             starting_tree = self.start[0]  # Setting the start to the first tree in the given set
             # todo maybe change the index with parameter at some point in the future
 
+        # todo if the logfile is given, write the map to it so that it does not get lost, make the logfile
+        #  a nexus tree file!
+        if self.tree_log_file:
+            # will write a log_file
+            if not os.path.exists(os.path.dirname(self.tree_log_file)):
+                raise FileNotFoundError('Given Path to logfile does not exist!')
+            if os.path.exists(self.tree_log_file):
+                warnings.warn(UserWarning('Given Log File exists already and will be overwritten!'))
+
+        # todo write the beginning of the nexus file to the logfile here
+
         return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,
                                                     start=starting_tree, subsample_size=self.subsample_size,
-                                                    tree_log_file=self.tree_log_file, log_every=self.log_every)
+                                                    tree_log_file=self.tree_log_file)
 
 
 if __name__ == '__main__':
 
+    # todo maybe switch to type error or others instead of always value error
+
     myts = TimeTreeSet('/Users/larsberling/Desktop/CodingMA/Git/Summary/Simulations/25_800_005_24/25_800_005_24.trees')
 
-    mycen = Centroid(start="FM", variation="inc_sub", tree_log_file="", log_every=5)
+    mycen = Centroid(start="FM", variation="greedy", tree_log_file="/Users/larsberling/Desktop/CodingMA/Git/Summary/Simulations/25_800_005_24/", log_every=5)
     cen, sos = mycen.compute_centroid(myts)
     print(sos)
