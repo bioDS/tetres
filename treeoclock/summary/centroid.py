@@ -22,15 +22,9 @@ class Centroid:
         self.select = select  # Specifying which tree to choose in case of multiple options with the same quality
         self.start = start  # Specifying the starting position for the centroid algorithm
         self.subsample_size = subsample_size  # Size of the subsamples for some of the centroid variations
-        # todo testing the logfile option
-        self.tree_log_file = tree_log_file
+        self.tree_log_file = tree_log_file  # If a file is given, the trace of trees will be output to this file
 
     def compute_centroid(self, trees: TimeTreeSet):
-
-        # todo check the logfile parameters if the os.path.exists (directory)
-        #  and if the other is an integer that makes sense
-        #  check if the actual file exists already if so it should stop and not overwrite it ?
-
         # Checking if all parameters are correctly set up
         if not hasattr(_variations, self.variation):
             raise ValueError(f"The 'variation' parameter should be in _variations.py"
@@ -75,9 +69,20 @@ class Centroid:
             if not os.path.exists(os.path.dirname(self.tree_log_file)):
                 raise FileNotFoundError('Given Path to logfile does not exist!')
             if os.path.exists(self.tree_log_file):
-                warnings.warn(UserWarning('Given Log File exists already and will be overwritten!'))
+                warnings.warn(UserWarning('Given Tree Log File exists already and will be overwritten!'))
+            with open(self.tree_log_file, "w+") as log:
+                log.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={len(trees[0])};\n\t\tTaxlabels\n")
+                for k in sorted(trees.map.keys()):
+                    log.write(f"\t\t\t{trees.map[k]}\n")
+                log.write("\t\t\t;\nEnd;\n")
 
-        # todo write the beginning of the nexus file to the logfile here
+                log.write("Begin trees;\n\tTranslate\n")
+                for k in sorted(trees.map.keys()):
+                    log.write(f"\t\t{k} {trees.map[k]}")
+                    if k is not len(trees.map.keys()):
+                        log.write(',')
+                    log.write('\n')
+                log.write(";\n")
 
         return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,
                                                     start=starting_tree, subsample_size=self.subsample_size,
