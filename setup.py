@@ -10,8 +10,6 @@ setup(name='treeoclock',
       packages=['treeoclock'],
       install_requires=['ete3',
                         'pandas',
-                        'seaborn',
-                        'multiprocessing',
-                        'ctypes'
+                        'seaborn'
                         ],
       zip_safe=False)
