@@ -8,4 +8,10 @@ setup(name='treeoclock',
       # author_email='flyingcircus@example.com',
       license='MIT',
       packages=['treeoclock'],
+      install_requires=['ete3',
+                        'pandas',
+                        'seaborn',
+                        'multiprocessing',
+                        'ctypes'
+                        ],
       zip_safe=False)
