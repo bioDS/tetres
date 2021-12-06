@@ -47,71 +47,6 @@ int get_num_digits(int integer){
 }
 
 
-// Return tree as string in cluster format -- for testing purposes
-char* tree_to_string(Tree * input_tree){
-    if (input_tree->tree == NULL){
-        printf("Error. Can't write tree. Given tree doesn't exist.\n");
-        return(NULL);
-    } else{
-        long num_leaves = input_tree->num_leaves;
-        int num_digits_n = get_num_digits(input_tree->num_leaves); // number of digits of the int num_leaves
-        long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
-        char *tree_str = malloc(2 * max_str_length * sizeof(char));
-
-        // Check if input tree is 'correct'
-        // for (int i = 0; i < 2 * num_leaves - 1; i++){
-        //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
-        // }
-
-        // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
-        long ** clusters = malloc((num_leaves - 1) * sizeof(long *));
-        for (long i = 0; i < num_leaves - 1; i++){
-            clusters[i] = malloc((num_leaves) * sizeof(long));
-        }
-
-        for (long i = 0; i < num_leaves ; i++){
-            for (long j = 0; j < num_leaves - 1; j++){
-                clusters[j][i] = 0; //initialise all entries to be 0
-            }
-            long j = i;
-            while (input_tree->tree[j].parent != -1){
-                j = input_tree->tree[j].parent;
-                // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
-                clusters[j - num_leaves][i] = 1;
-            }
-            clusters[num_leaves - 2][i] = 1;
-        }
-
-        // convert matrix into output string tree_str
-        sprintf(tree_str, "[{");
-        long tree_str_pos; //last position in tree_str that is filled with a character
-        for (long i = 0; i < num_leaves - 1; i++){
-            for (long j = 0; j < num_leaves; j++){
-                if (clusters[i][j] == 1){
-                    char leaf_str[num_digits_n + 1];
-                    sprintf(leaf_str, "%ld,", j+1);
-                    strcat(tree_str, leaf_str);
-                }
-            }
-            tree_str_pos = strlen(tree_str) - 1;
-            tree_str[tree_str_pos] = '\0'; // delete last comma
-            strcat(tree_str, "},{");
-            tree_str_pos +=2;
-        }
-        tree_str[tree_str_pos] = '\0'; // delete ,{ at end of tree_str
-        tree_str[tree_str_pos - 1] = '\0';
-        strcat(tree_str, "]");
-
-        for (long i = 0; i < num_leaves - 1; i++){
-            free(clusters[i]);
-        }
-        free(clusters);
-
-        return(tree_str);
-    }
-}
-
-
 // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
 int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
     if (input_tree->tree == NULL){
@@ -202,9 +137,9 @@ long mrca(Tree * input_tree, long node1, long node2){
 
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
 Path findpath(Tree *start_tree, Tree *dest_tree){
-    float count = 0.05; // counter to print the progress of the algorithm (in 10% steps of max distance)
+    // float count = 0.05; // counter to print the progress of the algorithm (in 10% steps of max distance)
     long num_leaves = start_tree->num_leaves;
-    long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
+    long max_dist = (((num_leaves - 1) * (num_leaves - 2))/2) + 1;
     Path path;
     path.moves = malloc((max_dist + 1) * sizeof(long*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays; the first row only contains distance between the trees (moves[0][0])
     for (long i = 0; i < max_dist + 1; i++){
@@ -350,7 +285,6 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
 }
 
 
-
 // returns the FINDPATH path between two given given trees as Tree_List -- runs findpath and translates path matrix to actual trees on path
 Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
     long path_index = 0;
@@ -364,7 +298,7 @@ Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
 
     Path fp = findpath(start_tree, dest_tree);
 
-    long diameter = (num_leaves - 1) * (num_leaves - 2) / 2 + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
+    long diameter = (((num_leaves - 1) * (num_leaves - 2)) / 2) + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
 
     Tree_List findpath_list; // output: list of trees on FP path
     findpath_list.num_trees = fp.length;
@@ -401,22 +335,32 @@ Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
     return findpath_list;
 }
 
-void pw_distances(Tree_List *tree_list, int *output){
-    // returns matrix of pairwise distances for given list of trees
-    // for printing progress:
-    float progress = 0.05;
-    long index = 0;
-    long num_trees  = tree_list->num_trees;
-    // fill in array/matrix
-    for (long i = 0; i < num_trees; i++){
-        for (long j = i; j < num_trees; j++){
-            output[i*num_trees+j] = findpath_distance(&tree_list->trees[i], &tree_list->trees[j]);
-            index += 1;
-            if (progress < ((float)index/(float)(num_trees * num_trees))){
-                printf("Approximately %d precent of pairwise distances computed\n", (int)(progress * 100));
-                progress += 0.05;
-        }
-        }
 
+void free_treelist(Tree_List tree_list)
+{
+    long num_leaves = tree_list.trees[0].num_leaves;
+    long diameter = (((num_leaves - 1) * (num_leaves - 2)) / 2) + 1;
+    for (long i = 0; i < diameter; i++){
+        free(tree_list.trees[i].tree);
     }
+    free(tree_list.trees);
+}
+
+
+Tree copy_tree(Tree *tree_to_copy)
+{
+    long num_leaves = tree_to_copy->num_leaves;
+    Tree copy_tree;
+    copy_tree.num_leaves = num_leaves;
+    copy_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy tree
+    for (int i = 0; i < 2 * num_leaves - 1; i++){
+        copy_tree.tree[i] = tree_to_copy->tree[i];
+    }
+    return copy_tree;
+}
+
+
+void free_tree(Tree *tree)
+{
+    free(tree->tree);
 }
