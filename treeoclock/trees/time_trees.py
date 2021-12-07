@@ -1,8 +1,9 @@
 import functools
 import os
 import re
-
+import warnings
 import ete3
+
 from ctypes import POINTER, CDLL, c_long, c_int
 from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
 from treeoclock.trees._ctrees import TREE, TREE_LIST
@@ -249,15 +250,15 @@ def findpath_path(arg):
     raise TypeError(type(arg) + " not supported.")
 
 
-# todo raising the exception if different number of taxa
+# todo raising the exception if different number of taxa, different types for t1, t2
 
 
 @findpath_path.register(TREE)
 def _(t1, t2):
     lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
     lib.return_findpath.restype = TREE_LIST
-    path = lib.return_findpath(t1, t2)
-    return [path.trees[i] for i in range(path.num_trees)]
+    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed with the lib.free_tree_list funciton!'))
+    return lib.return_findpath(t1, t2)
 
 
 @findpath_path.register(ete3.Tree)
@@ -266,16 +267,16 @@ def _(t1, t2):
     lib.return_findpath.restype = TREE_LIST
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
-    path = lib.return_findpath(ct1, ct2)
-    return [path.trees[i] for i in range(path.num_trees)]
+    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed with the lib.free_tree_list funciton!'))
+    return lib.return_findpath(ct1, ct2)
 
 
 @findpath_path.register(TimeTree)
 def _(t1, t2):
     lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
     lib.return_findpath.restype = TREE_LIST
-    path = lib.return_findpath(t1.ctree, t2.ctree)
-    return [path.trees[i] for i in range(path.num_trees)]
+    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed with the lib.free_tree_list funciton!'))
+    return lib.return_findpath(t1.ctree, t2.ctree)
 
 
 def nwk_to_cluster(treestr):
