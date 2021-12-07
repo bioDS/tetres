@@ -2,7 +2,7 @@ import ete3
 import pytest
 
 from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
-    TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood, nwk_to_cluster, DifferentNbrTaxa
+    TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood, nwk_to_cluster, DifferentNbrTaxa, free_tree_list
 from treeoclock.trees._converter import ete3_to_ctree
 
 
@@ -35,13 +35,18 @@ def test_timetree_fp_distance_timetree_differentnbrtaxa(five_taxa_tts, twelve_ta
 
 # TODO catch the error for the fp_path
 #  also add the test for all different data types that could be used
-
+#  add fp_path warning test
 
 def test_timetree_fp_path(five_taxa_newick_list, five_taxa_list_distances):
     out = []
     t = [TimeTree(i) for i in five_taxa_newick_list]
     for i in t:
-        out.extend([len(i.fp_path(j)) for j in t])
+        ext_path = []
+        for j in t:
+            cur_path = i.fp_path(j)
+            ext_path.append(cur_path.num_trees)
+            free_tree_list(cur_path)
+        out.extend(ext_path)
     assert out == five_taxa_list_distances, f"fp_path distances wrong {out}"
 
 
@@ -111,7 +116,9 @@ def test_findpath_path_timetree(five_taxa_newick_list, five_taxa_list_distances)
     out = []
     for i in t:
         for j in t:
-            out.append(len(findpath_path(i, j)))
+            cur_path = findpath_path(i, j)
+            out.append(cur_path.num_trees)
+            free_tree_list(cur_path)
     assert out == five_taxa_list_distances, f"findpath_distances for TimeTree class wrong {out}"
 
 
@@ -120,7 +127,9 @@ def test_findpath_path_ctree(five_taxa_newick_list, five_taxa_list_distances):
     out = []
     for i in t:
         for j in t:
-            out.append(len(findpath_path(i, j)))
+            cur_path = findpath_path(i, j)
+            out.append(cur_path.num_trees)
+            free_tree_list(cur_path)
     assert out == five_taxa_list_distances, f"findpath_distances for ete3.Tree class wrong {out}"
 
 
@@ -129,7 +138,9 @@ def test_findpath_path_ete3tree(five_taxa_newick_list, five_taxa_list_distances)
     out = []
     for i in t:
         for j in t:
-            out.append(len(findpath_path(i, j)))
+            cur_path = findpath_path(i, j)
+            out.append(cur_path.num_trees)
+            free_tree_list(cur_path)
     assert out == five_taxa_list_distances, f"findpath_distances for c-TREE class wrong {out}"
 
 
@@ -164,12 +175,16 @@ def test_timetreeset_fp_distance(dir, five_taxa_nexus_string, five_taxa_list_dis
     assert out == five_taxa_list_distances, 'TimeTreeSet fp_distance() wrong!'
 
 
-def test_timetreeset_fp_path(dir, five_taxa_nexus_string, five_taxa_list_distances):
-    dir.write("test.nex", five_taxa_nexus_string)
-    t = TimeTreeSet(f'{dir.path}/test.nex')
+def test_timetreeset_fp_path(five_taxa_tts, five_taxa_list_distances):
+    t = five_taxa_tts
     out = []
     for i in range(len(t)):
-        out.extend([len(t[i].fp_path(t[j])) for j in range(len(t))])
+        ext_list = []
+        for j in range(len(t)):
+            cur_path = t[i].fp_path(t[j])
+            ext_list.append(cur_path.num_trees)
+            free_tree_list(cur_path)
+        out.extend(ext_list)
     assert out == five_taxa_list_distances, 'TimeTreeSet fp_path() wrong!'
 
 
