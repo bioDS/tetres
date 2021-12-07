@@ -257,7 +257,7 @@ def findpath_path(arg):
 def _(t1, t2):
     lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
     lib.return_findpath.restype = TREE_LIST
-    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed with the lib.free_tree_list funciton!'))
+    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed, use lib.free_tree_list or trees.free_tree_list!'))
     return lib.return_findpath(t1, t2)
 
 
@@ -267,7 +267,7 @@ def _(t1, t2):
     lib.return_findpath.restype = TREE_LIST
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
-    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed with the lib.free_tree_list funciton!'))
+    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed, use lib.free_tree_list or trees.free_tree_list!'))
     return lib.return_findpath(ct1, ct2)
 
 
@@ -275,8 +275,14 @@ def _(t1, t2):
 def _(t1, t2):
     lib.return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
     lib.return_findpath.restype = TREE_LIST
-    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed with the lib.free_tree_list funciton!'))
+    warnings.warn(UserWarning('The returned Tree_list object has allocated memory that needs to be freed, use lib.free_tree_list or trees.free_tree_list!'))
     return lib.return_findpath(t1.ctree, t2.ctree)
+
+
+def free_tree_list(tree_list):
+    lib.free_treelist.argtypes = [TREE_LIST]
+    lib.free_treelist(tree_list)
+    return 0
 
 
 def nwk_to_cluster(treestr):
