@@ -6,6 +6,7 @@ from random import shuffle
 from typing import Union
 import os
 from ctypes import CDLL, POINTER
+import warnings
 
 lib = CDLL(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))}/trees/findpath.so")
 
@@ -26,7 +27,10 @@ def frechet_mean(trees: Union[TimeTreeSet, list]):
     while index_list:
         # While there are still trees left in the set
         cur_tree = trees[index_list.pop()]
-        path = findpath_path(frechet_mean, cur_tree.ctree)
+        with warnings.catch_warnings():
+            # Ignores the 'Free memory' warning issued by findpath_path
+            warnings.simplefilter("ignore")
+            path = findpath_path(frechet_mean, cur_tree.ctree)
 
         # Only consider to break if the tree isn't close to the current FM tree
         pos = int(path.num_trees / fm_divider)
@@ -43,13 +47,13 @@ def frechet_mean(trees: Union[TimeTreeSet, list]):
 
 
 if __name__ == '__main__':
-    d_name = 'RSV2'
+    d_name = 'Dengue'
 
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
 
-    fm, mem = frechet_mean(myts)
+    fm = frechet_mean(myts)
     # print(fm.get_newick())
 
-    import matplotlib.pyplot as plt
-    plt.plot(mem)
-    plt.show()
+    # import matplotlib.pyplot as plt
+    # plt.plot(mem)
+    # plt.show()
