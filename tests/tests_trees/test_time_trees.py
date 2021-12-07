@@ -1,5 +1,6 @@
 import ete3
 import pytest
+import warnings
 
 from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
     TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood, nwk_to_cluster, DifferentNbrTaxa, free_tree_list
@@ -33,9 +34,34 @@ def test_timetree_fp_distance_timetree_differentnbrtaxa(five_taxa_tts, twelve_ta
         findpath_distance(five_taxa_tts[0], twelve_taxa_tts[0])
 
 
-# TODO catch the error for the fp_path
-#  also add the test for all different data types that could be used
-#  add fp_path warning test
+def test_findpath_path_typeerror():
+    with pytest.raises(TypeError):
+        findpath_path(1, 2)
+
+
+def test_fp_path_warning_ctree(five_taxa_tts):
+    t = five_taxa_tts
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        findpath_path(t[0].ctree, t[1].ctree)
+        assert issubclass(w[-1].category, UserWarning)
+
+
+def test_fp_path_warning_timetree(five_taxa_tts):
+    t = five_taxa_tts
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        findpath_path(t[0], t[1])
+        assert issubclass(w[-1].category, UserWarning)
+
+
+def test_fp_path_warning_ete3(five_taxa_tts):
+    t = five_taxa_tts
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        findpath_path(t[0].etree, t[1].etree)
+        assert issubclass(w[-1].category, UserWarning)
+
 
 def test_timetree_fp_path(five_taxa_newick_list, five_taxa_list_distances):
     out = []
