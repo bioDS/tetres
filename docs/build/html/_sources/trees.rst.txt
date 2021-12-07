@@ -22,7 +22,7 @@ TimeTree attributes
      :attr:`TimeTree.ctree`                     returns the respective :class:`TREE` object
      :attr:`len(TimeTree)`                      returns the number of leaves of the :class:`TimeTree`
      :attr:`TimeTree.fp_distance(t)`            returns the findpath distance to another :class:`TimeTree` *t*
-     :attr:`TimeTree.fp_path(t)`                returns a *list* of :class:`TREE` objects
+     :attr:`TimeTree.fp_path(t)`                returns a :class:`TREE_LIST` object, allocated memory needs to be freed!
      :attr:`TimeTree.get_newick(format)`        returns the *write()* function of the :class:`ete3.Tree` with the specified *format*, defaults to *format=5*
      :attr:`TimeTree.copy()`                    returns a deep copy of the current :class:`TimeTree` (specifically used to generate a new :class:`TREE` object)
      :attr:`TimeTree.neighbours()`              returns a list of :class:`TimeTree`'s containing all neighbours at distance *1*
@@ -34,7 +34,7 @@ This is an example of how to access the different attributes of a TimeTree objec
 
 .. code-block:: python
 
-    from treeoclock.trees.time_trees import TimeTree
+    from treeoclock.trees.time_trees import TimeTree, free_tree_list
 
 
     # Initialize a time tree from a newick string
@@ -48,7 +48,8 @@ This is an example of how to access the different attributes of a TimeTree objec
 
     tt.fp_distance(tt)  # Distance to another TimeTree --> 0
 
-    tt.fp_path(tt)  # A shortest path to another TimeTree --> []
+    path = tt.fp_path(tt)  # A shortest path to another TimeTree --> []
+    free_tree_list(path)  # Allocated memory needs to be freed after usage
 
     tt.get_newick()  # Returns the newick string in ete3 format=5
 
@@ -110,7 +111,7 @@ A :class:`TimeTreeSet` is an iterable list of :class:`TimeTree` objects, which c
 :attr:`TimeTreeSet[i]`                       returns the :class:`TimeTree` at :attr:`TimeTreeSet.trees[i]`
 :attr:`len(TimeTreeSet)`                     returns the number of trees in the list :attr:`TimeTreeSet.trees`
 :attr:`TimeTreeSet.fp_distance(i, j)`        returns the distances between the trees at postition i and j
-:attr:`TimeTreeSet.fp_path(i, j)`            returns a shortest path (list of :class:`TREE`) between the trees at postition i and j
+:attr:`TimeTreeSet.fp_path(i, j)`            returns a shortest path (:class:`TREE_LIST`) between the trees at postition i and j
 ========================================     ========================================================================================================
 
 Reading Trees
@@ -120,7 +121,7 @@ A TimeTreeSet object can be initialized with a path to a nexus file.
 
 .. code-block:: python
 
-    from treeoclock.trees.time_trees import TimeTreeSet
+    from treeoclock.trees.time_trees import TimeTreeSet, free_tree_list
 
 
     # Initializing with a path to a nexus tree file
@@ -138,7 +139,8 @@ A TimeTreeSet object can be initialized with a path to a nexus file.
     len(tts)  # Returns the number of trees in the TimeTreeSet object
 
     tts.fp_distance(i, j)  # Returns the distance between trees i and j
-    tts.fp_path(i, j)  # Returns a shortest path between trees i and j
+    path = tts.fp_path(i, j)  # Returns a shortest path between trees i and j
+    free_tree_list(path)  # Allocated memory needs to be freed after usage
 
 
 Writing trees
@@ -168,14 +170,51 @@ A list of the direct functions and their arguments.
 :attr:`time_trees.get_rank_neighbours(tree)`        returns a list of :class:`TimeTree` objects containing the rank neighbours of tree
 :attr:`time_trees.get_nni_neighbours(tree)`         returns a list of :class:`TimeTree` objects containing the NNI neighbours of tree
 :attr:`time_trees.read_nexus(file)`                 returns a list of :class:`TimeTree` objects contained in given the nexus file
-:attr:`time_trees.get_mapping_dict(file)`           returns a dictionary containg the taxa to integer transaltion of the given file
-:attr:`time_trees.findpath_distance(t1, t2)`        Computes the distance between t1 and t2
-:attr:`time_trees.findpath_path(t1, t2)`            Computes the path between t1 and t2
+:attr:`time_trees.get_mapping_dict(file)`           returns a :class:`dictionary` containing the taxa to integer translation of the given file
+:attr:`time_trees.findpath_distance(t1, t2)`        Computes the distance between t1 and t2, returns :class:`int`
+:attr:`time_trees.findpath_path(t1, t2)`            Computes the path between t1 and t2, returns :class:`TREE_LIST`, after usage memory needs to be freed!
 =============================================    =====================================================================================
 
 .. note::
     Both functions :attr:`time_trees.findpath_distance(t1, t2)` and :attr:`time_trees.findpath_path(t1, t2)`
     can be called with t1 and t2 being either a :class:`TREE`, :class:`TimeTree` or :class:`ete3.Tree`
+.. note::
+    When using :attr:`time_trees.findpath_path(t1, t2)` the c code is allocating memory to the returned object.
+    This memory needs to be freed with the :attr:`time_trees.free_tree_list(tree_list)` function to avoid memory leaks
+
+Working with findpath_path and c memory
+---------------------------------------
+
+When using any of the :attr:`time_trees.findpath_path(t1, t2)` implementation it is important to free the memory of the
+returned :class:`TREE_LIST` object. When calling the function the package will also throw a UserWarning indicating this.
+Below are some examples of how to use the findpath_path implementation and the underlying class :class:`TREE_LIST`.
+
+.. code-block:: python
+
+    from treeoclock.trees.time_trees import TimeTreeSet, free_tree_list
+
+    t1 = TimeTree()
+    t2 = TimeTree()
+
+    path = findpath_path(t1.ctree, t2.ctree)  # Will throw a UserWarning
+    free_tree_list(path)  # Free the memory allocated by c
+
+    # Calling findpath_path without the UserWarning being printed
+    with warnings.catch_warnings():
+        # Ignores the 'Free memory' warning issued by findpath_path
+        warnings.simplefilter("ignore")
+        # All following calls do the same thing
+        path = findpath_path(t1, t2)
+        path = findpath_path(t1.ctree, t2.ctree)
+        path = findpath_path(t1.etree, t2.etree)
+
+    # Use the c code to free the memory directly
+    from ctypes import CDLL
+    from treeoclock.trees._ctrees import TREE_LIST
+    lib = CDLL(f".../treeoclock/trees/findpath.so")
+    lib.free_treelist.argtypes = [TREE_LIST]
+    lib.free_treelist(path)
+
 
 
 .. _c classes:
