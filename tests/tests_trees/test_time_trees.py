@@ -182,6 +182,11 @@ def test_timetreeset_construction(dir, five_taxa_nexus_string):
     assert TimeTreeSet(f'{dir.path}/test.nex'), 'Construction not possible!'
 
 
+def test_timetreeset_construction_filenotexists(dir):
+    with pytest.raises(Exception):
+        TimeTreeSet(f'{dir.path}/test5.nex')
+
+
 def test_timetreeset_construction_empty():
     assert type(TimeTreeSet()) is TimeTreeSet, "Empty construction failed!"
 

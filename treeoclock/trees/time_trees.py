@@ -123,8 +123,11 @@ def get_nni_neighbours(tree: TimeTree):
 class TimeTreeSet:
     def __init__(self, file=None):
         if file is not None:
-            self.map = get_mapping_dict(file)
-            self.trees = read_nexus(file)
+            if os.path.exists(file):
+                self.map = get_mapping_dict(file)
+                self.trees = read_nexus(file)
+            else:
+                raise FileNotFoundError(file)
         else:
             self.map = {}
             self.trees = []
@@ -306,89 +309,6 @@ def nwk_to_cluster(treestr):
 
 
 if __name__ == '__main__':
-    # tt = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
-    #
-    # tt.etree.render(f'/Users/larsberling/Desktop/CodingMA/test.png')
-    #
-    # # Defining a layout to display internal node names in the plot
-    # def my_layout(node):
-    #     if node.is_leaf():
-    #         # If terminal node, draws its name
-    #         name_face = ete3.AttrFace("name")
-    #     else:
-    #         # If internal node, draws label with smaller font size
-    #         name_face = ete3.AttrFace("name", fsize=10)
-    #     # Adds the name face to the image at the preferred position
-    #     ete3.faces.add_face_to_node(name_face, node, column=0, position="branch-right")
-    #
-    #
-    # ts = ete3.TreeStyle()
-    # ts.show_leaf_name = False
-    # ts.layout_fn = my_layout
-    # ts.show_branch_length = True
-    # ts.show_scale = False
-    #
-    #
-    # tt.etree.show(tree_style=ts)
 
-    d_name = 'Dengue'
-    # myts = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
-
-    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
-    NT = myts[0].apply_new_taxa_map(myts.map, myts.map)
-
-    print(myts[0].fp_distance(myts[10]))
-    print(NT.fp_distance(myts[10]))
-
-
-    from line_profiler_pycharm import profile
-
-    #
-
-    from timeit import default_timer as timer
-
-    # clades = iterative(myts[0].etree)
-
-    # my_nwk = myts.get_common_clades()
-    # print(my_nwk)
-    # my_nwk = nwk(myts[0].get_newick(f=9))
-
-    # myts[0]
-
-    # print(myts[0].get_newick())
-    # print(ctree_to_ete3(myts[0].ctree).write(format=3))
-
-    # def my_layout(node):
-    #     if node.is_leaf():
-    #         # If terminal node, draws its name
-    #         name_face = ete3.AttrFace("name")
-    #     else:
-    #         # If internal node, draws label with smaller font size
-    #         name_face = ete3.AttrFace("name", fsize=10)
-    #     # Adds the name face to the image at the preferred position
-    #     ete3.faces.add_face_to_node(name_face, node, column=0, position="branch-right")
-    #
-    #
-    # # n[0].render(f'/Users/larsberling/Desktop/CodingMA/test.png')
-    # ts = ete3.TreeStyle()
-    # ts.show_leaf_name = False
-    # ts.layout_fn = my_layout
-    # ts.show_branch_length = True
-    # ts.show_scale = False
-    # n[0].show(tree_style=ts)
-
-    # print(len(myts[0]))
-    # print(len(myts))
-    #
-    # print(myts[0].fp_distance(myts[0]))
-    #
-    # for t in myts:
-    #     print(t.get_newick())
-    #
-    # print(myts.map)
-
-    # from pympler import asizeof
-    #
-    # print(asizeof.asizeof(t))
-    # print(asizeof.asizeof(ct))
-    # print(asizeof.asizeof(myt))
+    tts = TimeTreeSet('/Users/larsberling/Desktop/CodingMA/RevBayes/bears_cytb_GTR_run_1.trees')
+    len(tts)
