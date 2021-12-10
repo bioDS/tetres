@@ -1,6 +1,8 @@
 from treeoclock.trees._ctrees import TREE_LIST, TREE
 from treeoclock.trees.time_trees import TimeTreeSet, findpath_path, TimeTree
 from treeoclock.trees._converter import ctree_to_ete3
+from treeoclock.summary.compute_sos import compute_sos_mt
+from multiprocessing.pool import ThreadPool as Pool
 
 from random import shuffle
 from typing import Union
@@ -46,14 +48,31 @@ def frechet_mean(trees: Union[TimeTreeSet, list]):
     return ret_tree
 
 
+def fm_sos(trees: TimeTreeSet):
+    fm = frechet_mean(trees)
+    sos = compute_sos_mt(fm, trees)
+    return fm, sos
+
+
+def loop_fm(trees: TimeTreeSet, n_fms=10, n_cores:int = None):
+    with Pool(n_cores) as p:
+        fms = p.map(fm_sos, [trees for _ in range(n_fms)])
+    return min(fms, key=lambda t: t[1])[0]
+
+
+# # todo think about a timeTreeset without c trees or a list of ete3 trees and then convert to ctrees when needed
+# def multiple_frechet_mean(tree_file: str, n_fms=4, n_cores=4):
+#     with mp.Pool(n_cores) as p:
+#         fms = p.map(fm_sos, [tree_file for _ in range(n_fms)])
+#     return TimeTree(min(fms, key=lambda t: t[1])[0])
+
+
 if __name__ == '__main__':
-    d_name = 'Dengue'
+    d_name = 'RSV2'
 
-    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
+    tree_file = f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees'
+    myts = TimeTreeSet(tree_file)
 
-    fm = frechet_mean(myts)
-    # print(fm.get_newick())
+    fm = loop_fm(myts)
 
-    # import matplotlib.pyplot as plt
-    # plt.plot(mem)
-    # plt.show()
+    print(fm.get_newick())

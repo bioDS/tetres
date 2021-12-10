@@ -7,8 +7,6 @@ def compute_sos_mt(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
     """
     Computes the sum of squared distances for the tree t and the set trees, using n_cores processing cores
 
-    Slower than not using mp as this version needs to compute/convert from etree to ctree again!!!
-
     :param t: A tree
     :type t: TimeTree
     :param trees: A set of trees
@@ -26,8 +24,6 @@ def compute_sos_mt(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
 def compute_sos(t: TimeTree, trees: TimeTreeSet):
     """
     Computes the sum of squared distances for the tree t and the set trees
-
-    Currently faster than using multiple cores, as this uses the ctree structure directly without the need of converting
 
     :param t: A tree
     :type t: TimeTree
