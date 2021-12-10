@@ -1,28 +1,22 @@
 treeoclock
 ===========
 
-A package for time trees called treeoclock.
+A Python package for time trees called treeoclock.
+Used to summarize posterior sets of trees with the Centroid algorithm, see below.
 
-tree module
+installation
 ------------
 
-Basic functions for tree handling.
-Input and output, calculating distances.
+To use the package, install it for Python with `pip install -e your/path/to/treeOclock`.
 
-summary module
---------------
+For usage check out the documentation available in `html <docs/build/html/index.html>` and [pdf](docs/build/latex/treeoclock.pdf).
 
+Summarizing posterior set of trees
+----------------------------------
 
-visualize module
-----------------
+To summarize tree sets without needing code use the following:
 
-MDS module
-
-
-Clustering module
-
-
-
+WIP
 
 
 
