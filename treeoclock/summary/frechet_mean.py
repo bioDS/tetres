@@ -38,7 +38,8 @@ def frechet_mean(trees: Union[TimeTreeSet, list]):
         # Only consider to break if the tree isn't close to the current FM tree
         pos = int(path.num_trees / fm_divider)
         if pos == 0:
-            break
+            continue
+            # break
         lib.free_tree(frechet_mean)  # Free the memory of the previous Frechet Mean tree as it is a deep copy
         # Assigning the new FM as the tree 1/fm_divider of the distances to the cur_tree
         frechet_mean = lib.copy_tree(path.trees[pos])
@@ -91,7 +92,8 @@ def frechet_mean_sort(trees: Union[TimeTreeSet, list]):
         # Only consider to break if the tree isn't close to the current FM tree
         pos = int(path.num_trees / fm_divider)
         if pos == 0:
-            break
+            continue
+            # break
         lib.free_tree(frechet_mean)  # Free the memory of the previous Frechet Mean tree as it is a deep copy
         # Assigning the new FM as the tree 1/fm_divider of the distances to the cur_tree
         frechet_mean = lib.copy_tree(path.trees[pos])
@@ -110,14 +112,13 @@ def frechet_mean_sort(trees: Union[TimeTreeSet, list]):
 
 
 if __name__ == '__main__':
-    d_name = 'RSV2'
+    d_name = '100_800_005_1'
 
     tree_file = f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees'
     myts = TimeTreeSet(tree_file)
 
     fm, sos = loop_fm(myts)
-    print(sos)
+    print(compute_sos_mt(fm, myts))
     
     fm = frechet_mean_sort(myts)
     print(compute_sos_mt(fm, myts))
-    
