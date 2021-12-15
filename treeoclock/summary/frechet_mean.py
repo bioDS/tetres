@@ -9,6 +9,7 @@ from typing import Union
 import os
 from ctypes import CDLL, POINTER
 import warnings
+import numpy as np
 
 lib = CDLL(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))}/trees/findpath.so")
 
@@ -57,7 +58,48 @@ def fm_sos(trees: TimeTreeSet):
 def loop_fm(trees: TimeTreeSet, n_fms=10, n_cores:int = None):
     with Pool(n_cores) as p:
         fms = p.map(fm_sos, [trees for _ in range(n_fms)])
-    return min(fms, key=lambda t: t[1])[0]
+    return min(fms, key=lambda t: t[1]) #[0]
+
+
+def frechet_mean_sort(trees: Union[TimeTreeSet, list]):
+    lib.copy_tree.argtypes = [POINTER(TREE)]
+    lib.copy_tree.restype = TREE  # Deep copy tree
+    lib.free_tree.argtypes = [POINTER(TREE)]  # free tree memory
+    lib.free_treelist.argtypes = [TREE_LIST]  # free tree_list memory
+
+    sos = []
+    for t in trees:
+        sos.append(compute_sos_mt(t, trees))
+    # todo keep minimum for later ?!
+    index_list = list(np.argsort(sos))
+    index_list.reverse()
+    # index_list = list(range(0, len(trees)))  # indices of all trees
+    # shuffle(index_list)  # Shuffle the copy
+
+    frechet_mean = lib.copy_tree(trees[index_list.pop()].ctree)  # Initialize the FM tree with the first tree in the list
+
+    fm_divider = 2  # Starting with the tree at the middle of the path i.e. 1/2 of the length
+
+    while index_list:
+        # While there are still trees left in the set
+        cur_tree = trees[index_list.pop()]
+        with warnings.catch_warnings():
+            # Ignores the 'Free memory' warning issued by findpath_path
+            warnings.simplefilter("ignore")
+            path = findpath_path(frechet_mean, cur_tree.ctree)
+
+        # Only consider to break if the tree isn't close to the current FM tree
+        pos = int(path.num_trees / fm_divider)
+        if pos == 0:
+            break
+        lib.free_tree(frechet_mean)  # Free the memory of the previous Frechet Mean tree as it is a deep copy
+        # Assigning the new FM as the tree 1/fm_divider of the distances to the cur_tree
+        frechet_mean = lib.copy_tree(path.trees[pos])
+        lib.free_treelist(path)  # Free the returned path Tree_List
+        fm_divider += 1
+    ret_tree = TimeTree(ctree_to_ete3(frechet_mean).write(format=5))  # Make a TimeTree to return
+    lib.free_tree(frechet_mean)  # Free the memory of the Frechet mean tree
+    return ret_tree
 
 
 # # todo think about a timeTreeset without c trees or a list of ete3 trees and then convert to ctrees when needed
@@ -73,6 +115,9 @@ if __name__ == '__main__':
     tree_file = f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees'
     myts = TimeTreeSet(tree_file)
 
-    fm = loop_fm(myts)
-
-    print(fm.get_newick())
+    fm, sos = loop_fm(myts)
+    print(sos)
+    
+    fm = frechet_mean_sort(myts)
+    print(compute_sos_mt(fm, myts))
+    
