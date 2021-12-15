@@ -1,7 +1,7 @@
 from treeoclock.summary import _variations
 from treeoclock.summary._constants import SELECT_LIST, START_LIST
 from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.summary.frechet_mean import frechet_mean
+from treeoclock.summary.frechet_mean import frechet_mean, frechet_mean_sort
 
 import os
 import random
@@ -52,6 +52,8 @@ class Centroid:
             starting_tree = trees[self.start]
         elif self.start == "FM":
             starting_tree = frechet_mean(trees)
+        elif self.start == "sortFM":
+            starting_tree = frechet_mean_sort(trees)
         elif isinstance(self.start, TimeTreeSet):
             if not len(trees[0]) == len(self.start[0]):
                 raise ValueError(f"The given starting tree has different number of taxa! "
@@ -93,8 +95,18 @@ if __name__ == '__main__':
 
     # todo maybe switch to type error or others instead of always value error
 
-    myts = TimeTreeSet('/Users/larsberling/Desktop/CodingMA/Git/Summary/Simulations/25_800_005_24/25_800_005_24.trees')
+    from timeit import default_timer
+    import datetime
 
-    mycen = Centroid(start="FM", variation="greedy", tree_log_file="/Users/larsberling/Desktop/CodingMA/Git/Summary/Simulations/25_800_005_24/", log_every=5)
-    cen, sos = mycen.compute_centroid(myts)
-    print(sos)
+    tf = '40_800_002'
+    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{tf}/{tf}.trees')
+    cen = Centroid(start='sortFM', variation='inc_sub')
+
+    s = default_timer()
+    cen, sos = cen.compute_centroid(myts)
+    end = default_timer() - s
+
+    print(sos, datetime.timedelta(seconds=end))
+
+    # 136634380
+    # 2:10:19.633477
