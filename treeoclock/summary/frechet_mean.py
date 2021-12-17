@@ -38,6 +38,7 @@ def frechet_mean(trees: Union[TimeTreeSet, list]):
         # Only consider to break if the tree isn't close to the current FM tree
         pos = int(path.num_trees / fm_divider)
         if pos == 0:
+            lib.free_treelist(path)
             continue
             # break
         lib.free_tree(frechet_mean)  # Free the memory of the previous Frechet Mean tree as it is a deep copy
@@ -92,6 +93,7 @@ def frechet_mean_sort(trees: Union[TimeTreeSet, list]):
         # Only consider to break if the tree isn't close to the current FM tree
         pos = int(path.num_trees / fm_divider)
         if pos == 0:
+            lib.free_treelist(path)
             continue
             # break
         lib.free_tree(frechet_mean)  # Free the memory of the previous Frechet Mean tree as it is a deep copy
