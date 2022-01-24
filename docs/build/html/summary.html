@@ -51,27 +51,136 @@
 <ul>
 <li><p><a class="reference internal" href="#the-centroid-class" id="id2">The Centroid class</a></p>
 <ul>
-<li><p><a class="reference internal" href="#centroid-attributes" id="id3">Centroid attributes</a></p></li>
-<li><p><a class="reference internal" href="#centroid-variations" id="id4">Centroid variations</a></p></li>
-<li><p><a class="reference internal" href="#computing-the-sos" id="id5">Computing the SoS</a></p></li>
-<li><p><a class="reference internal" href="#sampling-the-neighbourhood" id="id6">Sampling the neighbourhood</a></p></li>
+<li><p><a class="reference internal" href="#centroid-variations" id="id3">Centroid variations</a></p>
+<ul>
+<li><p><a class="reference internal" href="#greedy" id="id4">Greedy</a></p></li>
+<li><p><a class="reference internal" href="#inc-sub" id="id5">Inc_sub</a></p></li>
+<li><p><a class="reference internal" href="#iter-sub" id="id6">Iter_sub</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#frechet-mean" id="id7">Frechet Mean</a></p></li>
+<li><p><a class="reference internal" href="#selecting-a-tree" id="id7">Selecting a tree</a></p></li>
+<li><p><a class="reference internal" href="#starting-tree" id="id8">Starting tree</a></p></li>
+<li><p><a class="reference internal" href="#subsample-size" id="id9">Subsample size</a></p></li>
+<li><p><a class="reference internal" href="#maximal-iterations" id="id10">Maximal iterations</a></p></li>
+<li><p><a class="reference internal" href="#computing-the-sos" id="id11">Computing the SoS</a></p></li>
+<li><p><a class="reference internal" href="#tree-logfile" id="id12">Tree logfile</a></p></li>
+<li><p><a class="reference internal" href="#centroid-attributes" id="id13">Centroid attributes</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#frechet-mean" id="id14">Frechet Mean</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="the-centroid-class">
 <h2><a class="toc-backref" href="#id2">The Centroid class</a><a class="headerlink" href="#the-centroid-class" title="Permalink to this headline">¶</a></h2>
-<p>TODO: Change the start default to the Frechet Mean algorithm instead of last</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">,</span> <span class="n">n_cores</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                   <span class="n">select</span><span class="o">=</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s1">&#39;last&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Applying a variation of the centroid algorithm on a set of trees.</p>
+<p>This class is used to setup the Centroid and then run the algorithm on a set of trees.</p>
+<div class="section" id="centroid-variations">
+<h3><a class="toc-backref" href="#id3">Centroid variations</a><a class="headerlink" href="#centroid-variations" title="Permalink to this headline">¶</a></h3>
+<p>The variation parameter of a <code class="xref py py-class docutils literal notranslate"><span class="pre">Centroid</span></code> has to be one in [“inc_sub”, “greedy”] (TODO: Still WIP).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variation</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#var-greedy"><span class="std std-ref">Greedy</span></a></p></td>
+<td><p>Computes a centroid via the greedy path and neighbourhood search. Only considering the tree with the most imporved SoS value in each iteration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#var-incsub"><span class="std std-ref">Inc_sub</span></a></p></td>
+<td><p>Starts with a subsample of trees from the set, computes the greedy centroid variant and adds more trees to the subsample until all trees are part of the sample.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#var-itersub"><span class="std std-ref">Iter_sub</span></a></p></td>
+<td><p>Starts with a subsample of trees from the set, computes the greedy centroid variant and then resamples a new subset, using the previous centroid as the starting tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p>WIP</p></td>
+<td><p>WIP</p></td>
+</tr>
+<tr class="row-even"><td><p>WIP</p></td>
+<td><p>WIP</p></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="greedy">
+<span id="var-greedy"></span><h4><a class="toc-backref" href="#id4">Greedy</a><a class="headerlink" href="#greedy" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="inc-sub">
+<span id="var-incsub"></span><h4><a class="toc-backref" href="#id5">Inc_sub</a><a class="headerlink" href="#inc-sub" title="Permalink to this headline">¶</a></h4>
+<p>The parameter subsample_size defines the size of the subsample of trees that is added each iteration.
+The parameter max_iterations defines the number of iterations, if it is None the regular break is defined whenever an
+iteration is not successful at improving the previous centroid.
+If it is an integer then it defines the number of iterations that will subsample, if it is 0 the start tree will be returned.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;inc_sub&quot;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="iter-sub">
+<span id="var-itersub"></span><h4><a class="toc-backref" href="#id6">Iter_sub</a><a class="headerlink" href="#iter-sub" title="Permalink to this headline">¶</a></h4>
+<p>The parameter subsample_size defines the size of the subsample of trees that is sampled each iteration.
+The parameter max_iterations defines the number of iterations, if it is None the regular break is defined whenever an
+iteration is not successful at improving the previous centroid.
+If it is an integer then it defines the number of iterations that will subsample, if it is 0 the start tree will be returned.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;iter_sub&quot;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="selecting-a-tree">
+<h3><a class="toc-backref" href="#id7">Selecting a tree</a><a class="headerlink" href="#selecting-a-tree" title="Permalink to this headline">¶</a></h3>
+<p>This is only the case if multiple trees have the same SoS value.
+The defualt is random and the options are either random, first or last.
+The second two options are depending on the ordering which is dictated by the way the neighbourhood
+is computed.</p>
+</div>
+<div class="section" id="starting-tree">
+<h3><a class="toc-backref" href="#id8">Starting tree</a><a class="headerlink" href="#starting-tree" title="Permalink to this headline">¶</a></h3>
+<p>There are the options to start with the last, the first or any given index of tree from the given tree set.
+The default option however is the sorted Frechet Mean tree (ref), see the doc on FM for more detail.</p>
+</div>
+<div class="section" id="subsample-size">
+<h3><a class="toc-backref" href="#id9">Subsample size</a><a class="headerlink" href="#subsample-size" title="Permalink to this headline">¶</a></h3>
+<p>This is used by some variations and can be set to any integer number (default is 200).
+This number indicates the size of the subsample that the variation will use in its iterations.
+See the incsub or itersub variations</p>
+</div>
+<div class="section" id="maximal-iterations">
+<h3><a class="toc-backref" href="#id10">Maximal iterations</a><a class="headerlink" href="#maximal-iterations" title="Permalink to this headline">¶</a></h3>
+<p>This is used to limit the number of iterations the iterative subsampling and increasing subsampling centroid versions are computing.
+If it is None (default) then the regular break points of those variations apply, otherwise it will only compute upto max_iteration
+many iterations.</p>
+</div>
+<div class="section" id="computing-the-sos">
+<h3><a class="toc-backref" href="#id11">Computing the SoS</a><a class="headerlink" href="#computing-the-sos" title="Permalink to this headline">¶</a></h3>
+<p>The n_cores parameter is used for the SOS computation</p>
+<p>Mention the different SoS computation options
+Multithreading
+Multiprocessing
+Benefits and downsides of both, which is used</p>
+</div>
+<div class="section" id="tree-logfile">
+<h3><a class="toc-backref" href="#id12">Tree logfile</a><a class="headerlink" href="#tree-logfile" title="Permalink to this headline">¶</a></h3>
+<p>This option will write the trees of each centroid iteration to the given file path.
+This includes the actual centroid as the last tree.
+Can be used for further analysis.</p>
+<p>Note that for incsub for example the tree is logged after an iteration on the subsample.
+This results in much smaller log files as the “greedy part” of the iteration is not logged at all because it can lead to
+a tree which is not used in the end (Not necessarily an improvement)</p>
+</div>
 <div class="section" id="centroid-attributes">
-<h3><a class="toc-backref" href="#id3">Centroid attributes</a><a class="headerlink" href="#centroid-attributes" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">Centroid attributes</a><a class="headerlink" href="#centroid-attributes" title="Permalink to this headline">¶</a></h3>
+<p>TODO not sure if this is necessary at all</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 24%" />
@@ -121,47 +230,9 @@
 </pre></div>
 </div>
 </div>
-<div class="section" id="centroid-variations">
-<h3><a class="toc-backref" href="#id4">Centroid variations</a><a class="headerlink" href="#centroid-variations" title="Permalink to this headline">¶</a></h3>
-<p>The variation parameter of a <code class="xref py py-class docutils literal notranslate"><span class="pre">Centroid</span></code> has to be one in [“inc_sub”, “greedy”] (TODO: Still WIP).</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 21%" />
-<col style="width: 79%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Variation</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>greedy</p></td>
-<td><p>Computes a centroid via the greedy path and neighbourhood search. Only considering the tree with the most imporved SoS value in each iteration.</p></td>
-</tr>
-<tr class="row-odd"><td><p>inc_sub</p></td>
-<td><p>Starts with a subsample of trees from the set, computes the greedy centroid variant and adds more trees to the subsample until all trees are part of the sample.</p></td>
-</tr>
-<tr class="row-even"><td><p>WIP</p></td>
-<td><p>WIP</p></td>
-</tr>
-<tr class="row-odd"><td><p>WIP</p></td>
-<td><p>WIP</p></td>
-</tr>
-<tr class="row-even"><td><p>WIP</p></td>
-<td><p>WIP</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="computing-the-sos">
-<h3><a class="toc-backref" href="#id5">Computing the SoS</a><a class="headerlink" href="#computing-the-sos" title="Permalink to this headline">¶</a></h3>
-</div>
-<div class="section" id="sampling-the-neighbourhood">
-<h3><a class="toc-backref" href="#id6">Sampling the neighbourhood</a><a class="headerlink" href="#sampling-the-neighbourhood" title="Permalink to this headline">¶</a></h3>
-</div>
 </div>
 <div class="section" id="frechet-mean">
-<h2><a class="toc-backref" href="#id7">Frechet Mean</a><a class="headerlink" href="#frechet-mean" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id14">Frechet Mean</a><a class="headerlink" href="#frechet-mean" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -176,10 +247,19 @@
   <ul>
 <li><a class="reference internal" href="#">Summarizing trees</a><ul>
 <li><a class="reference internal" href="#the-centroid-class">The Centroid class</a><ul>
-<li><a class="reference internal" href="#centroid-attributes">Centroid attributes</a></li>
-<li><a class="reference internal" href="#centroid-variations">Centroid variations</a></li>
+<li><a class="reference internal" href="#centroid-variations">Centroid variations</a><ul>
+<li><a class="reference internal" href="#greedy">Greedy</a></li>
+<li><a class="reference internal" href="#inc-sub">Inc_sub</a></li>
+<li><a class="reference internal" href="#iter-sub">Iter_sub</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#selecting-a-tree">Selecting a tree</a></li>
+<li><a class="reference internal" href="#starting-tree">Starting tree</a></li>
+<li><a class="reference internal" href="#subsample-size">Subsample size</a></li>
+<li><a class="reference internal" href="#maximal-iterations">Maximal iterations</a></li>
 <li><a class="reference internal" href="#computing-the-sos">Computing the SoS</a></li>
-<li><a class="reference internal" href="#sampling-the-neighbourhood">Sampling the neighbourhood</a></li>
+<li><a class="reference internal" href="#tree-logfile">Tree logfile</a></li>
+<li><a class="reference internal" href="#centroid-attributes">Centroid attributes</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#frechet-mean">Frechet Mean</a></li>
