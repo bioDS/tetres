@@ -61,7 +61,7 @@ def test_centroid_greedy_12data(twelve_taxa_tts):
 def test_centroid_inc_sub(five_taxa_tts):
     cen, sos = Centroid(variation="inc_sub").compute_centroid(five_taxa_tts)
     t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
-    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy centroid variation failed!"
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "IncSub centroid variation failed!"
 
 
 def test_centroid_inc_sub_12data(twelve_taxa_tts):
@@ -70,11 +70,29 @@ def test_centroid_inc_sub_12data(twelve_taxa_tts):
     assert sos == 288830, "Wrong SoS value for twelve taxa dataset!"
 
 
+def test_centroid_inc_sub_maxiter(five_taxa_tts):
+    cen, sos = Centroid(variation="inc_sub", max_iterations=1).compute_centroid(five_taxa_tts)
+    t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "IncSub centroid variation failed with max_iteration parameter!"
+
+
+def test_centroid_inc_sub_12data_maxiter(twelve_taxa_tts):
+    # Fixing the subsample size to the number of trees in the set for testing
+    cen, sos = Centroid(variation="inc_sub", start=10, subsample_size=2500, max_iterations=1).compute_centroid(twelve_taxa_tts)
+    assert sos == 288830, "Wrong SoS value for twelve taxa dataset!"
+
+
+def test_centroid_inc_sub_12data_maxiter(twelve_taxa_tts):
+    # Fixing the subsample size to the number of trees in the set for testing
+    cen, sos = Centroid(variation="inc_sub", start=10, subsample_size=2500, max_iterations=0).compute_centroid(twelve_taxa_tts)
+    assert cen.fp_distance(twelve_taxa_tts[10]) == 0, "IncSub with max_iterations=0 failed!"
+
+
 # Tests for iter_sub
 def test_centroid_iter_sub(five_taxa_tts):
     cen, sos = Centroid(variation="iter_sub").compute_centroid(five_taxa_tts)
     t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
-    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy centroid variation failed!"
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "IterSub centroid variation failed!"
 
 
 def test_centroid_iter_sub_12data(twelve_taxa_tts):
@@ -83,11 +101,23 @@ def test_centroid_iter_sub_12data(twelve_taxa_tts):
     assert sos == 288830, "Wrong SoS value for twelve taxa dataset!"
 
 
+def test_centroid_iter_sub_12data_maxiter(twelve_taxa_tts):
+    # Fixing the subsample size to the number of trees in the set for testing
+    cen, sos = Centroid(variation="iter_sub", start=10, subsample_size=2500, max_iterations=1).compute_centroid(twelve_taxa_tts)
+    assert sos == 288830, "Wrong SoS value for twelve taxa dataset!"
+
+
+def test_centroid_iter_sub_12data_maxiter(twelve_taxa_tts):
+    # Fixing the subsample size to the number of trees in the set for testing
+    cen, sos = Centroid(variation="iter_sub", start=10, subsample_size=2500, max_iterations=0).compute_centroid(twelve_taxa_tts)
+    assert cen.fp_distance(twelve_taxa_tts[10]) == 0, "IncSub with max_iterations=0 failed!"
+
+
 # Tests for separate
 def test_centroid_separate(five_taxa_tts):
     cen, sos = Centroid(variation="separate").compute_centroid(five_taxa_tts)
     t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
-    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy centroid variation failed!"
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Separate centroid variation failed!"
 
 
 def test_centroid_separate_12data(twelve_taxa_tts):
@@ -100,7 +130,7 @@ def test_centroid_separate_12data(twelve_taxa_tts):
 def test_centroid_onlyone(five_taxa_tts):
     cen, sos = Centroid(variation="onlyone").compute_centroid(five_taxa_tts)
     t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
-    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy centroid variation failed!"
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Onlyone centroid variation failed!"
 
 
 def test_centroid_onlyone_12data(twelve_taxa_tts):

@@ -16,13 +16,14 @@ class Centroid:
     """
 
     def __init__(self, variation="greedy", n_cores=None, select='random', start='FM', subsample_size=200,
-                 tree_log_file=""):
+                 tree_log_file="", max_iterations=None):
         self.variation = variation  # Which centroid variation to compute
         self.n_cores = n_cores  # How many cores to use whenever Multiprocessing is/will be used
         self.select = select  # Specifying which tree to choose in case of multiple options with the same quality
         self.start = start  # Specifying the starting position for the centroid algorithm
         self.subsample_size = subsample_size  # Size of the subsamples for some of the centroid variations
         self.tree_log_file = tree_log_file  # If a file is given, the trace of trees will be output to this file
+        self.max_iterations = max_iterations
 
     def compute_centroid(self, trees: TimeTreeSet):
         # Checking if all parameters are correctly set up
@@ -88,7 +89,7 @@ class Centroid:
 
         return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,
                                                     start=starting_tree, subsample_size=self.subsample_size,
-                                                    tree_log_file=self.tree_log_file)
+                                                    tree_log_file=self.tree_log_file, max_iterations=self.max_iterations)
 
 
 if __name__ == '__main__':
@@ -100,13 +101,22 @@ if __name__ == '__main__':
 
     tf = '40_800_002'
     myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{tf}/{tf}.trees')
-    cen = Centroid(start='sortFM', variation='inc_sub')
 
+    # myts.get_common_clades()
+    #
+    # c = myts.common_clades
+    # c = list(c)
+    # c = [list(ci) for ci in c]
+    #
+    # print(len(c))
+
+    #4335370 0:02:51.447752 # greedy
+    #4335370 0:06:10.530635 # inc sub
+
+    cen = Centroid(start='sortFM', variation='greedy')
     s = default_timer()
     cen, sos = cen.compute_centroid(myts)
     end = default_timer() - s
-
     print(sos, datetime.timedelta(seconds=end))
 
-    # 136634380
-    # 2:10:19.633477
+
