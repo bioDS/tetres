@@ -64,7 +64,7 @@ def inc_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
 
         # cur_length -= kwargs["subsample_size"]
 
-        new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=start)
+        new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=centroid)
         new_sos = compute_sos_mt(new_cen, trees, n_cores=n_cores)
 
         if new_sos <= sos:
@@ -102,7 +102,7 @@ def iter_sub(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **k
         sample.trees = [trees[(random.randrange(len(trees)))]
                         for _ in range(min(kwargs["subsample_size"], tree_len))]
 
-        new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=start)
+        new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=cen)
         new_sos = compute_sos_mt(new_cen, trees, n_cores=n_cores)
 
         if new_sos <= sos:
@@ -162,4 +162,63 @@ def onlyone(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kw
                     break
                 # rank = not rank
                 switch = False
+    return centroid, sos
+
+
+def update_with_one(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+
+    # Initializing all parameters
+    sample = TimeTreeSet()
+    centroid = start
+    count = 0  # Used to name the trees for the logfile
+    # if kwargs["tree_log_file"]:
+    #     with open(kwargs["tree_log_file"], "a") as log:
+    #         log.write(f"tree {count} = {centroid.get_newick()}\n")
+    #         count += 1
+
+    sos = compute_sos_mt(start, trees, n_cores=n_cores)
+
+    # trees_copy = trees.copy()
+    # cur_length = len(trees_copy)
+    index_list = list(range(0, len(trees)))
+    random.shuffle(index_list)
+
+    iterations = kwargs["max_iterations"]
+    if iterations is not None:
+        iterations -= 1
+
+    sample.trees.extend(trees.trees[index_list.pop()] for _ in range(min(kwargs["subsample_size"], len(index_list))))
+    new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=start)
+    new_sos = compute_sos_mt(new_cen, trees, n_cores=n_cores)
+    if new_sos < sos:
+        sos = new_sos
+        centroid = new_cen
+
+    while index_list and (iterations is None or iterations > 0):
+        if iterations is not None:
+            iterations -= 1
+
+        sample.trees.append(trees.trees[index_list.pop(1)])  # Adding one tree to the current sample
+
+        new_cen, _ = greedy(trees=sample, n_cores=n_cores, select=select, start=centroid)
+        new_sos = compute_sos_mt(new_cen, trees, n_cores=n_cores)
+
+        d_testing = centroid.fp_distance(new_cen)
+        if d_testing != 0:
+            print(d_testing)
+
+        if new_sos <= sos:
+            sos = new_sos
+            centroid = new_cen
+            if kwargs["tree_log_file"]:
+                with open(kwargs["tree_log_file"], "a") as log:
+                    log.write(f"tree {count} = {centroid.get_newick()}\n")
+                    count += 1
+        else:
+            break
+
+    # if kwargs["tree_log_file"]:
+    #     with open(kwargs["tree_log_file"], "a") as log:
+    #         log.write("End;")
+
     return centroid, sos
