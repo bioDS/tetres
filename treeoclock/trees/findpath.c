@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <omp.h>
+#include <math.h>
 
 
 // Structure for an internal node of a tree
@@ -363,4 +365,40 @@ Tree copy_tree(Tree *tree_to_copy)
 void free_tree(Tree *tree)
 {
     free(tree->tree);
+}
+
+
+long sum_of_squares(Tree *tree, Tree_List *tree_list, int n_cores)
+{
+    if (n_cores == -1)
+    {
+        n_cores = omp_get_max_threads();
+    }
+    // long distances[tree_list->num_trees];
+    long *distances = calloc(tree_list->num_trees, sizeof(long));
+    int i;
+    #pragma omp parallel for num_threads(n_cores)
+        for (i = 0; i < tree_list->num_trees; i++)
+        {
+            distances[i] = findpath_distance(tree, &tree_list->trees[i]);
+        }
+    long sos = 0;
+    for (int i = 0; i < tree_list->num_trees; i++) {
+        // if(distances[i] < 0L)
+        // {
+        //     fprintf(stderr, "Distance is negative!\n");
+        // }
+        // if(distances[i] > 1<<30)
+        // {
+        //     fprintf(stderr, "Larger number (distance)!\n");
+        // }
+        sos = sos + (long) pow((long) distances[i],(long) 2);
+        // sos = sos + distances[i];
+        // if(sos > 1L<<60)
+        // {
+        //     fprintf(stderr, "Larger number (sos)!\n");
+        // }
+    }
+    free(distances);
+    return sos;
 }
