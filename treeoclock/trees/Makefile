@@ -1,3 +1,4 @@
+CC=gcc
 default:
-	gcc -fPIC -Wall -c -g findpath.c
-	gcc -shared -o findpath.so findpath.o
+	$(CC) -fPIC -Wall -c -g findpath.c -fopenmp
+	$(CC) -shared -o findpath.so findpath.o -lgomp
