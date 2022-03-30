@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <omp.h>
 #include <math.h>
-
+#include<limits.h>
 
 // Structure for an internal node of a tree
 typedef struct Node{
@@ -35,6 +35,12 @@ typedef struct Path{
     long length;
     long ** moves;
 } Path;
+
+
+typedef struct Pair{
+    long sos;
+    long index;
+} Pair;
 
 
 // Number of digits of an integer -- needed to get an upper bound of the length of an input tree as string (when reading from a file)
@@ -390,4 +396,43 @@ long sum_of_squares(Tree *tree, Tree_List *tree_list, int n_cores)
         // sos_arr[t] = sos;
         // }
     return sos;
+}
+
+
+Pair myMin(Pair a, Pair b){
+    return a.sos < b.sos ? a : b;
+}
+
+
+Pair best_sos_neighbour(Tree_List *input_trees, Tree_List *tree_set, int n_cores, long t_sos)
+{
+    if (n_cores == -1)
+    {
+        n_cores = omp_get_max_threads();
+    }
+
+    int i, n;
+    long cur_d, sos;
+    Pair ret_pair = (Pair){t_sos, -1};
+
+    #pragma omp declare reduction \
+        (minPair:Pair:omp_out=myMin(omp_out, omp_in)) \
+        initializer(omp_priv = (Pair){t_sos, -1})
+
+    #pragma omp parallel for num_threads(n_cores) reduction(minPair:ret_pair)
+        for(n=0; n < input_trees->num_trees; n++)
+        {
+            sos = 0;
+            for (i = 0; i < tree_set->num_trees; i++)
+            {
+                cur_d = findpath_distance(&input_trees->trees[n], &tree_set->trees[i]);
+                sos += (long) pow(cur_d, 2L);
+            }
+            if (sos < ret_pair.sos)
+            {
+                ret_pair.sos = sos;
+                ret_pair.index = n;
+            }
+        }
+    return ret_pair;
 }
