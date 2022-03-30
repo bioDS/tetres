@@ -1,6 +1,6 @@
 import pytest
 
-from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound
+from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, search_neighbourhood_greedy_omp
 from treeoclock.trees.time_trees import TimeTree
 
 
@@ -29,3 +29,8 @@ def test_search_neighbourhood_greedy_nothingfound_exception(five_taxa_tts):
 def test_search_neighbourhood_greedy_valueerror_selection(five_taxa_tts):
     with pytest.raises(ValueError):
         search_neighbourhood_greedy(t=five_taxa_tts[0], trees=five_taxa_tts, t_value=10, select='Test')
+
+
+def test_search_neighbourhood_greedy_openmp(five_taxa_tts):
+    res = search_neighbourhood_greedy_omp(t=five_taxa_tts[1], trees=five_taxa_tts, t_value=10)
+    assert (five_taxa_tts[0].fp_distance(res[0]), res[1]) == (0, 5), "Greedy neighbourhood search with n_cores=None failed!"
