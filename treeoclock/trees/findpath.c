@@ -375,30 +375,19 @@ long sum_of_squares(Tree *tree, Tree_List *tree_list, int n_cores)
         n_cores = omp_get_max_threads();
     }
     // long distances[tree_list->num_trees];
-    long *distances = calloc(tree_list->num_trees, sizeof(long));
+    //long *distances = calloc(tree_list->num_trees, sizeof(long));
     int i;
-    #pragma omp parallel for num_threads(n_cores)
+    long cur_d;
+    long sos = 0;
+    #pragma omp parallel for num_threads(n_cores) reduction(+:sos)
+        // for(){
         for (i = 0; i < tree_list->num_trees; i++)
         {
-            distances[i] = findpath_distance(tree, &tree_list->trees[i]);
+            //distances[i] = findpath_distance(tree, &tree_list->trees[i]);
+            cur_d = findpath_distance(tree, &tree_list->trees[i]);
+            sos += (long) pow(cur_d, 2L);
         }
-    long sos = 0;
-    for (int i = 0; i < tree_list->num_trees; i++) {
-        // if(distances[i] < 0L)
-        // {
-        //     fprintf(stderr, "Distance is negative!\n");
+        // sos_arr[t] = sos;
         // }
-        // if(distances[i] > 1<<30)
-        // {
-        //     fprintf(stderr, "Larger number (distance)!\n");
-        // }
-        sos = sos + (long) pow((long) distances[i],(long) 2);
-        // sos = sos + distances[i];
-        // if(sos > 1L<<60)
-        // {
-        //     fprintf(stderr, "Larger number (sos)!\n");
-        // }
-    }
-    free(distances);
     return sos;
 }
