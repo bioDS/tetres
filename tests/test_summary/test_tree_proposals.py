@@ -32,5 +32,5 @@ def test_search_neighbourhood_greedy_valueerror_selection(five_taxa_tts):
 
 
 def test_search_neighbourhood_greedy_openmp(five_taxa_tts):
-    res = search_neighbourhood_greedy_omp(t=five_taxa_tts[1], trees=five_taxa_tts, t_value=10)
-    assert (five_taxa_tts[0].fp_distance(res[0]), res[1]) == (0, 5), "Greedy neighbourhood search with n_cores=None failed!"
+    res = search_neighbourhood_greedy_omp(t=five_taxa_tts[1], trees=five_taxa_tts, t_value=10, n_cores=1)
+    assert (five_taxa_tts[0].fp_distance(res[0]), res[1]) == (0, 5), "Greedy neighbourhood search with openmp failed!"

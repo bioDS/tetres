@@ -89,13 +89,12 @@ def search_neighbourhood_greedy_omp(t: TimeTree, trees: TimeTreeSet, t_value: in
     if select not in SELECT_LIST:
         raise ValueError(f"The 'select' parameter should be"
                          f" in {SELECT_LIST} but {select} was given.")
+    if n_cores is None:
+        n_cores = -1
 
     trees.get_common_clades()
 
     neighbourhood = intelligent_neighbourhood(t, trees.common_clades)
-
-    better_neighbours = []
-    cur_best = t_value
 
     import ctypes, os
     from ctypes import CDLL, POINTER
@@ -112,14 +111,6 @@ def search_neighbourhood_greedy_omp(t: TimeTree, trees: TimeTreeSet, t_value: in
     cneighbourhoud = TREE_LIST(num_neighbours, (TREE * num_neighbours)(*[n.ctree for n in neighbourhood]))
 
     ret_pair = lib.best_sos_neighbour(cneighbourhoud, ctreelist, n_cores, t_value)
-
-    # for n in neighbourhood:
-    #     sos = compute_sos_mt(t=n, trees=trees, n_cores=n_cores)
-    #     if sos < cur_best:
-    #         cur_best = sos
-    #         better_neighbours = [n]
-    #     elif sos == cur_best and sos < t_value:
-    #         better_neighbours.append(n)
 
     if ret_pair.index == -1:
         # No better neighbour was found

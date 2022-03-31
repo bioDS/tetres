@@ -400,7 +400,10 @@ long sum_of_squares(Tree *tree, Tree_List *tree_list, int n_cores)
 
 
 Pair myMin(Pair a, Pair b){
-    return a.sos < b.sos ? a : b;
+    //return a.sos < b.sos ? a : b;
+    if (a.sos < b.sos)
+        return a;
+    return b;
 }
 
 
@@ -410,9 +413,6 @@ Pair best_sos_neighbour(Tree_List *input_trees, Tree_List *tree_set, int n_cores
     {
         n_cores = omp_get_max_threads();
     }
-
-    int i, n;
-    long cur_d, sos;
     Pair ret_pair = (Pair){t_sos, -1};
 
     #pragma omp declare reduction \
@@ -420,12 +420,12 @@ Pair best_sos_neighbour(Tree_List *input_trees, Tree_List *tree_set, int n_cores
         initializer(omp_priv = (Pair){t_sos, -1})
 
     #pragma omp parallel for num_threads(n_cores) reduction(minPair:ret_pair)
-        for(n=0; n < input_trees->num_trees; n++)
+        for(int n=0; n < input_trees->num_trees; n++)
         {
-            sos = 0;
-            for (i = 0; i < tree_set->num_trees; i++)
+            long sos = 0;
+            for (int i = 0; i < tree_set->num_trees; i++)
             {
-                cur_d = findpath_distance(&input_trees->trees[n], &tree_set->trees[i]);
+                long cur_d = findpath_distance(&input_trees->trees[n], &tree_set->trees[i]);
                 sos += (long) pow(cur_d, 2L);
             }
             if (sos < ret_pair.sos)
