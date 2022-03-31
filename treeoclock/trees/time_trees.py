@@ -306,9 +306,3 @@ def nwk_to_cluster(treestr):
     if opend:
         raise Exception("Invalid tree string given! (to many '(')")
     return clades
-
-
-if __name__ == '__main__':
-
-    tts = TimeTreeSet('/Users/larsberling/Desktop/CodingMA/RevBayes/bears_cytb_GTR_run_1.trees')
-    len(tts)
