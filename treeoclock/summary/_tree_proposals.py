@@ -1,6 +1,10 @@
 from treeoclock.trees.time_trees import TimeTree, TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary._constants import SELECT_LIST
+from treeoclock.trees._ctrees import TREE_LIST, TREE, PAIR
+
+import ctypes, os
+from ctypes import CDLL, POINTER
 
 from random import choice
 
@@ -95,10 +99,6 @@ def search_neighbourhood_greedy_omp(t: TimeTree, trees: TimeTreeSet, t_value: in
     trees.get_common_clades()
 
     neighbourhood = intelligent_neighbourhood(t, trees.common_clades)
-
-    import ctypes, os
-    from ctypes import CDLL, POINTER
-    from treeoclock.trees._ctrees import TREE_LIST, TREE, PAIR
 
     lib = CDLL(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))}/trees/findpath.so")
 

@@ -32,3 +32,11 @@ class TREE_LIST(Structure):
     def __init_(self, num_trees, trees):
         self.num_trees = num_trees
         self.trees = trees
+
+
+class PAIR(Structure):
+    _fields_ = [('sos', c_long), ('index', c_long)]
+
+    def __init_(self, sos, index):
+        self.sos = sos
+        self.index = index
