@@ -102,7 +102,7 @@ def test_centroid_inc_sub_12data_maxiter(twelve_taxa_tts):
 
 # Tests for iter_sub
 def test_centroid_iter_sub(five_taxa_tts):
-    cen, sos = Centroid(variation="iter_sub").compute_centroid(five_taxa_tts)
+    cen, sos = Centroid(variation="iter_sub", start="sortFM").compute_centroid(five_taxa_tts)
     t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
     assert (cen.fp_distance(t_cen), sos) == (0, 5), "IterSub centroid variation failed!"
 
