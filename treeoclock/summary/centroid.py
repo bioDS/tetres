@@ -90,33 +90,3 @@ class Centroid:
         return getattr(_variations, self.variation)(trees=trees, n_cores=self.n_cores, select=self.select,
                                                     start=starting_tree, subsample_size=self.subsample_size,
                                                     tree_log_file=self.tree_log_file, max_iterations=self.max_iterations)
-
-
-if __name__ == '__main__':
-
-    # todo maybe switch to type error or others instead of always value error
-
-    from timeit import default_timer
-    import datetime
-
-    tf = '40_800_002'
-    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{tf}/{tf}.trees')
-
-    # myts.get_common_clades()
-    #
-    # c = myts.common_clades
-    # c = list(c)
-    # c = [list(ci) for ci in c]
-    #
-    # print(len(c))
-
-    #4335370 0:02:51.447752 # greedy
-    #4335370 0:06:10.530635 # inc sub
-
-    cen = Centroid(start='sortFM', variation='greedy')
-    s = default_timer()
-    cen, sos = cen.compute_centroid(myts)
-    end = default_timer() - s
-    print(sos, datetime.timedelta(seconds=end))
-
-
