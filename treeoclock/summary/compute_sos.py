@@ -1,7 +1,8 @@
 from multiprocessing.pool import ThreadPool as Pool
-from multiprocessing import Pool as mpPool
+import ctypes, os
+from ctypes import CDLL, POINTER
 
-from treeoclock.trees._converter import ete3_to_ctree
+from treeoclock.trees._ctrees import TREE_LIST, TREE
 from treeoclock.trees.time_trees import TimeTree, TimeTreeSet, findpath_distance
 
 
@@ -40,56 +41,17 @@ def compute_sos(t: TimeTree, trees: TimeTreeSet):
     return sos
 
 
-# def findpath_distance_mp(t1, t2):
-#     return findpath_distance(ete3_to_ctree(t1), ete3_to_ctree(t2))
-
-
-import ctypes, os
-from ctypes import CDLL, POINTER
-from treeoclock.trees._ctrees import TREE_LIST, TREE
-
-
-lib = CDLL(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))}/trees/findpath.so")
-
-
-def compute_sos_omp(t: TimeTree, trees: TimeTreeSet, n_cores: int = 2) -> int:
+def compute_sos_omp(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
+    lib = CDLL(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))}/trees/findpath.so")
     lib.sum_of_squares.argtypes = [POINTER(TREE), POINTER(TREE_LIST), ctypes.c_int]
     lib.sum_of_squares.restype = ctypes.c_long
 
     num_trees = len(trees)
     ctreelist = TREE_LIST(num_trees, (TREE * num_trees)(*[t.ctree for t in trees]))
 
+    if n_cores is None:
+        # c does not allow None, -1 is the argument for all possible cores
+        n_cores = -1
+
     sos = lib.sum_of_squares(t.ctree, ctreelist, n_cores)
     return sos
-
-
-if __name__ == '__main__':
-    d_name = "dispg2d_australia_small_active_1"
-    # d_name = "binary_single_cell_K047_gamma_beta.667"
-    # d_name = "mascot_results_newzealand_trees_COVID19_MASCOT_large_time"
-    # d_name = 'RSV2'
-    
-    from timeit import default_timer as timer
-    from random import randint
-
-    myts = TimeTreeSet(f'/Users/larsberling/Desktop/CodingMA/Git/Summary/MDS_Plots/{d_name}/{d_name}.trees')
-    print(len(myts), len(myts[0]))
-
-    times = []
-    times_mp = []
-    
-    for _ in range(10):
-        index = randint(0, len(myts)-1)
-        s = timer()
-        sos1 = compute_sos_omp(myts[index], myts, n_cores=-1)
-        times.append(timer() - s)
-
-        s = timer()
-        sos2 = compute_sos_mt(myts[index], myts, n_cores=None)
-        times_mp.append(timer() - s)
-        
-        if not sos1 == sos2:
-            print("FAIL", sos1, sos2)
-
-    import numpy as np
-    print(np.mean(times), np.mean(times_mp))
