@@ -70,13 +70,18 @@ def frechet_mean_sort(trees: Union[TimeTreeSet, list]):
     lib.free_treelist.argtypes = [TREE_LIST]  # free tree_list memory
 
     sos = []
-    for t in trees:
-        sos.append(compute_sos_mt(t, trees))
+
+    n_cores = None
+
+    # todo this should be possible with the new openmp funciton, much faster than it is currently?
+    with Pool(n_cores) as p:
+        sos = p.starmap(compute_sos_mt, [(t, trees) for t in trees])
+
     # todo keep minimum for later ?!
     index_list = list(np.argsort(sos))
     index_list.reverse()
-    # index_list = list(range(0, len(trees)))  # indices of all trees
-    # shuffle(index_list)  # Shuffle the copy
+
+    min_index = index_list[-1]
 
     frechet_mean = lib.copy_tree(trees[index_list.pop()].ctree)  # Initialize the FM tree with the first tree in the list
 
@@ -103,6 +108,10 @@ def frechet_mean_sort(trees: Union[TimeTreeSet, list]):
         fm_divider += 1
     ret_tree = TimeTree(ctree_to_ete3(frechet_mean).write(format=5))  # Make a TimeTree to return
     lib.free_tree(frechet_mean)  # Free the memory of the Frechet mean tree
+
+    # if the FM tree is not better return the best tree from the set
+    if compute_sos_mt( ret_tree, trees) > sos[min_index]:
+        return trees[min_index]
     return ret_tree
 
 
