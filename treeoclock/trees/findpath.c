@@ -419,12 +419,10 @@ Pair best_sos_neighbour(Tree_List *input_trees, Tree_List *tree_set, int n_cores
         (minPair:Pair:omp_out=myMin(omp_out, omp_in)) \
         initializer(omp_priv = (Pair){t_sos, -1})
 
-    //#pragma omp parallel for num_threads(n_cores) reduction(minPair:ret_pair)
-    #pragma omp target teams distribute reduction(minPair:ret_pair)
+    #pragma omp parallel for num_threads(n_cores) reduction(minPair:ret_pair)
         for(int n=0; n < input_trees->num_trees; n++)
         {
             long sos = 0;
-            #pragma omp parallel for reduction(minPair:ret_pair)
             for (int i = 0; i < tree_set->num_trees; i++)
             {
                 long cur_d = findpath_distance(&input_trees->trees[n], &tree_set->trees[i]);
