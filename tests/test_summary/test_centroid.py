@@ -151,6 +151,20 @@ def test_centroid_onlyone_12data(twelve_taxa_tts):
     assert sos == 288830, "Onlyone: Wrong SoS value for twelve taxa dataset!"
 
 
+# Tests for online
+def test_centroid_online(five_taxa_tts):
+    cen, sos = Centroid(variation="online").compute_centroid(five_taxa_tts)
+    t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "Online centroid variation failed!"
+
+
+def test_centroid_online_12data(twelve_taxa_tts):
+    # Fixing the subsample size to the number of trees in the set for testing
+    cen, sos = Centroid(variation="online", start=10).compute_centroid(twelve_taxa_tts)
+    assert sos == 288830, "Online: Wrong SoS value for twelve taxa dataset!"
+
+
+# more tests
 def test_centroid_start_tts_wrong_taxa_error(twelve_taxa_tts, twenty_taxa_tts_start):
     with pytest.raises(ValueError):
         Centroid(variation="inc_sub", n_cores=1, start=twenty_taxa_tts_start).compute_centroid(twelve_taxa_tts)
@@ -196,3 +210,5 @@ def test_centroid_treelogfile_incsub(twelve_taxa_tts):
         # Catching the warning so that it is not displayed for testing
         warnings.filterwarnings("ignore", category=UserWarning)
         assert my_cen.compute_centroid(twelve_taxa_tts)
+
+

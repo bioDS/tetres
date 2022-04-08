@@ -218,10 +218,7 @@ def update_with_one(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTr
         sample.trees.append(trees.trees[index_list.pop()])  # Adding one tree to the current sample
 
         new_cen, _ = greedy_omp(trees=sample, n_cores=n_cores, select=select, start=centroid)
-        new_sos = compute_sos_mt(new_cen, trees, n_cores=n_cores)  # todo maybe only consider the current tree set and then see where we end up?
-
-        # todo maybe think about parallizing this loop of adding a single tree, or maybe it is better to add like 10 at a time ?
-        #  this could be an interesting bit for scaling comparison, can it even outperform the regular inc_sub method?
+        new_sos = compute_sos_mt(new_cen, trees, n_cores=n_cores)
 
         # d_testing = centroid.fp_distance(new_cen)
         # if d_testing != 0:
@@ -234,3 +231,19 @@ def update_with_one(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTr
             break
 
     return centroid, sos
+
+
+def online(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwargs):
+    # Initializing all parameters
+    sample = TimeTreeSet()
+
+    index_list = list(range(0, len(trees)))
+
+    sample.trees.extend(trees.trees[index_list.pop()] for _ in range(min(kwargs["subsample_size"], len(trees))))
+    cen, cen_sos = greedy_omp(trees=sample, n_cores=n_cores, select=select, start=start)
+
+    for _ in range(len(trees)-min(kwargs["subsample_size"], len(trees))):
+        sample.trees.append(trees.trees[index_list.pop()])  # Adding one tree to the current sample
+        cen, cen_sos = greedy_omp(trees=sample, n_cores=n_cores, select=select, start=cen)
+
+    return cen, cen_sos
