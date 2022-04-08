@@ -151,6 +151,19 @@ def test_centroid_onlyone_12data(twelve_taxa_tts):
     assert sos == 288830, "Onlyone: Wrong SoS value for twelve taxa dataset!"
 
 
+# Tests for update_with_one
+def test_centroid_updateone(five_taxa_tts):
+    cen, sos = Centroid(variation="update_with_one").compute_centroid(five_taxa_tts)
+    t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
+    assert (cen.fp_distance(t_cen), sos) == (0, 5), "UpdateOne centroid variation failed!"
+
+
+def test_centroid_updateone_12data(twelve_taxa_tts):
+    # Fixing the subsample size to the number of trees in the set for testing
+    cen, sos = Centroid(variation="update_with_one", start=10).compute_centroid(twelve_taxa_tts)
+    assert sos == 288830, "UpdateOne: Wrong SoS value for twelve taxa dataset!"
+
+
 # Tests for online
 def test_centroid_online(five_taxa_tts):
     cen, sos = Centroid(variation="online").compute_centroid(five_taxa_tts)

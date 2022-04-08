@@ -242,7 +242,7 @@ def online(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
     sample.trees.extend(trees.trees[index_list.pop()] for _ in range(min(kwargs["subsample_size"], len(trees))))
     cen, cen_sos = greedy_omp(trees=sample, n_cores=n_cores, select=select, start=start)
 
-    for _ in range(len(trees)-min(kwargs["subsample_size"], len(trees))):
+    while index_list:
         sample.trees.append(trees.trees[index_list.pop()])  # Adding one tree to the current sample
         cen, cen_sos = greedy_omp(trees=sample, n_cores=n_cores, select=select, start=cen)
 
