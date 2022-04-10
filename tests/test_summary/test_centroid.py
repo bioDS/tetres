@@ -1,5 +1,6 @@
 import pytest
 import warnings
+import random
 
 from pathlib import Path
 
@@ -159,8 +160,11 @@ def test_centroid_updateone(five_taxa_tts):
 
 
 def test_centroid_updateone_12data(twelve_taxa_tts):
+    state = random.getstate()  # get the random seed state
+    random.seed(28)  # Fixing the seed to get the same result
     # Fixing the subsample size to the number of trees in the set for testing
     cen, sos = Centroid(variation="update_with_one", start=10).compute_centroid(twelve_taxa_tts)
+    random.setstate(state)  # reset the random seed to previous state
     assert sos == 288830, "UpdateOne: Wrong SoS value for twelve taxa dataset!"
 
 
