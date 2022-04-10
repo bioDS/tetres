@@ -197,7 +197,7 @@ def update_with_one(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTr
 
     sos = compute_sos_mt(start, trees, n_cores=n_cores)
 
-    index_list = list(range(0, len(trees)))
+    index_list = list(reversed(range(len(trees))))
     random.shuffle(index_list)
 
     iterations = kwargs["max_iterations"]
@@ -237,7 +237,7 @@ def online(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
     # Initializing all parameters
     sample = TimeTreeSet()
 
-    index_list = list(range(0, len(trees)))
+    index_list = list(reversed(range(len(trees))))
 
     sample.trees.extend(trees.trees[index_list.pop()] for _ in range(min(kwargs["subsample_size"], len(trees))))
     cen, cen_sos = greedy_omp(trees=sample, n_cores=n_cores, select=select, start=start)
