@@ -45,6 +45,15 @@ def test_MChain_construciton_mixed2(thirty_taxa_centroid_tts):
     ), "Construction trees file, TTS centroid failed"
 
 
+def test_MChain_construciton_mixed2():
+    assert MChain(
+        trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
+        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
+        summary=None,
+        working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+    ), "Construction trees file, TTS centroid failed"
+
+
 # testing construction exceptions
 def test_MChain_wrong_trees():
     with pytest.raises(ValueError):

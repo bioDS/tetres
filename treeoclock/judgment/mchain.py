@@ -24,13 +24,14 @@ class MChain:
             else:
                 raise ValueError(log_file)
 
-        # Setting the summary tree
-        if type(summary) is TimeTreeSet:
-            self.summary = summary
-        elif type(summary) is str:
-            self.summary = TimeTreeSet(summary)
-        else:
-            raise ValueError(summary)
+        if not summary is None:
+            # Setting the summary tree
+            if type(summary) is TimeTreeSet:
+                self.summary = summary
+            elif type(summary) is str:
+                self.summary = TimeTreeSet(summary)
+            else:
+                raise ValueError(summary)
 
         # Setting the Working directory
         if os.path.isdir(working_dir):
@@ -40,13 +41,16 @@ class MChain:
                 raise NotADirectoryError(working_dir)
             else:
                 raise ValueError(working_dir)
-        if not self.summary.map == self.trees.map:
-            try:
-                self.summary.change_mapping(self.trees.map)
-            except ValueError as error:
-                raise ValueError(f"{error}\n"
-                                 f"The given summary tree and tree set do not fit! "
-                                 f"\n(Construction of class MChain failed!)")
+
+        if not summary is None:
+            # Check mapping of summary tree and tree set
+            if not self.summary.map == self.trees.map:
+                try:
+                    self.summary.change_mapping(self.trees.map)
+                except ValueError as error:
+                    raise ValueError(f"{error}\n"
+                                     f"The given summary tree and tree set do not fit! "
+                                     f"\n(Construction of class MChain failed!)")
 
 
 def _read_beast_logfile(logfile_path):
