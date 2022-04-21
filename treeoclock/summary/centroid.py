@@ -65,8 +65,6 @@ class Centroid:
             starting_tree = self.start[0]  # Setting the start to the first tree in the given set
             # todo maybe change the index with parameter at some point in the future
 
-        # todo if the logfile is given, write the map to it so that it does not get lost, make the logfile
-        #  a nexus tree file!
         if self.tree_log_file:
             # will write a log_file
             if not os.path.exists(os.path.dirname(self.tree_log_file)):
