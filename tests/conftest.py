@@ -3,7 +3,7 @@ import pytest
 from pathlib import Path
 from testfixtures import TempDirectory
 from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.judgment.mchain import _read_beast_logfile
+from treeoclock.judgment.mchain import _read_beast_logfile, MChain
 
 @pytest.fixture()
 def dir():
@@ -176,3 +176,13 @@ def seventeen_taxa_nni_neighbours_newick():
 @pytest.fixture
 def thirty_taxa_log_data():
     return _read_beast_logfile(f"{Path(__file__).parent.absolute()}/data/30Taxa_beast2.log")
+
+
+@pytest.fixture
+def thirty_taxa_MChain():
+    return MChain(
+        trees=f"{Path(__file__).parent.absolute()}/data/30Taxa.trees",
+        log_file=f"{Path(__file__).parent.absolute()}/data/30Taxa_beast2.log",
+        summary=f"{Path(__file__).parent.absolute()}/data/30Taxa_centroid.tree",
+        working_dir=f"{Path(__file__).parent.absolute()}/data/"
+    )
