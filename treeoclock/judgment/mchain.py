@@ -59,22 +59,41 @@ class MChain:
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
 
-    def get_ess(self, ess_key, ess_method):
+    def get_ess(self, ess_key, ess_method, **kwargs):
         if type(ess_method) is str:
             if not hasattr(ess, f"{ess_method}_ess"):
                 raise ValueError(f"The given ESS method {ess_method} does not exist!")
         else:
             raise ValueError(ess_method)
+        lower_i = 0
+        if "lower_i" in kwargs:
+            lower_i = kwargs["lower_i"]
+        upper_i = self.log_data.shape[0]-1
+        if "upper_i" in kwargs:
+            upper_i = kwargs["upper_i"]
+        if "lower_i" in kwargs or "upper_i" in kwargs:
+            if type(lower_i) is not int or type(upper_i) is not int:
+                raise ValueError("Wrong type for upper or lower index!")
+            if upper_i >= self.log_data.shape[0]:
+                raise IndexError(f"{upper_i} out of range!")
+            if lower_i > upper_i or lower_i < 0 or upper_i < 0:
+                raise ValueError("Something went wrong with the given upper and lower index!")
 
         if ess_key in list(self.log_data.columns):
-            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key], chain_length=self.chain_length, sampling_interval=self.sampling_interval)
+            if "lower_i" in kwargs or "upper_i" in kwargs:
+                # todo this should return the same as below if no arguments are given but it does not!!!
+                return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:upper_i],
+                                                         chain_length=int(self.log_data["Sample"][upper_i])-
+                                                                      int(self.log_data["Sample"][lower_i])-1,
+                                                         sampling_interval=self.sampling_interval)
+            # todo this is temporary until the problem is fixed
+            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key],
+                                                     chain_length=self.chain_length,
+                                                     sampling_interval=self.sampling_interval)
         else:
             raise ValueError("Not (yet) implemented!")
 
-    def get_ess_partial(self, ess_key, ess_method, lower_i=0, upper_i=1):
-        # todo returns the ess value of a part of the MChain object, by default it returns the same es get_ess
-        return 0
-
+    # todo maybe call it cummulative ess plot instead
     def get_ess_trace_plot(self):
         # todo needs a list of ess_keys and ess_method
         #  interval size defaulting to 1 so all samples
