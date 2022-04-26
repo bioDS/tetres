@@ -351,12 +351,6 @@ def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
     assert ess_values == [209, 363, 224], "ESS rnniVariance list failed"
 
 
-# place holder for the new values things ...
-# def test_MChain_get_ess_trace_plot_default(thirty_taxa_MChain, monkeypatch):
-#     monkeypatch.setattr(plt, 'show', lambda: None)  # surpress plt.show() for plot, only temporary
-#     assert thirty_taxa_MChain.get_ess_trace_plot() == 0, "ESS trace plot funciton failed"
-
-
 def test_MChain_pseudo_ess(thirty_taxa_MChain):
     state = random.getstate()  # get the random seed state
     random.seed(10)  # Fixing the seed to get the same result
