@@ -37,7 +37,7 @@ def pseudo_ess(tree_set, chain_length, sampling_interval, **kwargs):
     for _ in range(10):
         cur_focal_fix = random.randint(0, len(tree_set)-1)
         cur_distance_list = [t.fp_distance(tree_set[cur_focal_fix]) for t in tree_set]
-        ess.append(coda_ess(cur_distance_list, chain_length=chain_length, sampling_interval=sampling_interval))
+        ess.append(coda_ess(data_list=cur_distance_list, chain_length=chain_length, sampling_interval=sampling_interval))
     return np.mean(ess)
 
 def _ess_tracerer_rsample():
