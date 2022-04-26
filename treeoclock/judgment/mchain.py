@@ -95,9 +95,16 @@ class MChain:
             raise ValueError("Not (yet) implemented!")
 
     # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
-    def get_pseudo_ess(self):
+    def get_pseudo_ess(self, **kwargs):
+        # todo all the testing for upper_i and lower_i but ideally this will be part of the other funciton so this is temporary
         # todo should return the same as RWTY package but also possibly computed with the RNNI distance measure
-        return ess.pseudo_ess(tree_set=self.trees, chain_length=self.chain_length,
+        upper_i = len(self.trees)
+        if "upper_i" in kwargs:
+            upper_i = kwargs["upper_i"]
+        chain_length = 1
+        if upper_i > 0:
+            chain_length = (self.chain_length / (len(self.trees) - 1)) * (upper_i - 1)
+        return ess.pseudo_ess(tree_set=self.trees[0:upper_i], chain_length=chain_length,
                               sampling_interval=self.chain_length / (len(self.trees) - 1))
 
     def compute_new_log_data(self, type):
