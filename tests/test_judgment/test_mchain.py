@@ -275,8 +275,34 @@ def test_MChain_get_ess_partial_correctness_arviz(thirty_taxa_MChain):
         "ESS partial returns wrong ESS!"
 
 
+def test_MChain_get_ess_partial_correctness_coda(thirty_taxa_MChain):
+    result = []
+    for ess_key in thirty_taxa_MChain.get_key_names():
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="coda"))
+
+    result_partial = []
+    for ess_key in thirty_taxa_MChain.get_key_names():
+        result_partial.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="coda", lower_i=0,
+                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]))
+    assert result == result_partial, \
+        "ESS partial returns wrong ESS!"
+
+
+def test_MChain_get_ess_partial_correctness_tracerer(thirty_taxa_MChain):
+    result = []
+    for ess_key in thirty_taxa_MChain.get_key_names():
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="tracerer"))
+
+    result_partial = []
+    for ess_key in thirty_taxa_MChain.get_key_names():
+        result_partial.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="tracerer", lower_i=0,
+                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]))
+    assert result == result_partial, \
+        "ESS partial returns wrong ESS!"
+
+
 def test_MChain_get_ess_trace_plot(thirty_taxa_MChain):
-    assert thirty_taxa_MChain.get_ess_trace_plot(ess_key="posterior", ess_method="arviz") == 0, "ESS trace plot funciton failed"
+    assert thirty_taxa_MChain.get_ess_trace_plot() == 0, "ESS trace plot funciton failed"
 
 
 
