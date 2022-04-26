@@ -69,27 +69,21 @@ class MChain:
         lower_i = 0
         if "lower_i" in kwargs:
             lower_i = kwargs["lower_i"]
-        upper_i = self.log_data.shape[0]-1
+        upper_i = self.log_data.shape[0]
         if "upper_i" in kwargs:
             upper_i = kwargs["upper_i"]
         if "lower_i" in kwargs or "upper_i" in kwargs:
             if type(lower_i) is not int or type(upper_i) is not int:
                 raise ValueError("Wrong type for upper or lower index!")
-            if upper_i >= self.log_data.shape[0]:
+            if upper_i > self.log_data.shape[0]:
                 raise IndexError(f"{upper_i} out of range!")
             if lower_i > upper_i or lower_i < 0 or upper_i < 0:
                 raise ValueError("Something went wrong with the given upper and lower index!")
 
         if ess_key in list(self.log_data.columns):
-            if "lower_i" in kwargs or "upper_i" in kwargs:
-                # todo this should return the same as below if no arguments are given but it does not!!!
-                return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:upper_i],
-                                                         chain_length=int(self.log_data["Sample"][upper_i])-
-                                                                      int(self.log_data["Sample"][lower_i])-1,
-                                                         sampling_interval=self.sampling_interval)
-            # todo this is temporary until the problem is fixed
-            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key],
-                                                     chain_length=self.chain_length,
+            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:upper_i],
+                                                     chain_length=int(self.log_data["Sample"][upper_i - 1]) -
+                                                                  int(self.log_data["Sample"][lower_i]),
                                                      sampling_interval=self.sampling_interval)
         else:
             raise ValueError("Not (yet) implemented!")
@@ -103,7 +97,7 @@ class MChain:
         # todo all the checks for the variables given
 
         data = []
-        for i in range(self.log_data.shape[0]-1):
+        for i in range(self.log_data.shape[0] - 1):
             data.append([ess_key, self.get_ess(ess_key=ess_key, ess_method=ess_method, upper_i=i), i])
 
         data = pd.DataFrame(data, columns=["Ess_key", "Ess_value", "Upper_i"])
