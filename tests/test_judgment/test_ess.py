@@ -3,21 +3,21 @@ import random
 
 
 def test_coda_ess(thirty_taxa_log_data):
-    assert coda_ess(thirty_taxa_log_data["posterior"],
+    assert coda_ess(data_list=thirty_taxa_log_data["posterior"],
                     chain_length=int(list(thirty_taxa_log_data["Sample"])[-1]),
                     sampling_interval=int(
                         list(thirty_taxa_log_data["Sample"])[1])) == 1447.80470846111, "Coda ESS failed"
 
 
 def test_tracerer_ess(thirty_taxa_log_data):
-    assert tracerer_ess(thirty_taxa_log_data["posterior"],
+    assert tracerer_ess(data_list=thirty_taxa_log_data["posterior"],
                         chain_length=int(list(thirty_taxa_log_data["Sample"])[-1]),
                         sampling_interval=int(
                             list(thirty_taxa_log_data["Sample"])[1])) == 1476.6549659664809, "Tracerer ESS failed"
 
 
 def test_arviz_ess(thirty_taxa_log_data):
-    assert arviz_ess(thirty_taxa_log_data["posterior"],
+    assert arviz_ess(data_list=thirty_taxa_log_data["posterior"],
                      chain_length=int(list(thirty_taxa_log_data["Sample"])[-1]),
                      sampling_interval=int(
                          list(thirty_taxa_log_data["Sample"])[1])) == 1446.1461134383974, "Arviz ESS failed"
@@ -26,7 +26,7 @@ def test_arviz_ess(thirty_taxa_log_data):
 def test_pseudo_ess(thirty_taxa_MChain):
     state = random.getstate()  # get the random seed state
     random.seed(10)  # Fixing the seed to get the same result
-    p_ess = int(pseudo_ess(thirty_taxa_MChain.trees, chain_length=thirty_taxa_MChain.chain_length,
+    p_ess = int(pseudo_ess(tree_set=thirty_taxa_MChain.trees, chain_length=thirty_taxa_MChain.chain_length,
                            sampling_interval=thirty_taxa_MChain.chain_length / (len(thirty_taxa_MChain.trees) - 1)))
     random.setstate(state)  # reset the random seed to previous state
     assert p_ess == 921, "Pseudo ESS failed!"
