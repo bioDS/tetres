@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-from treeoclock.judgment import ess
+from treeoclock.judgment import ess, _ess_plots
 from treeoclock.trees.time_trees import TimeTreeSet
 
 
@@ -59,6 +59,7 @@ class MChain:
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
 
+    # todo maybe add some default values here?
     def get_ess(self, ess_key, ess_method, **kwargs):
         if type(ess_method) is str:
             if not hasattr(ess, f"{ess_method}_ess"):
@@ -93,10 +94,21 @@ class MChain:
         else:
             raise ValueError("Not (yet) implemented!")
 
-    # todo maybe call it cummulative ess plot instead
-    def get_ess_trace_plot(self):
+    def get_ess_trace_plot(self, ess_key, ess_method, kind="cummulative"):
+        # todo add kind window ?
+
         # todo needs a list of ess_keys and ess_method
         #  interval size defaulting to 1 so all samples
+
+        # todo all the checks for the variables given
+
+        data = []
+        for i in range(self.log_data.shape[0]-1):
+            data.append([ess_key, self.get_ess(ess_key=ess_key, ess_method=ess_method, upper_i=i), i])
+
+        data = pd.DataFrame(data, columns=["Ess_key", "Ess_value", "Upper_i"])
+        _ess_plots._ess_trace_plot(data)
+
         return 0
 
     # todo change the name of this plot!!!!

@@ -157,7 +157,7 @@ def test_MChain_get_key_names(thirty_taxa_MChain):
 def test_MChain_get_ess_tracerer(thirty_taxa_MChain):
     result = []
     for ess_key in thirty_taxa_MChain.get_key_names():
-        result.append(thirty_taxa_MChain.get_ess(ess_key, "tracerer"))
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="tracerer"))
     assert result == [1476.6549659664809,
                       1203.6766888338857,
                       1668.228049029279,
@@ -171,7 +171,7 @@ def test_MChain_get_ess_tracerer(thirty_taxa_MChain):
 def test_MChain_get_ess_coda(thirty_taxa_MChain):
     result = []
     for ess_key in thirty_taxa_MChain.get_key_names():
-        result.append(thirty_taxa_MChain.get_ess(ess_key, "coda"))
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="coda"))
     assert result == [1447.80470846111,
                       1398.5896384868036,
                       1697.2455114765976,
@@ -185,7 +185,7 @@ def test_MChain_get_ess_coda(thirty_taxa_MChain):
 def test_MChain_get_ess_arviz(thirty_taxa_MChain):
     result = []
     for ess_key in thirty_taxa_MChain.get_key_names():
-        result.append(thirty_taxa_MChain.get_ess(ess_key, "arviz"))
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="arviz"))
     assert result == [1446.1461134383974,
                       1388.2577408057957,
                       1680.2897556479547,
@@ -199,7 +199,7 @@ def test_MChain_get_ess_arviz(thirty_taxa_MChain):
 def test_MChain_get_ess_partial_tracerer(thirty_taxa_MChain):
     result = []
     for ess_key in thirty_taxa_MChain.get_key_names():
-        result.append(thirty_taxa_MChain.get_ess(ess_key, "tracerer", upper_i=200, lower_i=100))
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="tracerer", upper_i=200, lower_i=100))
     assert result == [100.0, 90.79172611567039, 100.0, 90.79172611567039, 100.0, 100.0, 100.0], \
         "ESS partial tracerer value calculation with MChain failed!"
 
@@ -207,7 +207,7 @@ def test_MChain_get_ess_partial_tracerer(thirty_taxa_MChain):
 def test_MChain_get_ess_partial_coda(thirty_taxa_MChain):
     result = []
     for ess_key in thirty_taxa_MChain.get_key_names():
-        result.append(thirty_taxa_MChain.get_ess(ess_key, "coda", upper_i=200, lower_i=100))
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="coda", upper_i=200, lower_i=100))
     assert result == [99.99999999999999,
                       100.00000000000001,
                       100.00000000000001,
@@ -221,7 +221,7 @@ def test_MChain_get_ess_partial_coda(thirty_taxa_MChain):
 def test_MChain_get_ess_partial_arviz(thirty_taxa_MChain):
     result = []
     for ess_key in thirty_taxa_MChain.get_key_names():
-        result.append(thirty_taxa_MChain.get_ess(ess_key, "arviz", upper_i=200, lower_i=100))
+        result.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="arviz", upper_i=200, lower_i=100))
     assert result == [122.731291995835,
                       95.5331836361955,
                       131.99641052649312,
@@ -234,29 +234,36 @@ def test_MChain_get_ess_partial_arviz(thirty_taxa_MChain):
 
 def test_MChain_get_ess_partial_wronglowertype(thirty_taxa_MChain):
     with pytest.raises(ValueError):
-        thirty_taxa_MChain.get_ess("Posterior", "arviz", lower_i=10.2)
+        thirty_taxa_MChain.get_ess(ess_key="posterior", ess_method="arviz", lower_i=10.2)
 
 
 def test_MChain_get_ess_partial_wronguppertype(thirty_taxa_MChain):
     with pytest.raises(ValueError):
-        thirty_taxa_MChain.get_ess("Posterior", "arviz", upper_i=10.2)
+        thirty_taxa_MChain.get_ess(ess_key="posterior", ess_method="arviz", upper_i=10.2)
 
 
 def test_MChain_get_ess_partial_uppertoobig(thirty_taxa_MChain):
     with pytest.raises(IndexError):
-        thirty_taxa_MChain.get_ess("Posterior", "arviz", upper_i=3000)
+        thirty_taxa_MChain.get_ess(ess_key="posterior", ess_method="arviz", upper_i=3000)
 
 
 def test_MChain_get_ess_partial_wrongway(thirty_taxa_MChain):
     with pytest.raises(ValueError):
-        thirty_taxa_MChain.get_ess("Posterior", "arviz", lower_i=10, upper_i=5)
+        thirty_taxa_MChain.get_ess(ess_key="posterior", ess_method="arviz", lower_i=10, upper_i=5)
 
 
 def test_MChain_get_ess_partial_neglower(thirty_taxa_MChain):
     with pytest.raises(ValueError):
-        thirty_taxa_MChain.get_ess("Posterior", "arviz", lower_i=-10)
+        thirty_taxa_MChain.get_ess(ess_key="posterior", ess_method="arviz", lower_i=-10)
 
 
 def test_MChain_get_ess_partial_negupper(thirty_taxa_MChain):
     with pytest.raises(ValueError):
-        thirty_taxa_MChain.get_ess("Posterior", "arviz", upper_i=-10)
+        thirty_taxa_MChain.get_ess(ess_key="posterior", ess_method="arviz", upper_i=-10)
+
+
+def test_MChain_get_ess_trace_plot(thirty_taxa_MChain):
+    assert thirty_taxa_MChain.get_ess_trace_plot(ess_key="posterior", ess_method="arviz") == 0, "ESS trace plot funciton failed"
+
+
+
