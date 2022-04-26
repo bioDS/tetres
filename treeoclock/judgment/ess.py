@@ -24,6 +24,22 @@ def arviz_ess(data_list, **kwargs):
     return az.ess(np.asarray(data_list))
 
 
+# todo this should take the distance measure as an argument, i.e. RF, PD or RNNI as options
+#  First two from the RWTY original
+# todo it should also be possible to change the return by giving median, mean or min as option
+#  see JC paper for this
+import random
+
+def pseudo_ess(tree_set, chain_length, sampling_interval, **kwargs):
+    # todo this is still WIP!
+    ess = []
+    # todo the range parameter should also be an option
+    for _ in range(10):
+        cur_focal_fix = random.randint(0, len(tree_set)-1)
+        cur_distance_list = [t.fp_distance(tree_set[cur_focal_fix]) for t in tree_set]
+        ess.append(coda_ess(cur_distance_list, chain_length=chain_length, sampling_interval=sampling_interval))
+    return np.mean(ess)
+
 def _ess_tracerer_rsample():
     # todo tracerer on a random sample of values
     tracerer = importr("tracerer")
