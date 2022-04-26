@@ -81,24 +81,31 @@ class MChain:
                 raise ValueError("Something went wrong with the given upper and lower index!")
 
         if ess_key in list(self.log_data.columns):
+            chain_length = 1
+            if upper_i != lower_i:
+                chain_length = int(self.log_data["Sample"][upper_i - 1])-int(self.log_data["Sample"][lower_i])
             return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:upper_i],
-                                                     chain_length=int(self.log_data["Sample"][upper_i - 1]) -
-                                                                  int(self.log_data["Sample"][lower_i]),
+                                                     chain_length=chain_length,
                                                      sampling_interval=self.sampling_interval)
         else:
             raise ValueError("Not (yet) implemented!")
 
-    def get_ess_trace_plot(self, ess_key, ess_method, kind="cummulative"):
+    def get_ess_trace_plot(self, ess_key="all", ess_method="arviz", kind="cummulative"):
         # todo add kind window ?
-
-        # todo needs a list of ess_keys and ess_method
-        #  interval size defaulting to 1 so all samples
-
+        #  add a interval size for the plot
         # todo all the checks for the variables given
+        # todo ess method can be list of all methods and then it will create multiplot thing with distribution on the diagonal
+
+        if ess_key == "all":
+            ess_key = self.get_key_names()
+        elif type(ess_key) is str and ess_key in self.log_data:
+            ess_key = [ess_key]
+        elif not (type(ess_key) is list and all(item in self.get_key_names() for item in ess_key)):
+            raise ValueError("ess_key wrong type")
 
         data = []
-        for i in range(self.log_data.shape[0] - 1):
-            data.append([ess_key, self.get_ess(ess_key=ess_key, ess_method=ess_method, upper_i=i), i])
+        for i in range(5, self.log_data.shape[0]):  # Starting at sample 5 as it is not useful to look at less samples
+            data.extend([[key, self.get_ess(ess_key=key, ess_method=ess_method, upper_i=i), i] for key in ess_key])
 
         data = pd.DataFrame(data, columns=["Ess_key", "Ess_value", "Upper_i"])
         _ess_plots._ess_trace_plot(data)

@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import matplotlib.pyplot as plt
 from pathlib import Path
 from treeoclock.judgment.mchain import _read_beast_logfile, MChain
 
@@ -301,8 +302,34 @@ def test_MChain_get_ess_partial_correctness_tracerer(thirty_taxa_MChain):
         "ESS partial returns wrong ESS!"
 
 
-def test_MChain_get_ess_trace_plot(thirty_taxa_MChain):
+def test_MChain_get_ess_trace_plot_default(thirty_taxa_MChain, monkeypatch):
+    monkeypatch.setattr(plt, 'show', lambda: None)  # surpress plt.show() for plot, only temporary
     assert thirty_taxa_MChain.get_ess_trace_plot() == 0, "ESS trace plot funciton failed"
+
+
+def test_MChain_get_ess_trace_plot_one_key(thirty_taxa_MChain, monkeypatch):
+    monkeypatch.setattr(plt, 'show', lambda: None)  # surpress plt.show() for plot, only temporary
+    assert thirty_taxa_MChain.get_ess_trace_plot(ess_key="posterior") == 0, "ESS trace plot funciton failed"
+
+
+def test_MChain_get_ess_trace_plot_list_key(thirty_taxa_MChain, monkeypatch):
+    monkeypatch.setattr(plt, 'show', lambda: None)  # surpress plt.show() for plot, only temporary
+    assert thirty_taxa_MChain.get_ess_trace_plot(ess_key=["posterior", "likelihood"]) == 0, "ESS trace plot funciton failed"
+
+
+def test_MChain_get_ess_trace_plot_wrong_list(thirty_taxa_MChain, monkeypatch):
+    with pytest.raises(ValueError):
+        thirty_taxa_MChain.get_ess_trace_plot(ess_key=["posterior", "Loglik"])
+
+
+def test_MChain_get_ess_trace_plot_wrong_string(thirty_taxa_MChain, monkeypatch):
+    with pytest.raises(ValueError):
+        thirty_taxa_MChain.get_ess_trace_plot(ess_key="Posterior")
+
+
+def test_MChain_get_ess_trace_plot_wrong_list2(thirty_taxa_MChain, monkeypatch):
+    with pytest.raises(ValueError):
+        thirty_taxa_MChain.get_ess_trace_plot(ess_key=["Posterior", 2, 2.003])
 
 
 
