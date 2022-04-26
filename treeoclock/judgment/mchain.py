@@ -97,7 +97,8 @@ class MChain:
     # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
     def get_pseudo_ess(self):
         # todo should return the same as RWTY package but also possibly computed with the RNNI distance measure
-        return 0
+        return ess.pseudo_ess(tree_set=self.trees, chain_length=self.chain_length,
+                              sampling_interval=self.chain_length / (len(self.trees) - 1))
 
     def compute_new_log_data(self, type):
         new_log_list = []

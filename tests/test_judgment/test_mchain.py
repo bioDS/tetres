@@ -357,3 +357,10 @@ def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
 #     assert thirty_taxa_MChain.get_ess_trace_plot() == 0, "ESS trace plot funciton failed"
 
 
+def test_MChain_pseudo_ess(thirty_taxa_MChain):
+    state = random.getstate()  # get the random seed state
+    random.seed(10)  # Fixing the seed to get the same result
+    p_ess = thirty_taxa_MChain.get_pseudo_ess()
+    random.setstate(state)  # reset the random seed to previous state
+    assert int(p_ess) == 921, "Get Pseudo ESS for MChain failed!"
+
