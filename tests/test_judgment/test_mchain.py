@@ -1,9 +1,10 @@
 import pytest
+import random
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 from treeoclock.judgment.mchain import _read_beast_logfile, MChain
-
+import treeoclock.judgment.ess as ess
 
 def test_read_beast_logfile():
     log_file_path = f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log"
@@ -331,5 +332,28 @@ def test_MChain_get_ess_trace_plot_wrong_list2(thirty_taxa_MChain, monkeypatch):
     with pytest.raises(ValueError):
         thirty_taxa_MChain.get_ess_trace_plot(ess_key=["Posterior", 2, 2.003])
 
+
+def test_MChain_compute_new_log_data_RNNIVariance(thirty_taxa_MChain):
+    log_list = thirty_taxa_MChain.compute_new_log_data(type="RNNI_Variance")
+    assert [type(log_list), len(log_list)] == [list, len(thirty_taxa_MChain.trees)], "New log list computation failed!"
+
+
+def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
+    state = random.getstate()  # get the random seed state
+    random.seed(10)  # Fixing the seed to get the same result
+    log_list = thirty_taxa_MChain.compute_new_log_data(type="RNNI_Variance")
+    random.setstate(state)  # reset the random seed to previous state
+    ess_values = []
+    for ess_method in ["arviz", "coda", "tracerer"]:
+        ess_values.append(int(getattr(ess, f"{ess_method}_ess")(
+            data_list=log_list, chain_length=thirty_taxa_MChain.chain_length,
+            sampling_interval=thirty_taxa_MChain.chain_length/(len(log_list)-1))))
+    assert ess_values == [209, 363, 224], "ESS rnniVariance list failed"
+
+
+# place holder for the new values things ...
+# def test_MChain_get_ess_trace_plot_default(thirty_taxa_MChain, monkeypatch):
+#     monkeypatch.setattr(plt, 'show', lambda: None)  # surpress plt.show() for plot, only temporary
+#     assert thirty_taxa_MChain.get_ess_trace_plot() == 0, "ESS trace plot funciton failed"
 
 

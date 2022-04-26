@@ -3,7 +3,8 @@ import os
 
 from treeoclock.judgment import ess, _ess_plots
 from treeoclock.trees.time_trees import TimeTreeSet
-
+from treeoclock.summary.compute_sos import compute_sos_mt
+from treeoclock.summary.frechet_mean import frechet_mean
 
 class MChain:
     def __init__(self, trees, log_file, summary, working_dir):
@@ -26,6 +27,10 @@ class MChain:
                 raise FileNotFoundError(log_file)
             else:
                 raise ValueError(log_file)
+
+        # todo future work for this part!
+        # if self.log_data.shape[0] != len(self.trees):
+        #     raise ValueError("Different Size of Tree and LogFile!")
 
         if summary is not None:
             # Setting the summary tree
@@ -59,8 +64,7 @@ class MChain:
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
 
-    # todo maybe add some default values here?
-    def get_ess(self, ess_key, ess_method, **kwargs):
+    def get_ess(self, ess_key="posterior", ess_method="arviz", **kwargs):
         if type(ess_method) is str:
             if not hasattr(ess, f"{ess_method}_ess"):
                 raise ValueError(f"The given ESS method {ess_method} does not exist!")
@@ -90,6 +94,19 @@ class MChain:
         else:
             raise ValueError("Not (yet) implemented!")
 
+    # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
+    def get_pseudo_ess(self):
+        # todo should return the same as RWTY package but also possibly computed with the RNNI distance measure
+        return 0
+
+    def compute_new_log_data(self, type):
+        new_log_list = []
+        # todo this needs to compute the summary tree a lot of times, so for now i use FM
+        for i in range(0, len(self.trees)):
+            fm = frechet_mean(self.trees[0:i+1])
+            new_log_list.append(compute_sos_mt(fm, self.trees[0:i+1], n_cores=None)/(i+1))
+        return new_log_list
+
     def get_ess_trace_plot(self, ess_key="all", ess_method="arviz", kind="cummulative"):
         # todo add kind window ?
         #  add a interval size for the plot
@@ -106,10 +123,8 @@ class MChain:
         data = []
         for i in range(5, self.log_data.shape[0]):  # Starting at sample 5 as it is not useful to look at less samples
             data.extend([[key, self.get_ess(ess_key=key, ess_method=ess_method, upper_i=i), i] for key in ess_key])
-
         data = pd.DataFrame(data, columns=["Ess_key", "Ess_value", "Upper_i"])
         _ess_plots._ess_trace_plot(data)
-
         return 0
 
     # todo change the name of this plot!!!!
