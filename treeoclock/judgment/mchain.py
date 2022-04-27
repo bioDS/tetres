@@ -93,10 +93,11 @@ class MChain:
         if ess_key in list(self.log_data.columns):
             chain_length = 1
             if upper_i != lower_i:
-                chain_length = int(self.log_data["Sample"][upper_i - 1])-int(self.log_data["Sample"][lower_i])
-            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:upper_i],
+                chain_length = int(self.log_data["Sample"][upper_i])-int(self.log_data["Sample"][lower_i])
+            cur_sampling_interval = int(chain_length / (self.log_data[ess_key][lower_i:(upper_i+1)].shape[0] - 1 - self.log_data[ess_key][lower_i:(upper_i+1)].isna().sum()))
+            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:(upper_i+1)].dropna(),
                                                      chain_length=chain_length,
-                                                     sampling_interval=self.log_sampling_interval)
+                                                     sampling_interval=cur_sampling_interval)
         else:
             raise ValueError("Not (yet) implemented!")
 
