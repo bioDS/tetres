@@ -1,10 +1,14 @@
-import pandas as pd
+import sys
 import os
+import pandas as pd
+import numpy as np
+
 
 from treeoclock.judgment import ess, _ess_plots
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
+
 
 class MChain:
     def __init__(self, trees, log_file, summary, working_dir):
@@ -21,7 +25,9 @@ class MChain:
         if os.path.exists(log_file):
             self.log_data = _read_beast_logfile(log_file)
             self.chain_length = int(list(self.log_data["Sample"])[-1])
-            self.sampling_interval = int(list(self.log_data["Sample"])[1])
+            self.log_sampling_interval = int(list(self.log_data["Sample"])[1])
+            # assuming that the first iteration 0 tree and the last have been logged in the logfile
+            self.tree_sampling_interval = self.chain_length / (len(self.trees) - 1)
         else:
             if type(log_file) is str:
                 raise FileNotFoundError(log_file)
@@ -90,7 +96,7 @@ class MChain:
                 chain_length = int(self.log_data["Sample"][upper_i - 1])-int(self.log_data["Sample"][lower_i])
             return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:upper_i],
                                                      chain_length=chain_length,
-                                                     sampling_interval=self.sampling_interval)
+                                                     sampling_interval=self.log_sampling_interval)
         else:
             raise ValueError("Not (yet) implemented!")
 
@@ -107,12 +113,36 @@ class MChain:
         return ess.pseudo_ess(tree_set=self.trees[0:upper_i], chain_length=chain_length,
                               sampling_interval=self.chain_length / (len(self.trees) - 1))
 
-    def compute_new_log_data(self, type):
+    def compute_rnni_variance_log(self, focal_tree_type="tree", add=True):
         new_log_list = []
-        # todo this needs to compute the summary tree a lot of times, so for now i use FM
         for i in range(0, len(self.trees)):
-            fm = frechet_mean(self.trees[0:i+1])
-            new_log_list.append(compute_sos_mt(fm, self.trees[0:i+1], n_cores=None)/(i+1))
+            # todo this type checking is not efficient, should be outside of the loop!
+            if focal_tree_type == "FM":
+                focal_tree = frechet_mean(self.trees[0:i+1])
+            elif focal_tree_type == "tree":
+                focal_tree = self.trees[i]
+            elif focal_tree_type == "centroid":
+                sys.exit("Not yet implemented")
+                focal_tree = frechet_mean(self.trees[0:i + 1])
+            else:
+                raise ValueError(f"Unknown type {focal_tree_type} given!")
+            new_log_list.append(compute_sos_mt(focal_tree, self.trees[0:i+1], n_cores=None)/(i+1))
+
+        # adding the computed log value to the log dataframe
+
+        if add:
+            if len(new_log_list) == self.log_data.shape[0]:
+                self.log_data[f"Var_{focal_tree_type}"] = new_log_list
+            elif len(new_log_list) < self.log_data.shape[0]:
+                if self.tree_sampling_interval % self.log_sampling_interval == 0:
+                    sampling_diff = int(self.tree_sampling_interval / self.log_sampling_interval)
+                    self.log_data[f"Var_{focal_tree_type}"] = np.nan
+                    self.log_data[f"Var_{focal_tree_type}"][::sampling_diff] = new_log_list
+                else:
+                    sys.exit("Feature not implemented! Trees logged is not a multiple of the log sampling interval!")
+            elif len(new_log_list) > self.log_data.shape[0]:
+                sys.exit("Feature not yet implemented! "
+                         "The logfile contains less data than the tree file!")
         return new_log_list
 
     def get_ess_trace_plot(self, ess_key="all", ess_method="arviz", kind="cummulative"):
