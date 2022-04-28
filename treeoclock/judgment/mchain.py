@@ -206,5 +206,16 @@ class MChain:
         _plots._log_trace_plot(self.log_data[value_key][:5])
         return 0
 
+    # todo add function that add the ESS traces as columns in the dataframe for the Tracer Visualization
+    #  this is easier than writing my own plots
+
     def write_log_file(self, path):
-        self.log_data.to_csv(path, sep="\t")
+        # todo check if path is correct
+        #  throw warning if file exitsts and stuff like that
+
+        # todo make this a function to calculate all the values and then write a tracer compatible log file
+        #  this should also have a parameter accepting columns which will then be included in the log file
+        #  default all columns including the original log values from beast logfile
+
+        # This should output a csv file that is compatible with Tracer to visualize all the values
+        self.log_data.dropna().to_csv(path, sep="\t", index=False)
