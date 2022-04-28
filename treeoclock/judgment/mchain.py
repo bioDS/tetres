@@ -111,7 +111,8 @@ class MChain:
                               sampling_interval=self.chain_length / (len(self.trees) - 1))
 
     # todo missing tests
-    def compute_rnni_variance_log(self, focal_tree_type="tree", add=True):
+    # the rnni variance log is essentially a running mean plot
+    def compute_rnni_variance_log(self, focal_tree_type="tree", norm=False, add=True):
         new_log_list = []
         for i in range(0, len(self.trees)):
             # todo this type checking is not efficient, should be outside of the loop!
@@ -124,45 +125,45 @@ class MChain:
                 focal_tree = frechet_mean(self.trees[0:i + 1])
             else:
                 raise ValueError(f"Unknown type {focal_tree_type} given!")
-            new_log_list.append(compute_sos_mt(focal_tree, self.trees[0:i+1], n_cores=None)/(i+1))
+            new_log_list.append(compute_sos_mt(focal_tree, self.trees[0:i+1], n_cores=None, norm=norm)/(i+1))
 
         # adding the computed log value to the log dataframe
 
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Var_{focal_tree_type}")
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Var{'_norm' if norm else ''}_{focal_tree_type}")
         return new_log_list
 
     # todo missing test and proper management of the average parameter
-    def compute_new_tree_distance_log(self, average='mean', add=True):
+    def compute_new_tree_distance_log(self, average='mean', norm=False, add=True):
         new_log_list = [0]  # initialize as the first iteration is just one tree
         for i in range(1, len(self.trees)):
             if average is "mean":
-                new_log_list.append(np.mean([self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]))
+                new_log_list.append(np.mean([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
             elif average is "median":
-                new_log_list.append(np.median([self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]))
+                new_log_list.append(np.median([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
             elif average is "median_ad":
-                x = [self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]
+                x = [self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]
                 new_log_list.append(np.median(np.absolute(x - np.median(x))))
             elif average is "mean_ad":
-                x = [self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]
+                x = [self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]
                 new_log_list.append(np.mean(np.absolute(x - np.mean(x))))
             else:
                 raise ValueError(f"Given average {average} is not implemented!")
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance_{average}")
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{average}")
         return new_log_list
 
-    def compute_new_tree_summary_distance_log(self, summary="FM", add=True):
+    def compute_new_tree_summary_distance_log(self, summary="FM", norm=False, add=True):
         new_log_list = [0]  # initialize as the first iteration is just one tree
         for i in range(1, len(self.trees)):
             if summary is "FM":
-                new_log_list.append(self.trees[i].fp_distance(frechet_mean(self.trees[0:i])))
+                new_log_list.append(self.trees[i].fp_distance(frechet_mean(self.trees[0:i]), norm=norm))
             elif summary is "Centroid":
                 raise ValueError("Not yet implemented!")
             else:
                 raise ValueError(f"Not implemented summary type {summary}!")
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance_{summary}")
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{summary}")
         return new_log_list
 
     # todo missing tests

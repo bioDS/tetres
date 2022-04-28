@@ -427,10 +427,15 @@ def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
     assert ess_values == [764, 779, 611], "ESS rnniVariance list failed"
 
 
+# todo this is a very lengthy test on this dataset, maybe i need a smaller test dataset for these things
 def test_MChain_write_log_file(thirty_taxa_MChain):
     thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary="FM")
+    thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary="FM", norm=True)
     for average in ["mean", "median", "median_ad", "mean_ad"]:
         thirty_taxa_MChain.compute_new_tree_distance_log(average=average)
+        thirty_taxa_MChain.compute_new_tree_distance_log(average=average, norm=True)
     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree")
+    thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree", norm=True)
     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM")
+    thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM", norm=True)
     thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_pd.log")
