@@ -6,7 +6,7 @@ from treeoclock.trees._ctrees import TREE_LIST, TREE
 from treeoclock.trees.time_trees import TimeTree, TimeTreeSet, findpath_distance
 
 
-def compute_sos_mt(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
+def compute_sos_mt(t: TimeTree, trees: TimeTreeSet, n_cores: int = None, norm=False) -> int:
     """
     Computes the sum of squared distances for the tree t and the set trees, using n_cores processing cores
 
@@ -20,11 +20,11 @@ def compute_sos_mt(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int:
     :rtype: int
     """
     with Pool(n_cores) as p:
-        dists = p.starmap(findpath_distance, [(t.ctree, i.ctree) for i in trees])
+        dists = p.starmap(findpath_distance, [(t.ctree, i.ctree, norm) for i in trees])
     return sum(i * i for i in dists)
 
 
-def compute_sos(t: TimeTree, trees: TimeTreeSet):
+def compute_sos(t: TimeTree, trees: TimeTreeSet, norm=False):
     """
     Computes the sum of squared distances for the tree t and the set trees
 
@@ -37,7 +37,7 @@ def compute_sos(t: TimeTree, trees: TimeTreeSet):
     """
     sos = 0
     for i in trees:
-        sos += findpath_distance(t.ctree, i.ctree)**2
+        sos += findpath_distance(t.ctree, i.ctree, norm=norm)**2
     return sos
 
 
