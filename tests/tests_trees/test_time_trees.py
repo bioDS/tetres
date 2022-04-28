@@ -137,6 +137,33 @@ def test_findpath_distance_ete3tree(five_taxa_newick_list, five_taxa_list_distan
     assert out == five_taxa_list_distances, f"findpath_distances for c-TREE class wrong {out}"
 
 
+def test_findpath_distance_norm_timetree(five_taxa_newick_list, five_taxa_list_distances_norm):
+    t = [TimeTree(i) for i in five_taxa_newick_list]
+    out = []
+    for i in t:
+        for j in t:
+            out.append(findpath_distance(i, j, norm=True))
+    assert out == five_taxa_list_distances_norm, f"findpath_distances_norm for TimeTree class wrong {out}"
+
+
+def test_findpath_distance_norm_ctree(five_taxa_newick_list, five_taxa_list_distances_norm):
+    t = [ete3.Tree(i) for i in five_taxa_newick_list]
+    out = []
+    for i in t:
+        for j in t:
+            out.append(findpath_distance(i, j, norm=True))
+    assert out == five_taxa_list_distances_norm, f"findpath_distances_norm for ete3.Tree class wrong {out}"
+
+
+def test_findpath_distance_norm_ete3tree(five_taxa_newick_list, five_taxa_list_distances_norm):
+    t = [ete3_to_ctree(ete3.Tree(i)) for i in five_taxa_newick_list]
+    out = []
+    for i in t:
+        for j in t:
+            out.append(findpath_distance(i, j, norm=True))
+    assert out == five_taxa_list_distances_norm, f"findpath_distances_norm for c-TREE class wrong {out}"
+
+
 def test_findpath_path_timetree(five_taxa_newick_list, five_taxa_list_distances):
     t = [TimeTree(i) for i in five_taxa_newick_list]
     out = []

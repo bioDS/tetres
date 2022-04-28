@@ -5,6 +5,7 @@ from testfixtures import TempDirectory
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.judgment.mchain import MChain
 
+
 @pytest.fixture()
 def dir():
     with TempDirectory() as dir:
@@ -21,6 +22,12 @@ def five_taxa_newick_list():
 @pytest.fixture
 def five_taxa_list_distances():
     return [0, 1, 2, 1, 0, 3, 2, 3, 0]
+
+
+@pytest.fixture
+def five_taxa_list_distances_norm():
+    return [0.0, 0.16666666666666666, 0.3333333333333333, 0.16666666666666666, 0.0,
+            0.5, 0.3333333333333333, 0.5, 0.0]
 
 
 @pytest.fixture

@@ -24,8 +24,8 @@ class TimeTree:
     def __len__(self):
         return self.ctree.num_leaves
 
-    def fp_distance(self, tree):
-        return findpath_distance(self.ctree, tree.ctree)
+    def fp_distance(self, tree, norm=False):
+        return findpath_distance(self.ctree, tree.ctree, norm=norm)
 
     def fp_path(self, tree):
         return findpath_path(self.ctree, tree.ctree)
@@ -222,28 +222,34 @@ def findpath_distance(arg):
 
 
 @findpath_distance.register(TREE)
-def _(t1, t2):
+def _(t1, t2, norm=False):
     if not t1.num_leaves == t2.num_leaves:
         raise DifferentNbrTaxa
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+    if norm:
+        return lib.findpath_distance(t1, t2)/_diam_treespace(t1.num_leaves)
     return lib.findpath_distance(t1, t2)
 
 
 @findpath_distance.register(ete3.Tree)
-def _(t1, t2):
+def _(t1, t2, norm=False):
     if not len(t1.get_tree_root()) == len(t2.get_tree_root()):
         raise DifferentNbrTaxa
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
     ct1 = ete3_to_ctree(t1)
     ct2 = ete3_to_ctree(t2)
+    if norm:
+        return lib.findpath_distance(ct1, ct2)/_diam_treespace(ct1.num_leaves)
     return lib.findpath_distance(ct1, ct2)
 
 
 @findpath_distance.register(TimeTree)
-def _(t1, t2):
+def _(t1, t2, norm=False):
     if not len(t1) == len(t2):
         raise DifferentNbrTaxa
     lib.findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+    if norm:
+        return lib.findpath_distance(t1.ctree, t2.ctree)/_diam_treespace(len(t1))
     return lib.findpath_distance(t1.ctree, t2.ctree)
 
 
@@ -306,3 +312,7 @@ def nwk_to_cluster(treestr):
     if opend:
         raise Exception("Invalid tree string given! (to many '(')")
     return clades
+
+
+def _diam_treespace(n):
+    return ((n - 1) * (n - 2)) / 2
