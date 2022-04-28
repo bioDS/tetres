@@ -333,6 +333,20 @@ def test_MChain_get_ess_trace_plot_wrong_list2(thirty_taxa_MChain, monkeypatch):
         thirty_taxa_MChain.get_ess_trace_plot(ess_key=["Posterior", 2, 2.003])
 
 
+def test_MChain_get_trace_plot_new_tree_distance(thirty_taxa_MChain, monkeypatch):
+    for average in ["mean", "median", "median_ad", "mean_ad"]:
+        thirty_taxa_MChain.compute_new_tree_distance_log(average=average)
+    monkeypatch.setattr(plt, 'show', lambda: None)  # surpress plt.show() for plot, only temporary
+    for average in ["mean", "median", "median_ad", "mean_ad"]:
+        assert thirty_taxa_MChain.get_trace_plot(f"Distance_{average}") == 0, \
+            f"Trace Plot for Distance_{average} went wrong!"
+
+
+def test_MChain_get_trace_plot_wrong_key(thirty_taxa_MChain):
+    with pytest.raises(KeyError):
+        thirty_taxa_MChain.get_trace_plot("Posterior")
+
+
 def test_MChain_pseudo_ess(thirty_taxa_MChain):
     state = random.getstate()  # get the random seed state
     random.seed(10)  # Fixing the seed to get the same result

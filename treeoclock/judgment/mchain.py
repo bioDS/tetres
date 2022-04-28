@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 
-from treeoclock.judgment import ess, _ess_plots
+from treeoclock.judgment import ess, _plots
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
@@ -197,13 +197,13 @@ class MChain:
         for i in range(5, self.log_data.shape[0]):  # Starting at sample 5 as it is not useful to look at less samples
             data.extend([[key, self.get_ess(ess_key=key, ess_method=ess_method, upper_i=i), i] for key in ess_key])
         data = pd.DataFrame(data, columns=["Ess_key", "Ess_value", "Upper_i"])
-        _ess_plots._ess_trace_plot(data)
+        _plots._ess_trace_plot(data)
         return 0
 
-    # todo change the name of this plot!!!!
-    def get_burnin_comparison(self):
-        # todo gets a focal tree defaulting to summary tree
-        #  if that is None, either pick one of the trees or compute something with options here
+    def get_trace_plot(self, value_key='posterior'):
+        if value_key not in self.log_data:
+            raise KeyError(f"Given Value {value_key} does not exist!")    
+        _plots._log_trace_plot(self.log_data[value_key][:5])
         return 0
 
 
