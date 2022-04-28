@@ -3,12 +3,8 @@ import random
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from treeoclock.judgment.mchain import _read_beast_logfile, MChain
+from treeoclock.judgment.mchain import MChain
 import treeoclock.judgment.ess as ess
-
-def test_read_beast_logfile():
-    log_file_path = f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log"
-    assert type(_read_beast_logfile(log_file_path)) is pd.DataFrame, "Empty function failed!"
 
 
 def test_MChain_construction_files():
@@ -431,4 +427,5 @@ def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
     assert ess_values == [764, 779, 611], "ESS rnniVariance list failed"
 
 
-
+def test_MChain_write_log_file(thirty_taxa_MChain):
+    thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_pd.log")

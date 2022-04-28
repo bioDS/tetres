@@ -205,3 +205,6 @@ class MChain:
             raise KeyError(f"Given Value {value_key} does not exist!")    
         _plots._log_trace_plot(self.log_data[value_key][:5])
         return 0
+
+    def write_log_file(self, path):
+        self.log_data.to_csv(path, sep="\t")
