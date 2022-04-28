@@ -333,28 +333,65 @@ def test_MChain_get_ess_trace_plot_wrong_list2(thirty_taxa_MChain, monkeypatch):
         thirty_taxa_MChain.get_ess_trace_plot(ess_key=["Posterior", 2, 2.003])
 
 
-def test_MChain_compute_new_log_data_RNNIVariance(thirty_taxa_MChain):
-    log_list = thirty_taxa_MChain.compute_new_log_data(type="RNNI_Variance")
-    assert [type(log_list), len(log_list)] == [list, len(thirty_taxa_MChain.trees)], "New log list computation failed!"
-
-
-def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
-    state = random.getstate()  # get the random seed state
-    random.seed(10)  # Fixing the seed to get the same result
-    log_list = thirty_taxa_MChain.compute_new_log_data(type="RNNI_Variance")
-    random.setstate(state)  # reset the random seed to previous state
-    ess_values = []
-    for ess_method in ["arviz", "coda", "tracerer"]:
-        ess_values.append(int(getattr(ess, f"{ess_method}_ess")(
-            data_list=log_list, chain_length=thirty_taxa_MChain.chain_length,
-            sampling_interval=thirty_taxa_MChain.chain_length/(len(log_list)-1))))
-    assert ess_values == [209, 363, 224], "ESS rnniVariance list failed"
-
-
 def test_MChain_pseudo_ess(thirty_taxa_MChain):
     state = random.getstate()  # get the random seed state
     random.seed(10)  # Fixing the seed to get the same result
     p_ess = thirty_taxa_MChain.get_pseudo_ess()
     random.setstate(state)  # reset the random seed to previous state
     assert int(p_ess) == 921, "Get Pseudo ESS for MChain failed!"
+
+
+def test_MChain_compute_distance_ess_log_arviz(thirty_taxa_MChain):
+    ess_values = []
+    ess_method = "arviz"
+    for average in ["mean", "median", "median_ad", "mean_ad"]:
+        thirty_taxa_MChain.compute_distance_ess_log(average=average)
+        ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average}", ess_method=ess_method)))
+    assert ess_values == [843, 853, 638, 763], "Compute distance ess log values failed!"
+
+
+def test_MChain_compute_distance_ess_log_coda(thirty_taxa_MChain):
+    ess_values = []
+    ess_method = "coda"
+    for average in ["mean", "median", "median_ad", "mean_ad"]:
+        thirty_taxa_MChain.compute_distance_ess_log(average=average)
+        ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average}", ess_method=ess_method)))
+    assert ess_values == [997, 1013, 252, 311], "Compute distance ess log values failed!"
+
+
+def test_MChain_compute_distance_ess_log_tracerer(thirty_taxa_MChain):
+    ess_values = []
+    ess_method = "tracerer"
+    for average in ["mean", "median", "median_ad", "mean_ad"]:
+        thirty_taxa_MChain.compute_distance_ess_log(average=average)
+        ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average}", ess_method=ess_method)))
+    assert ess_values == [972, 978, 247, 302], "Compute distance ess log values failed!"
+
+
+
+# todo
+#  Missing tests for the compute_rnni_variance_log
+#  Missing tests for the add_new_loglist
+
+
+# todo these two tests are deprecated!
+
+def test_MChain_compute_new_log_data_RNNIVariance(thirty_taxa_MChain):
+    log_list = thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree")
+    assert [type(log_list), len(log_list)] == [list, len(thirty_taxa_MChain.trees)], "New log list computation failed!"
+
+
+def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
+    state = random.getstate()  # get the random seed state
+    random.seed(10)  # Fixing the seed to get the same result
+    log_list = thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree")
+    random.setstate(state)  # reset the random seed to previous state
+    ess_values = []
+    for ess_method in ["arviz", "coda", "tracerer"]:
+        ess_values.append(int(getattr(ess, f"{ess_method}_ess")(
+            data_list=log_list, chain_length=thirty_taxa_MChain.chain_length,
+            sampling_interval=thirty_taxa_MChain.chain_length/(len(log_list)-1))))
+    assert ess_values == [764, 779, 611], "ESS rnniVariance list failed"
+
+
 
