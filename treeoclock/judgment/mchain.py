@@ -23,7 +23,7 @@ class MChain:
 
         # Reading the log_file
         if os.path.exists(log_file):
-            self.log_data = _read_beast_logfile(log_file)
+            self.log_data = pd.read_csv(log_file, header=0, sep=r"\s+", comment="#", error_bad_lines=True)
             self.chain_length = int(list(self.log_data["Sample"])[-1])
             self.log_sampling_interval = int(list(self.log_data["Sample"])[1])
             # assuming that the first iteration 0 tree and the last have been logged in the logfile
@@ -205,8 +205,3 @@ class MChain:
             raise KeyError(f"Given Value {value_key} does not exist!")    
         _plots._log_trace_plot(self.log_data[value_key][:5])
         return 0
-
-
-def _read_beast_logfile(logfile_path):
-    data = pd.read_csv(logfile_path, header=0, sep=r"\s+", comment="#", error_bad_lines=True)
-    return data
