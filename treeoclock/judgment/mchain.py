@@ -34,10 +34,6 @@ class MChain:
             else:
                 raise ValueError(log_file)
 
-        # todo future work for this part!
-        # if self.log_data.shape[0] != len(self.trees):
-        #     raise ValueError("Different Size of Tree and LogFile!")
-
         if summary is not None:
             # Setting the summary tree
             if type(summary) is TimeTreeSet:
@@ -137,7 +133,7 @@ class MChain:
         return new_log_list
 
     # todo missing test and proper management of the average parameter
-    def compute_distance_ess_log(self, average='mean', add=True):
+    def compute_new_tree_distance_log(self, average='mean', add=True):
         new_log_list = [0]  # initialize as the first iteration is just one tree
         for i in range(1, len(self.trees)):
             if average is "mean":
@@ -154,6 +150,19 @@ class MChain:
                 raise ValueError(f"Given average {average} is not implemented!")
         if add:
             self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance_{average}")
+        return new_log_list
+
+    def compute_new_tree_summary_distance_log(self, summary="FM", add=True):
+        new_log_list = [0]  # initialize as the first iteration is just one tree
+        for i in range(1, len(self.trees)):
+            if summary is "FM":
+                new_log_list.append(self.trees[i].fp_distance(frechet_mean(self.trees[0:i])))
+            elif summary is "Centroid":
+                raise ValueError("Not yet implemented!")
+            else:
+                raise ValueError(f"Not implemented summary type {summary}!")
+        if add:
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance_{summary}")
         return new_log_list
 
     # todo missing tests

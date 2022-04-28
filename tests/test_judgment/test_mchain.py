@@ -345,7 +345,7 @@ def test_MChain_compute_distance_ess_log_arviz(thirty_taxa_MChain):
     ess_values = []
     ess_method = "arviz"
     for average in ["mean", "median", "median_ad", "mean_ad"]:
-        thirty_taxa_MChain.compute_distance_ess_log(average=average)
+        thirty_taxa_MChain.compute_new_tree_distance_log(average=average)
         ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average}", ess_method=ess_method)))
     assert ess_values == [843, 853, 638, 763], "Compute distance ess log values failed!"
 
@@ -354,7 +354,7 @@ def test_MChain_compute_distance_ess_log_coda(thirty_taxa_MChain):
     ess_values = []
     ess_method = "coda"
     for average in ["mean", "median", "median_ad", "mean_ad"]:
-        thirty_taxa_MChain.compute_distance_ess_log(average=average)
+        thirty_taxa_MChain.compute_new_tree_distance_log(average=average)
         ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average}", ess_method=ess_method)))
     assert ess_values == [997, 1013, 252, 311], "Compute distance ess log values failed!"
 
@@ -363,11 +363,34 @@ def test_MChain_compute_distance_ess_log_tracerer(thirty_taxa_MChain):
     ess_values = []
     ess_method = "tracerer"
     for average in ["mean", "median", "median_ad", "mean_ad"]:
-        thirty_taxa_MChain.compute_distance_ess_log(average=average)
+        thirty_taxa_MChain.compute_new_tree_distance_log(average=average)
         ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average}", ess_method=ess_method)))
     assert ess_values == [972, 978, 247, 302], "Compute distance ess log values failed!"
 
 
+# todo missing more tests for other summary options
+def test_MChain_compute_distance_new_tree_summary_log_tracerer(thirty_taxa_MChain):
+    ess_method = "tracerer"
+    summary = "FM"
+    thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary=summary)
+    ess_value = int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{summary}", ess_method=ess_method))
+    assert ess_value == 911, "Compute distance ess log values failed!"
+
+
+def test_MChain_compute_distance_new_tree_summary_log_arviz(thirty_taxa_MChain):
+    ess_method = "arviz"
+    summary = "FM"
+    thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary=summary)
+    ess_value = int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{summary}", ess_method=ess_method))
+    assert ess_value == 636, "Compute distance ess log values failed!"
+
+
+def test_MChain_compute_distance_new_tree_summary_log_coda(thirty_taxa_MChain):
+    ess_method = "coda"
+    summary = "FM"
+    thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary=summary)
+    ess_value = int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{summary}", ess_method=ess_method))
+    assert ess_value == 551, "Compute distance ess log values failed!"
 
 # todo
 #  Missing tests for the compute_rnni_variance_log
