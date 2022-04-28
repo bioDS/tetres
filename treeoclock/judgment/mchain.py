@@ -79,7 +79,7 @@ class MChain:
         lower_i = 0
         if "lower_i" in kwargs:
             lower_i = kwargs["lower_i"]
-        upper_i = self.log_data.shape[0]
+        upper_i = self.log_data.shape[0] - 1
         if "upper_i" in kwargs:
             upper_i = kwargs["upper_i"]
         if "lower_i" in kwargs or "upper_i" in kwargs:
@@ -114,6 +114,7 @@ class MChain:
         return ess.pseudo_ess(tree_set=self.trees[0:upper_i], chain_length=chain_length,
                               sampling_interval=self.chain_length / (len(self.trees) - 1))
 
+    # todo missing tests
     def compute_rnni_variance_log(self, focal_tree_type="tree", add=True):
         new_log_list = []
         for i in range(0, len(self.trees)):
@@ -132,19 +133,43 @@ class MChain:
         # adding the computed log value to the log dataframe
 
         if add:
-            if len(new_log_list) == self.log_data.shape[0]:
-                self.log_data[f"Var_{focal_tree_type}"] = new_log_list
-            elif len(new_log_list) < self.log_data.shape[0]:
-                if self.tree_sampling_interval % self.log_sampling_interval == 0:
-                    sampling_diff = int(self.tree_sampling_interval / self.log_sampling_interval)
-                    self.log_data[f"Var_{focal_tree_type}"] = np.nan
-                    self.log_data[f"Var_{focal_tree_type}"][::sampling_diff] = new_log_list
-                else:
-                    sys.exit("Feature not implemented! Trees logged is not a multiple of the log sampling interval!")
-            elif len(new_log_list) > self.log_data.shape[0]:
-                sys.exit("Feature not yet implemented! "
-                         "The logfile contains less data than the tree file!")
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Var_{focal_tree_type}")
         return new_log_list
+
+    # todo missing test and proper management of the average parameter
+    def compute_distance_ess_log(self, average='mean', add=True):
+        new_log_list = [0]  # initialize as the first iteration is just one tree
+        for i in range(1, len(self.trees)):
+            if average is "mean":
+                new_log_list.append(np.mean([self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]))
+            elif average is "median":
+                new_log_list.append(np.median([self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]))
+            elif average is "median_ad":
+                x = [self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]
+                new_log_list.append(np.median(np.absolute(x - np.median(x))))
+            elif average is "mean_ad":
+                x = [self.trees[i].fp_distance(self.trees[j]) for j in range(0, i)]
+                new_log_list.append(np.mean(np.absolute(x - np.mean(x))))
+            else:
+                raise ValueError(f"Given average {average} is not implemented!")
+        if add:
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance_{average}")
+        return new_log_list
+
+    # todo missing tests
+    def add_new_loglist(self, new_log_list, col_key):
+        if len(new_log_list) == self.log_data.shape[0]:
+            self.log_data[col_key] = new_log_list
+        elif len(new_log_list) < self.log_data.shape[0]:
+            if self.tree_sampling_interval % self.log_sampling_interval == 0:
+                sampling_diff = int(self.tree_sampling_interval / self.log_sampling_interval)
+                self.log_data[col_key] = np.nan
+                self.log_data[col_key][::sampling_diff] = new_log_list
+            else:
+                sys.exit("Feature not implemented! Trees logged is not a multiple of the log sampling interval!")
+        elif len(new_log_list) > self.log_data.shape[0]:
+            sys.exit("Feature not yet implemented! "
+                     "The logfile contains less data than the tree file!")
 
     def get_ess_trace_plot(self, ess_key="all", ess_method="arviz", kind="cummulative"):
         # todo add kind window ?
