@@ -224,13 +224,28 @@ def test_timetreeset_len(dir, five_taxa_nexus_string):
     assert len(t) == 3, f'The nexus file should contain 3 trees, but only {len(t)} are being returned!'
 
 
-def test_timetreeset_fp_distance(dir, five_taxa_nexus_string, five_taxa_list_distances):
+def test_timetreeset_timetree_fp_distance(dir, five_taxa_nexus_string, five_taxa_list_distances):
     dir.write("test.nex", five_taxa_nexus_string)
     t = TimeTreeSet(f'{dir.path}/test.nex')
-    out = []
+    tt_out = []
+    tts_out = []
     for i in range(len(t)):
-        out.extend([t[i].fp_distance(t[j]) for j in range(len(t))])
-    assert out == five_taxa_list_distances, 'TimeTreeSet fp_distance() wrong!'
+        tt_out.extend([t[i].fp_distance(t[j]) for j in range(len(t))])
+        tts_out.extend([t.fp_distance(i, j) for j in range(len(t))])
+    assert (tt_out, tts_out) == (five_taxa_list_distances, five_taxa_list_distances), \
+        'TimeTreeSet or TimeTree fp_distance() wrong!'
+
+
+def test_timetreeset_timetree_fp_distance_norm(dir, five_taxa_nexus_string, five_taxa_list_distances_norm):
+    dir.write("test.nex", five_taxa_nexus_string)
+    t = TimeTreeSet(f'{dir.path}/test.nex')
+    tt_out = []
+    tts_out = []
+    for i in range(len(t)):
+        tt_out.extend([t[i].fp_distance(t[j], norm=True) for j in range(len(t))])
+        tts_out.extend([t.fp_distance(i, j, norm=True) for j in range(len(t))])
+    assert (tt_out, tts_out) == (five_taxa_list_distances_norm, five_taxa_list_distances_norm), \
+        'TimeTreeSet or TimeTree fp_distance(norm=True) wrong!'
 
 
 def test_timetreeset_fp_path(five_taxa_tts, five_taxa_list_distances):

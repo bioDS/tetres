@@ -139,8 +139,8 @@ class TimeTreeSet:
     def __len__(self):
         return len(self.trees)
 
-    def fp_distance(self, i: int, j: int):
-        return findpath_distance(self.trees[i].ctree, self.trees[j].ctree)
+    def fp_distance(self, i: int, j: int, norm=False):
+        return findpath_distance(self.trees[i].ctree, self.trees[j].ctree, norm=norm)
 
     def fp_path(self, i: int, j: int):
         return findpath_path(self.trees[i].ctree, self.trees[j].ctree)
