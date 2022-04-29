@@ -28,6 +28,9 @@ class MChain:
             self.log_sampling_interval = int(list(self.log_data["Sample"])[1])
             # assuming that the first iteration 0 tree and the last have been logged in the logfile
             self.tree_sampling_interval = self.chain_length / (len(self.trees) - 1)
+        # todo the logfile should be optional as it is possible to compute all new measures without the log file
+        #  it is only relevant if we want to compare them or do something with those values
+        #  maybe add the option logfile None which also throws errors when functions are called that might use the logfile
         else:
             if type(log_file) is str:
                 raise FileNotFoundError(log_file)
@@ -166,7 +169,26 @@ class MChain:
             self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{summary}")
         return new_log_list
 
+    # todo missing proper tests
+    def compute_ess_traces(self, all=True, partial = []):
+        # computes the ess traces for all the statistic values in the data
+        if (not all) and partial:
+            # only compute the given list of statistics ess traces
+            sys.exit("Currently Feature is not implemented!")
+        ess_keys = self.get_key_names()
+        method = 'tracerer'  # todo this can be either arviz, coda or tracerer
+
+        for key in ess_keys:
+            self.log_data[f"{key}_ess_cum_trace"] = np.nan
+            # todo the start of this range/loop could be an argument given
+            for i in range(2, self.log_data.shape[0]):
+                if not np.isnan(self.log_data[key][i]):
+                    self.log_data[f"{key}_ess_cum_trace"][i] = self.get_ess(ess_key=key, ess_method=method, upper_i=i)
+        return 0
+
     # todo missing tests
+    # todo this is only applicable if the added list is starting at 0
+    #  if it starts with index 5 the sampling interval and everything is messed up
     def add_new_loglist(self, new_log_list, col_key):
         if len(new_log_list) == self.log_data.shape[0]:
             self.log_data[col_key] = new_log_list
@@ -220,3 +242,15 @@ class MChain:
 
         # This should output a csv file that is compatible with Tracer to visualize all the values
         self.log_data.dropna().to_csv(path, sep="\t", index=False)
+
+
+
+    def do_all_the_things(self, out_file, only_norm=True):
+        # todo computes all the parameters possible, and then writes a logfile that is compatible with tracer
+
+
+        if not only_norm:
+            # todo compute all the un normed parameters also
+            sys.exit("currently not implemented feature!")
+
+        self.log_data.dropna().to_csv(out_file, sep="\t", index=False)

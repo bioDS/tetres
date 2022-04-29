@@ -438,4 +438,13 @@ def test_MChain_write_log_file(thirty_taxa_MChain):
     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree", norm=True)
     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM")
     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM", norm=True)
+    thirty_taxa_MChain.compute_ess_traces()
     thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_pd.log")
+
+
+def test_MChain_copute_ess_traces(thirty_taxa_MChain):
+    thirty_taxa_MChain.compute_new_tree_distance_log(average="mean_ad", norm=True)
+    thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree", norm=True)
+    assert thirty_taxa_MChain.compute_ess_traces() == 0, "Computing ess traces failed!"
+
+
