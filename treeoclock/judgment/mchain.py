@@ -187,7 +187,7 @@ class MChain:
         return 0
 
     # todo missing proper testing
-    def compute_geweke_diag(self, summary="FM", norm=True, add=True):
+    def compute_geweke_diag(self, summary="FM", norm=True, kind="default", add=True):
         new_log_list = [1]
         for i in range(1, len(self.trees)):
             if summary is "FM":
@@ -197,15 +197,29 @@ class MChain:
                 else:
                     sec10 = self.trees[int(i * 0.1):int(i*0.2)]
                     last40 = self.trees[int(i * 0.6):i]
-                    var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm)/len(sec10)
-                    var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm)/len(last40)
-                    new_log_list.append(abs(var10 - var40))
+                    if kind == "default":
+                        var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm)/len(sec10)
+                        var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm)/len(last40)
+                        new_log_list.append(abs(var10 - var40))
+                    elif kind == "crossed":
+                        var10_in40 = compute_sos_mt(frechet_mean(sec10), last40, norm=norm)/len(last40)
+                        var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm)/len(sec10)
+                        new_log_list.append(abs(var10_in40 - var40_in10))
+                    elif kind == "doublecrossed":
+                        var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm)/len(sec10)
+                        var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm)/len(last40)
+                        var10_in40 = compute_sos_mt(frechet_mean(sec10), last40, norm=norm) / len(last40)
+                        var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm) / len(sec10)
+                        new_log_list.append(abs(var10_in40 - var10) + abs(var40_in10 - var40))
+                    else:
+                        raise ValueError(f"The given kind {kind} is not recognized!")
+
             elif summary is "Centroid":
                 raise ValueError("Not yet implemented!")
             else:
                 raise ValueError(f"Not implemented summary type {summary}!")
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Geweke_diag_{'_norm' if norm else ''}{summary}")
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{summary}")
         return new_log_list
 
     # todo missing tests

@@ -440,7 +440,11 @@ def test_MChain_write_log_file(thirty_taxa_MChain):
     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM", norm=True)
     thirty_taxa_MChain.compute_ess_traces()
     thirty_taxa_MChain.compute_geweke_diag()
-    thirty_taxa_MChain.compute_geweke_diag(norm=False)
+    thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="default")
+    thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="crossed")
+    thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="crossed")
+    thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="doublecrossed")
+    thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="doublecrossed")
     thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_pd.log")
 
 
