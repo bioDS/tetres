@@ -170,7 +170,7 @@ class MChain:
         return new_log_list
 
     # todo missing proper tests
-    def compute_ess_traces(self, all=True, partial = []):
+    def compute_ess_traces(self, all=True, partial=[]):
         # computes the ess traces for all the statistic values in the data
         if (not all) and partial:
             # only compute the given list of statistics ess traces
@@ -185,6 +185,28 @@ class MChain:
                 if not np.isnan(self.log_data[key][i]):
                     self.log_data[f"{key}_ess_cum_trace"][i] = self.get_ess(ess_key=key, ess_method=method, upper_i=i)
         return 0
+
+    # todo missing proper testing
+    def compute_geweke_diag(self, summary="FM", norm=True, add=True):
+        new_log_list = [1]
+        for i in range(1, len(self.trees)):
+            if summary is "FM":
+                if i < 10:
+                    # Setting 10 to be the smallest tree set for which the value is actually computed
+                    new_log_list.append(1)
+                else:
+                    sec10 = self.trees[int(i * 0.1):int(i*0.2)]
+                    last40 = self.trees[int(i * 0.6):i]
+                    var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm)/len(sec10)
+                    var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm)/len(last40)
+                    new_log_list.append(abs(var10 - var40))
+            elif summary is "Centroid":
+                raise ValueError("Not yet implemented!")
+            else:
+                raise ValueError(f"Not implemented summary type {summary}!")
+        if add:
+            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Geweke_diag_{'_norm' if norm else ''}{summary}")
+        return new_log_list
 
     # todo missing tests
     # todo this is only applicable if the added list is starting at 0
