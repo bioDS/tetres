@@ -223,11 +223,23 @@ class MChain:
                         var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm)/len(sec10)
                         new_log_list.append(abs(var10_in40 - var40_in10))
                     elif kind == "doublecrossed":
-                        var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm)/len(sec10)
-                        var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm)/len(last40)
-                        var10_in40 = compute_sos_mt(frechet_mean(sec10), last40, norm=norm) / len(last40)
-                        var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm) / len(sec10)
+                        # compares the variation of two different trees for the same set
+                        fm10 = frechet_mean(sec10)
+                        fm40 = frechet_mean(last40)
+                        var10 = compute_sos_mt(fm10, sec10, norm=norm)/len(sec10)
+                        var40 = compute_sos_mt(fm40, last40, norm=norm)/len(last40)
+                        var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
+                        var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
                         new_log_list.append(abs(var10_in40 - var10) + abs(var40_in10 - var40))
+                    elif kind == "crosscompare":
+                        # compares the variation of two trees in one set
+                        fm10 = frechet_mean(sec10)
+                        fm40 = frechet_mean(last40)
+                        var10 = compute_sos_mt(fm10, sec10, norm=norm)/len(sec10)
+                        var40 = compute_sos_mt(fm40, last40, norm=norm)/len(last40)
+                        var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
+                        var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
+                        new_log_list.append(abs(var40_in10 - var10) + abs(var10_in40 - var40))
                     else:
                         raise ValueError(f"The given kind {kind} is not recognized!")
 
