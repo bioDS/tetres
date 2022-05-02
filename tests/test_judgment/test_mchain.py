@@ -445,6 +445,8 @@ def test_MChain_write_log_file(thirty_taxa_MChain):
     thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="crossed")
     thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="doublecrossed")
     thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="doublecrossed")
+    thirty_taxa_MChain.compute_mean_in_chain_deviation()
+    thirty_taxa_MChain.compute_mean_in_chain_deviation(norm=True)
     thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_pd.log")
 
 
@@ -458,4 +460,10 @@ def test_MChain_compute_geweke_diag(thirty_taxa_MChain):
     ret = thirty_taxa_MChain.compute_geweke_diag()
     ret1 = thirty_taxa_MChain.compute_geweke_diag(norm=False)
     assert [len(ret), len(ret1)] == [len(thirty_taxa_MChain.trees), len(thirty_taxa_MChain.trees)], "Geweke Diag failed"
+
+
+def test_MChain_compute_in_chain_deviation(thirty_taxa_MChain):
+    ret = thirty_taxa_MChain.compute_mean_in_chain_deviation()
+    assert len(ret) == len(thirty_taxa_MChain.trees), "In Chain deviation failed!"
+
 

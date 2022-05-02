@@ -1,8 +1,9 @@
+import itertools
 import sys
 import os
 import pandas as pd
 import numpy as np
-
+import itertools
 
 from treeoclock.judgment import ess, _plots
 from treeoclock.trees.time_trees import TimeTreeSet
@@ -23,7 +24,7 @@ class MChain:
 
         # Reading the log_file
         if os.path.exists(log_file):
-            self.log_data = pd.read_csv(log_file, header=0, sep=r"\s+", comment="#", error_bad_lines=True)
+            self.log_data = pd.read_csv(log_file, header=0, sep=r"\s+", comment="#")
             self.chain_length = int(list(self.log_data["Sample"])[-1])
             self.log_sampling_interval = int(list(self.log_data["Sample"])[1])
             # assuming that the first iteration 0 tree and the last have been logged in the logfile
@@ -133,7 +134,7 @@ class MChain:
         # adding the computed log value to the log dataframe
 
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Var{'_norm' if norm else ''}_{focal_tree_type}")
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Var{'_norm' if norm else ''}_{focal_tree_type}")
         return new_log_list
 
     # todo missing test and proper management of the average parameter
@@ -153,7 +154,7 @@ class MChain:
             else:
                 raise ValueError(f"Given average {average} is not implemented!")
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{average}")
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{average}")
         return new_log_list
 
     def compute_new_tree_summary_distance_log(self, summary="FM", norm=False, add=True):
@@ -166,7 +167,23 @@ class MChain:
             else:
                 raise ValueError(f"Not implemented summary type {summary}!")
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{summary}")
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{summary}")
+        return new_log_list
+
+    # todo missing some proper tests
+    def compute_mean_in_chain_deviation(self, norm=False, add=True):
+        new_log_list = [1, 1]
+        distance_list = {f"{r},{s}": self.trees.fp_distance(r, s, norm=norm) ** 2 for r, s in list(itertools.permutations(range(len(self.trees)), 2))}
+        cur_sum = 0
+        seen = {}
+        for i in range(2, len(self.trees)):
+            for r, s in list(itertools.permutations(range(i), 2)):
+                if f"{r},{s}" not in seen:
+                    cur_sum += distance_list[f"{r},{s}"]
+                    seen[f"{r},{s}"] = 1
+            new_log_list.append(cur_sum/(i*(i-1)))
+        if add:
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"In_Chain_deviation{'_norm' if norm else ''}")
         return new_log_list
 
     # todo missing proper tests
@@ -219,13 +236,13 @@ class MChain:
             else:
                 raise ValueError(f"Not implemented summary type {summary}!")
         if add:
-            self.add_new_loglist(new_log_list=new_log_list, col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{summary}")
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{summary}")
         return new_log_list
 
     # todo missing tests
     # todo this is only applicable if the added list is starting at 0
     #  if it starts with index 5 the sampling interval and everything is messed up
-    def add_new_loglist(self, new_log_list, col_key):
+    def add_new_log_list(self, new_log_list, col_key):
         if len(new_log_list) == self.log_data.shape[0]:
             self.log_data[col_key] = new_log_list
         elif len(new_log_list) < self.log_data.shape[0]:
@@ -276,6 +293,8 @@ class MChain:
         #  this should also have a parameter accepting columns which will then be included in the log file
         #  default all columns including the original log values from beast logfile
 
+        # todo this should take the working directory into account?
+
         # This should output a csv file that is compatible with Tracer to visualize all the values
         self.log_data.dropna().to_csv(path, sep="\t", index=False)
 
@@ -284,6 +303,11 @@ class MChain:
     def do_all_the_things(self, out_file, only_norm=True):
         # todo computes all the parameters possible, and then writes a logfile that is compatible with tracer
 
+        # todo should also use parallel processes for each thing!
+
+        # todo should check if the outfile exists and if it does only add the things that are missing!
+
+        # todo Enum for parameter setting instead of the current stuff
 
         if not only_norm:
             # todo compute all the un normed parameters also
