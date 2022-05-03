@@ -9,6 +9,7 @@ from treeoclock.judgment import ess, _plots
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
+from treeoclock import enums
 
 
 class MChain:
@@ -138,23 +139,13 @@ class MChain:
         return new_log_list
 
     # todo missing test and proper management of the average parameter
-    def compute_new_tree_distance_log(self, average='mean', norm=False, add=True):
+    def compute_new_tree_distance_log(self, average=enums.Avg_enum.MEAN, norm=False, add=True):
+
         new_log_list = [0]  # initialize as the first iteration is just one tree
         for i in range(1, len(self.trees)):
-            if average is "mean":
-                new_log_list.append(np.mean([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
-            elif average is "median":
-                new_log_list.append(np.median([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
-            elif average is "median_ad":
-                x = [self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]
-                new_log_list.append(np.median(np.absolute(x - np.median(x))))
-            elif average is "mean_ad":
-                x = [self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]
-                new_log_list.append(np.mean(np.absolute(x - np.mean(x))))
-            else:
-                raise ValueError(f"Given average {average} is not implemented!")
+            new_log_list.append(average.function([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
         if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{average}")
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{average.name}")
         return new_log_list
 
     def compute_new_tree_summary_distance_log(self, summary="FM", norm=False, add=True):
@@ -240,6 +231,8 @@ class MChain:
                         var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
                         var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
                         new_log_list.append(abs(var40_in10 - var10) + abs(var10_in40 - var40))
+                    # todo maybe a kind that computes the mean of all the others?
+                    # todo maybe a kind that will just return all variations
                     else:
                         raise ValueError(f"The given kind {kind} is not recognized!")
 
@@ -316,6 +309,8 @@ class MChain:
         # todo computes all the parameters possible, and then writes a logfile that is compatible with tracer
 
         # todo should also use parallel processes for each thing!
+
+        # todo write things to the file whenever finished
 
         # todo should check if the outfile exists and if it does only add the things that are missing!
 
