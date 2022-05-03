@@ -1,5 +1,9 @@
 from enum import Enum
 import numpy as np
+from collections import namedtuple
+
+
+enum_entry = namedtuple("enum_entry", "name function")
 
 
 def _median_ad(*args):
@@ -15,7 +19,7 @@ class Summary(Enum):
 
 
 class Avg_enum(Enum):
-    MEAN = np.mean
-    MEDIAN = np.median
-    MEDIAN_AD = _median_ad
-    MEAN_AD = _mean_ad
+    MEAN = enum_entry("mean", np.mean)
+    MEDIAN = enum_entry("median", np.median)
+    MEDIAN_AD = enum_entry("median_ad", _median_ad)
+    MEAN_AD = enum_entry("mean_ad", _mean_ad)
