@@ -94,9 +94,11 @@ class MChain:
         if ess_key in list(self.log_data.columns):
             chain_length = 1
             if upper_i != lower_i:
-                chain_length = int(self.log_data["Sample"][upper_i])-int(self.log_data["Sample"][lower_i])
-            cur_sampling_interval = int(chain_length / (self.log_data[ess_key][lower_i:(upper_i+1)].shape[0] - 1 - self.log_data[ess_key][lower_i:(upper_i+1)].isna().sum()))
-            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:(upper_i+1)].dropna(),
+                chain_length = int(self.log_data["Sample"][upper_i]) - int(self.log_data["Sample"][lower_i])
+            cur_sampling_interval = int(chain_length / (
+                        self.log_data[ess_key][lower_i:(upper_i + 1)].shape[0] - 1 - self.log_data[ess_key][lower_i:(
+                            upper_i + 1)].isna().sum()))
+            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:(upper_i + 1)].dropna(),
                                                      chain_length=chain_length,
                                                      sampling_interval=cur_sampling_interval)
         else:
@@ -122,7 +124,7 @@ class MChain:
         for i in range(0, len(self.trees)):
             # todo this type checking is not efficient, should be outside of the loop!
             if focal_tree_type == "FM":
-                focal_tree = frechet_mean(self.trees[0:i+1])
+                focal_tree = frechet_mean(self.trees[0:i + 1])
             elif focal_tree_type == "tree":
                 focal_tree = self.trees[i]
             elif focal_tree_type == "centroid":
@@ -130,7 +132,7 @@ class MChain:
                 focal_tree = frechet_mean(self.trees[0:i + 1])
             else:
                 raise ValueError(f"Unknown type {focal_tree_type} given!")
-            new_log_list.append(compute_sos_mt(focal_tree, self.trees[0:i+1], n_cores=None, norm=norm)/(i+1))
+            new_log_list.append(compute_sos_mt(focal_tree, self.trees[0:i + 1], n_cores=None, norm=norm) / (i + 1))
 
         # adding the computed log value to the log dataframe
 
@@ -139,13 +141,15 @@ class MChain:
         return new_log_list
 
     # todo missing test and proper management of the average parameter
-    def compute_new_tree_distance_log(self, average=enums.Avg_enum.MEAN, norm=False, add=True):
-
+    def compute_new_tree_distance_log(self, average: enums.Average = enums.Average.MEAN, norm: bool = False,
+                                      add: bool = True):
         new_log_list = [0]  # initialize as the first iteration is just one tree
         for i in range(1, len(self.trees)):
-            new_log_list.append(average.function([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
+            new_log_list.append(
+                average.function([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
         if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{average.name}")
+            self.add_new_log_list(new_log_list=new_log_list,
+                                  col_key=f"Distance{'_norm' if norm else ''}_{average.name}")
         return new_log_list
 
     def compute_new_tree_summary_distance_log(self, summary="FM", norm=False, add=True):
@@ -164,7 +168,8 @@ class MChain:
     # todo missing some proper tests
     def compute_mean_in_chain_deviation(self, norm=False, add=True):
         new_log_list = [1, 1]
-        distance_list = {f"{r},{s}": self.trees.fp_distance(r, s, norm=norm) ** 2 for r, s in list(itertools.permutations(range(len(self.trees)), 2))}
+        distance_list = {f"{r},{s}": self.trees.fp_distance(r, s, norm=norm) ** 2 for r, s in
+                         list(itertools.permutations(range(len(self.trees)), 2))}
         cur_sum = 0
         seen = {}
         for i in range(2, len(self.trees)):
@@ -172,7 +177,7 @@ class MChain:
                 if f"{r},{s}" not in seen:
                     cur_sum += distance_list[f"{r},{s}"]
                     seen[f"{r},{s}"] = 1
-            new_log_list.append(cur_sum/(i*(i-1)))
+            new_log_list.append(cur_sum / (i * (i - 1)))
         if add:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"In_Chain_deviation{'_norm' if norm else ''}")
         return new_log_list
@@ -203,22 +208,22 @@ class MChain:
                     # Setting 10 to be the smallest tree set for which the value is actually computed
                     new_log_list.append(1)
                 else:
-                    sec10 = self.trees[int(i * 0.1):int(i*0.2)]
+                    sec10 = self.trees[int(i * 0.1):int(i * 0.2)]
                     last40 = self.trees[int(i * 0.6):i]
                     if kind == "default":
-                        var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm)/len(sec10)
-                        var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm)/len(last40)
+                        var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm) / len(sec10)
+                        var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm) / len(last40)
                         new_log_list.append(abs(var10 - var40))
                     elif kind == "crossed":
-                        var10_in40 = compute_sos_mt(frechet_mean(sec10), last40, norm=norm)/len(last40)
-                        var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm)/len(sec10)
+                        var10_in40 = compute_sos_mt(frechet_mean(sec10), last40, norm=norm) / len(last40)
+                        var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm) / len(sec10)
                         new_log_list.append(abs(var10_in40 - var40_in10))
                     elif kind == "doublecrossed":
                         # compares the variation of two different trees for the same set
                         fm10 = frechet_mean(sec10)
                         fm40 = frechet_mean(last40)
-                        var10 = compute_sos_mt(fm10, sec10, norm=norm)/len(sec10)
-                        var40 = compute_sos_mt(fm40, last40, norm=norm)/len(last40)
+                        var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
+                        var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
                         var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
                         var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
                         new_log_list.append(abs(var10_in40 - var10) + abs(var40_in10 - var40))
@@ -226,8 +231,8 @@ class MChain:
                         # compares the variation of two trees in one set
                         fm10 = frechet_mean(sec10)
                         fm40 = frechet_mean(last40)
-                        var10 = compute_sos_mt(fm10, sec10, norm=norm)/len(sec10)
-                        var40 = compute_sos_mt(fm40, last40, norm=norm)/len(last40)
+                        var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
+                        var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
                         var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
                         var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
                         new_log_list.append(abs(var40_in10 - var10) + abs(var10_in40 - var40))
@@ -241,7 +246,8 @@ class MChain:
             else:
                 raise ValueError(f"Not implemented summary type {summary}!")
         if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{summary}")
+            self.add_new_log_list(new_log_list=new_log_list,
+                                  col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{summary}")
         return new_log_list
 
     # todo missing tests
@@ -283,7 +289,7 @@ class MChain:
 
     def get_trace_plot(self, value_key='posterior'):
         if value_key not in self.log_data:
-            raise KeyError(f"Given Value {value_key} does not exist!")    
+            raise KeyError(f"Given Value {value_key} does not exist!")
         _plots._log_trace_plot(self.log_data[value_key][:5])
         return 0
 
@@ -302,8 +308,6 @@ class MChain:
 
         # This should output a csv file that is compatible with Tracer to visualize all the values
         self.log_data.dropna().to_csv(path, sep="\t", index=False)
-
-
 
     def do_all_the_things(self, out_file, only_norm=True):
         # todo computes all the parameters possible, and then writes a logfile that is compatible with tracer

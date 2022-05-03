@@ -18,7 +18,7 @@ class Summary(Enum):
     TREE = 'tree'
 
 
-class Avg_enum(Enum):
+class Average(Enum):
     MEAN = enum_entry("mean", np.mean)
     MEDIAN = enum_entry("median", np.median)
     MEDIAN_AD = enum_entry("median_ad", _median_ad)

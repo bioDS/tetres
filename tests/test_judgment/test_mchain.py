@@ -354,7 +354,7 @@ def test_MChain_pseudo_ess(thirty_taxa_MChain):
 def test_MChain_compute_new_tree_distance_log_arviz(thirty_taxa_MChain):
     ess_values = []
     ess_method = "arviz"
-    for average in pkg_enums.Avg_enum:
+    for average in pkg_enums.Average:
         thirty_taxa_MChain.compute_new_tree_distance_log(average=average.value)
         ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average.value.name}", ess_method=ess_method)))
     assert ess_values == [843, 853, 638, 763], "Compute distance ess log values failed!"
@@ -363,7 +363,7 @@ def test_MChain_compute_new_tree_distance_log_arviz(thirty_taxa_MChain):
 def test_MChain_compute_new_tree_distance_log_coda(thirty_taxa_MChain):
     ess_values = []
     ess_method = "coda"
-    for average in pkg_enums.Avg_enum:
+    for average in pkg_enums.Average:
         thirty_taxa_MChain.compute_new_tree_distance_log(average=average.value)
         ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average.value.name}", ess_method=ess_method)))
     assert ess_values == [997, 1013, 252, 311], "Compute distance ess log values failed!"
@@ -372,7 +372,7 @@ def test_MChain_compute_new_tree_distance_log_coda(thirty_taxa_MChain):
 def test_MChain_compute_new_tree_distance_log_tracerer(thirty_taxa_MChain):
     ess_values = []
     ess_method = "tracerer"
-    for average in pkg_enums.Avg_enum:
+    for average in pkg_enums.Average:
         thirty_taxa_MChain.compute_new_tree_distance_log(average=average.value)
         ess_values.append(int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{average.value.name}", ess_method=ess_method)))
     assert ess_values == [972, 978, 247, 302], "Compute distance ess log values failed!"
