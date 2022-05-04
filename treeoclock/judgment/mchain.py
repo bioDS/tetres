@@ -11,6 +11,8 @@ from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
 
+_geweke_kind = {"default": 0, "crossed": 1, "doublecrossed": 2, "crosscompare": 3, }
+
 
 class MChain:
     def __init__(self, trees, log_file, summary, working_dir):
@@ -96,8 +98,8 @@ class MChain:
             if upper_i != lower_i:
                 chain_length = int(self.log_data["Sample"][upper_i]) - int(self.log_data["Sample"][lower_i])
             cur_sampling_interval = int(chain_length / (
-                        self.log_data[ess_key][lower_i:(upper_i + 1)].shape[0] - 1 - self.log_data[ess_key][lower_i:(
-                            upper_i + 1)].isna().sum()))
+                    self.log_data[ess_key][lower_i:(upper_i + 1)].shape[0] - 1 - self.log_data[ess_key][lower_i:(
+                    upper_i + 1)].isna().sum()))
             return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:(upper_i + 1)].dropna(),
                                                      chain_length=chain_length,
                                                      sampling_interval=cur_sampling_interval)
@@ -182,6 +184,54 @@ class MChain:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"In_Chain_deviation{'_norm' if norm else ''}")
         return new_log_list
 
+    # todo missing tests
+    def compute_geweke_deviation(self, norm=False, add=True):
+        new_log_list = [1]
+        distance_list = {f"{r},{s}": self.trees.fp_distance(r, s, norm=norm) ** 2 for r, s in
+                         list(itertools.permutations(range(len(self.trees)), 2))}
+        intersum_list = [1]
+        list10 = [1]
+        list40 = [1]
+        cur_sum = 0
+        seen = {}
+
+        for i in range(1, len(self.trees)):
+            if i < 10:
+                # Setting 10 to be the smallest tree set for which the value is actually computed
+                new_log_list.append(1)
+                intersum_list.append(1)
+                list10.append(1)
+                list40.append(1)
+            else:
+                sec10sum = 0
+                last40sum = 0
+                intersum = 0
+                intersum_division = 0
+                cur_10 = list(itertools.permutations(range(int(i * 0.1), int(i * 0.2)), 2))
+                # cur_10 = list(itertools.permutations(range(int(i * 0.1)), 2))
+                cur_40 = list(itertools.permutations(range(int(i * 0.6), i), 2))
+                for r, s in cur_10:
+                    sec10sum += distance_list[f"{r},{s}"] 
+                for r, s in cur_40:
+                    last40sum += distance_list[f"{r},{s}"]
+                for r in range(int(i * 0.1), int(i * 0.2)):
+                # for r in range(int(i * 0.1)):
+                    for s in range(int(i * 0.6), i):
+                        intersum_division += 1
+                        intersum += distance_list[f"{r},{s}"]
+                
+                result = ((sec10sum/np.max([len(cur_10), 1]))-(intersum/intersum_division)) + ((last40sum/len(cur_40))-(intersum/intersum_division))
+                new_log_list.append(result)
+                intersum_list.append((sec10sum/np.max([len(cur_10), 1])) - (last40sum/len(cur_40)))
+                list10.append(sec10sum/np.max([len(cur_10), 1]))
+                list40.append(last40sum/len(cur_40))
+        if add:
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_deviation{'_norm' if norm else ''}")
+            self.add_new_log_list(new_log_list=intersum_list, col_key=f"Intersum deviation{'_norm' if norm else ''}")
+            self.add_new_log_list(new_log_list=list10, col_key=f"list10{'_norm' if norm else ''}")
+            self.add_new_log_list(new_log_list=list40, col_key=f"list40{'_norm' if norm else ''}")
+        return new_log_list
+
     # todo missing proper tests
     def compute_ess_traces(self, all=True, partial=[]):
         # computes the ess traces for all the statistic values in the data
@@ -201,15 +251,28 @@ class MChain:
 
     # todo missing proper testing
     def compute_geweke_diag(self, summary="FM", norm=True, kind="default", add=True):
+
+        # todo should get fraction 1 and fraction 2 as argument, default 0.1 and 0.5
+
+        # todo this actually does not need to have a summary tree? just use a randomly fixed tree or two randomly fixed trees?
+        #  compare the results
+
+        if kind not in _geweke_kind:
+            raise ValueError(f"Given geweke kind {kind} not recognized!")
+
+        # todo export all the stuff to external funciton and file, call with _geweke_kind[kind] to specify the thing that shall be returned?
+        #  here the external funciton gets an integer which corresponds to list[] which is a specific function maybe?
+
         new_log_list = [1]
         for i in range(1, len(self.trees)):
             if summary is "FM":
-                if i < 10:
+                if i < 10:  # todo temporary
                     # Setting 10 to be the smallest tree set for which the value is actually computed
                     new_log_list.append(1)
                 else:
                     sec10 = self.trees[int(i * 0.1):int(i * 0.2)]
                     last40 = self.trees[int(i * 0.6):i]
+
                     if kind == "default":
                         var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm) / len(sec10)
                         var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm) / len(last40)
