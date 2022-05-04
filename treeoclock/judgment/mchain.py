@@ -6,6 +6,7 @@ import numpy as np
 import itertools
 
 from treeoclock.judgment import ess, _plots
+from treeoclock.judgment import _geweke_diag as gwd
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
@@ -186,45 +187,10 @@ class MChain:
 
     # todo missing tests
     def compute_geweke_deviation(self, norm=False, add=True):
-        new_log_list = [1]
-        distance_list = {f"{r},{s}": self.trees.fp_distance(r, s, norm=norm) ** 2 for r, s in
-                         list(itertools.permutations(range(len(self.trees)), 2))}
-        intersum_list = [1]
-        list10 = [1]
-        list40 = [1]
-        cur_sum = 0
-        seen = {}
+        # todo still WIP, name should change, also parameter checking before calling the funciton
 
-        for i in range(1, len(self.trees)):
-            if i < 10:
-                # Setting 10 to be the smallest tree set for which the value is actually computed
-                new_log_list.append(1)
-                intersum_list.append(1)
-                list10.append(1)
-                list40.append(1)
-            else:
-                sec10sum = 0
-                last40sum = 0
-                intersum = 0
-                intersum_division = 0
-                cur_10 = list(itertools.permutations(range(int(i * 0.1), int(i * 0.2)), 2))
-                # cur_10 = list(itertools.permutations(range(int(i * 0.1)), 2))
-                cur_40 = list(itertools.permutations(range(int(i * 0.6), i), 2))
-                for r, s in cur_10:
-                    sec10sum += distance_list[f"{r},{s}"] 
-                for r, s in cur_40:
-                    last40sum += distance_list[f"{r},{s}"]
-                for r in range(int(i * 0.1), int(i * 0.2)):
-                # for r in range(int(i * 0.1)):
-                    for s in range(int(i * 0.6), i):
-                        intersum_division += 1
-                        intersum += distance_list[f"{r},{s}"]
-                
-                result = ((sec10sum/np.max([len(cur_10), 1]))-(intersum/intersum_division)) + ((last40sum/len(cur_40))-(intersum/intersum_division))
-                new_log_list.append(result)
-                intersum_list.append((sec10sum/np.max([len(cur_10), 1])) - (last40sum/len(cur_40)))
-                list10.append(sec10sum/np.max([len(cur_10), 1]))
-                list40.append(last40sum/len(cur_40))
+        new_log_list, intersum_list, list10, list40 = gwd.geweke_diagnostic_distances(trees=self.trees, norm=norm)
+
         if add:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_deviation{'_norm' if norm else ''}")
             self.add_new_log_list(new_log_list=intersum_list, col_key=f"Intersum deviation{'_norm' if norm else ''}")
