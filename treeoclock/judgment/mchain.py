@@ -107,6 +107,19 @@ class MChain:
         else:
             raise ValueError("Not (yet) implemented!")
 
+    # todo missing tests
+    def compute_geweke_deviation(self, norm=False, add=True, first_range=[0.1, 0.2], last_percent=0.4):
+        # todo still WIP, name should change, also parameter checking before calling the funciton
+
+        # todo missing the range parameter and also add it to the column name part!
+
+        new_log_list = gwd.geweke_diagnostic_distances(trees=self.trees, norm=norm,
+                                                       first_range=first_range, last_percent=last_percent)
+
+        if add:
+            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_distances{'_norm' if norm else ''}")
+        return new_log_list
+
     # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
     def get_pseudo_ess(self, **kwargs):
         # todo all the testing for upper_i and lower_i but ideally this will be part of the other funciton so this is temporary
@@ -176,26 +189,14 @@ class MChain:
         cur_sum = 0
         seen = {}
         for i in range(2, len(self.trees)):
-            for r, s in list(itertools.permutations(range(i), 2)):
+            cur_permutations = list(itertools.permutations(range(i), 2))
+            for r, s in cur_permutations:
                 if f"{r},{s}" not in seen:
                     cur_sum += distance_list[f"{r},{s}"]
                     seen[f"{r},{s}"] = 1
-            new_log_list.append(cur_sum / (i * (i - 1)))
+            new_log_list.append(np.sqrt(cur_sum / len(cur_permutations)))
         if add:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"In_Chain_deviation{'_norm' if norm else ''}")
-        return new_log_list
-
-    # todo missing tests
-    def compute_geweke_deviation(self, norm=False, add=True):
-        # todo still WIP, name should change, also parameter checking before calling the funciton
-
-        new_log_list, intersum_list, list10, list40 = gwd.geweke_diagnostic_distances(trees=self.trees, norm=norm)
-
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_deviation{'_norm' if norm else ''}")
-            self.add_new_log_list(new_log_list=intersum_list, col_key=f"Intersum deviation{'_norm' if norm else ''}")
-            self.add_new_log_list(new_log_list=list10, col_key=f"list10{'_norm' if norm else ''}")
-            self.add_new_log_list(new_log_list=list40, col_key=f"list40{'_norm' if norm else ''}")
         return new_log_list
 
     # todo missing proper tests
@@ -295,6 +296,11 @@ class MChain:
         elif len(new_log_list) > self.log_data.shape[0]:
             sys.exit("Feature not yet implemented! "
                      "The logfile contains less data than the tree file!")
+
+    def norm_column(self, col, normcol, new_key):
+        # if value_key not in self.log_data:
+        #     raise KeyError(f"Given Value {value_key} does not exist!")
+        self.log_data[new_key] = self.log_data[col] / self.log_data[normcol]
 
     def get_ess_trace_plot(self, ess_key="all", ess_method="arviz", kind="cummulative"):
         # todo add kind window ?
