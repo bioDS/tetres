@@ -30,6 +30,7 @@ def arviz_ess(data_list, **kwargs):
 #  see JC paper for this
 import random
 
+
 def pseudo_ess(tree_set, chain_length, sampling_interval, **kwargs):
     # todo this is still WIP!
     ess = []
@@ -39,6 +40,10 @@ def pseudo_ess(tree_set, chain_length, sampling_interval, **kwargs):
         cur_distance_list = [t.fp_distance(tree_set[cur_focal_fix]) for t in tree_set]
         ess.append(coda_ess(data_list=cur_distance_list, chain_length=chain_length, sampling_interval=sampling_interval))
     return np.mean(ess)
+
+
+# todo implement a pseudo ess value using the centroid or fm tree instead of a random fixed focal tree
+
 
 def _ess_tracerer_rsample():
     # todo tracerer on a random sample of values
