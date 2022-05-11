@@ -18,8 +18,20 @@ class Summary(Enum):
     TREE = 'tree'
 
 
+
+## Enums for the judgment subpackage:
+
 class Average(Enum):
     MEAN = enum_entry("mean", np.mean)
     MEDIAN = enum_entry("median", np.median)
     MEDIAN_AD = enum_entry("median_ad", _median_ad)
     MEAN_AD = enum_entry("mean_ad", _mean_ad)
+
+
+# class GewekeKind(Enum):
+#     DEFAULT = enum_entry('default', )
+#     CROSSED = enum_entry('crossed', )
+#     DOUBLECROSS = enum_entry('doublecross', )
+#     CROSSCOMPARE = enum_entry('crosscompare', )
+
+
