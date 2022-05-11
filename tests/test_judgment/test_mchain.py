@@ -478,5 +478,7 @@ def test_MChain_compute_in_chain_deviation(thirty_taxa_MChain):
 def test_MChain_compute_geweke_deviation(thirty_taxa_MChain):
     thirty_taxa_MChain.compute_geweke_deviation()
     # thirty_taxa_MChain.compute_geweke_deviation(norm=True)
-    # thirty_taxa_MChain.compute_mean_in_chain_deviation()
+    thirty_taxa_MChain.compute_mean_in_chain_deviation()
+    thirty_taxa_MChain.norm_column(col="Geweke_deviation", normcol="In_Chain_deviation", new_key="Normed_geweke_deviation")
     thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_gewekedeviation.log")
+
