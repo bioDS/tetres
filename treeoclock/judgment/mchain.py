@@ -13,7 +13,7 @@ from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
 
 _geweke_kind = set(["default", "crossed", "doublecrossed", "crosscompare"])
-_geweke_summary = set(["FM", "Centroid", "random"])
+
 
 class MChain:
     def __init__(self, trees, log_file, summary, working_dir):
@@ -121,14 +121,12 @@ class MChain:
 
         if kind not in _geweke_kind:
             raise ValueError(f"Given geweke kind {kind} not recognized!")
-        if focal_tree not in _geweke_summary:
-            raise ValueError(f"Given geweke_summary {focal_tree} is not implemented!")
 
         new_log_list = gwd.geweke_diagnostic_focal_tree(trees=self.trees, focal_tree=focal_tree, norm=norm, kind=kind, first_range=first_range, last_percent=last_percent)
 
         if add:
             self.add_new_log_list(new_log_list=new_log_list,
-                                  col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{focal_tree}")
+                                  col_key=f"Geweke_focal_{focal_tree}_{kind}{'_norm' if norm else ''}")
         return new_log_list
 
     # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
