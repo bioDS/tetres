@@ -1,6 +1,5 @@
 import pytest
 import random
-import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 from treeoclock.judgment.mchain import MChain
@@ -381,6 +380,7 @@ def test_MChain_compute_new_tree_distance_log_tracerer(thirty_taxa_MChain):
 # todo missing more tests for other summary options
 def test_MChain_compute_distance_new_tree_summary_log_tracerer(thirty_taxa_MChain):
     ess_method = "tracerer"
+    # todo fix random seed
     summary = "FM"
     thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary=summary)
     ess_value = int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{summary}", ess_method=ess_method))
@@ -389,6 +389,7 @@ def test_MChain_compute_distance_new_tree_summary_log_tracerer(thirty_taxa_MChai
 
 def test_MChain_compute_distance_new_tree_summary_log_arviz(thirty_taxa_MChain):
     ess_method = "arviz"
+    # todo fix random seed
     summary = "FM"
     thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary=summary)
     ess_value = int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{summary}", ess_method=ess_method))
@@ -397,6 +398,7 @@ def test_MChain_compute_distance_new_tree_summary_log_arviz(thirty_taxa_MChain):
 
 def test_MChain_compute_distance_new_tree_summary_log_coda(thirty_taxa_MChain):
     ess_method = "coda"
+    # todo fix random seed
     summary = "FM"
     thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary=summary)
     ess_value = int(thirty_taxa_MChain.get_ess(ess_key=f"Distance_{summary}", ess_method=ess_method))
@@ -405,9 +407,6 @@ def test_MChain_compute_distance_new_tree_summary_log_coda(thirty_taxa_MChain):
 # todo
 #  Missing tests for the compute_rnni_variance_log
 #  Missing tests for the add_new_loglist
-
-
-# todo these two tests are deprecated!
 
 def test_MChain_compute_new_log_data_RNNIVariance(thirty_taxa_MChain):
     log_list = thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree")
@@ -427,47 +426,36 @@ def test_MChain_compute_new_log_data_RNNIVariance_ess(thirty_taxa_MChain):
     assert ess_values == [764, 779, 611], "ESS rnniVariance list failed"
 
 
-# todo this is a very lengthy test on this dataset, maybe i need a smaller test dataset for these things
+# # todo this is a very lengthy test on this dataset, maybe i need a smaller test dataset for these things
 def test_MChain_write_log_file(thirty_taxa_MChain):
-    thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary="FM")
-    thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary="FM", norm=True)
-    for average in ["mean", "median", "median_ad", "mean_ad"]:
-        thirty_taxa_MChain.compute_new_tree_distance_log(average=average)
-        thirty_taxa_MChain.compute_new_tree_distance_log(average=average, norm=True)
-    thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree")
-    thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree", norm=True)
-    thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM")
-    thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM", norm=True)
-    thirty_taxa_MChain.compute_ess_traces()
-    thirty_taxa_MChain.compute_geweke_diag()
-    thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="default")
-    thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="crossed")
-    thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="crossed")
-    thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="doublecrossed")
-    thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="doublecrossed")
-    thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="crosscompare")
-    thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="crosscompare")
-    thirty_taxa_MChain.compute_mean_in_chain_deviation()
-    thirty_taxa_MChain.compute_mean_in_chain_deviation(norm=True)
-    thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_pd.log")
+#     thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary="FM")
+#     thirty_taxa_MChain.compute_new_tree_summary_distance_log(summary="FM", norm=True)
+#     for average in ["mean", "median", "median_ad", "mean_ad"]:
+#         thirty_taxa_MChain.compute_new_tree_distance_log(average=average)
+#         thirty_taxa_MChain.compute_new_tree_distance_log(average=average, norm=True)
+#     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree")
+#     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree", norm=True)
+#     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM")
+#     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="FM", norm=True)
+#     thirty_taxa_MChain.compute_ess_traces()
+#     thirty_taxa_MChain.compute_geweke_diag()
+#     thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="default")
+#     thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="crossed")
+#     thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="crossed")
+#     thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="doublecrossed")
+#     thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="doublecrossed")
+#     thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="crosscompare")
+    thirty_taxa_MChain.compute_geweke_focal_tree()
+    thirty_taxa_MChain.compute_geweke_focal_tree(focal_tree="Random")
+#     thirty_taxa_MChain.compute_mean_in_chain_deviation()
+#     thirty_taxa_MChain.compute_mean_in_chain_deviation(norm=True)
+    thirty_taxa_MChain.write_log_file(f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_geweketest.log")
 
 
 def test_MChain_copute_ess_traces(thirty_taxa_MChain):
     thirty_taxa_MChain.compute_new_tree_distance_log(average="mean_ad", norm=True)
     thirty_taxa_MChain.compute_rnni_variance_log(focal_tree_type="tree", norm=True)
     assert thirty_taxa_MChain.compute_ess_traces() == 0, "Computing ess traces failed!"
-
-
-def test_MChain_compute_geweke_diag(thirty_taxa_MChain):
-    ret = thirty_taxa_MChain.compute_geweke_diag()
-    ret1 = thirty_taxa_MChain.compute_geweke_diag(norm=False)
-    assert [len(ret), len(ret1)] == [len(thirty_taxa_MChain.trees), len(thirty_taxa_MChain.trees)], "Geweke Diag failed"
-
-
-def test_MChain_compute_geweke_diag_new(thirty_taxa_MChain):
-    ret = thirty_taxa_MChain.compute_geweke_diag(norm=True, kind="crosscompare")
-    ret1 = thirty_taxa_MChain.compute_geweke_diag(norm=False, kind="crosscompare")
-    assert [len(ret), len(ret1)] == [len(thirty_taxa_MChain.trees), len(thirty_taxa_MChain.trees)], "Geweke Diag failed"
 
 
 def test_MChain_compute_in_chain_deviation(thirty_taxa_MChain):

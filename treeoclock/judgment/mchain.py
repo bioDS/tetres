@@ -12,8 +12,6 @@ from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
 
-_geweke_kind = set(["default", "crossed", "doublecrossed", "crosscompare"])
-
 
 class MChain:
     def __init__(self, trees, log_file, summary, working_dir):
@@ -116,11 +114,7 @@ class MChain:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_distances{'_norm' if norm else ''}")
         return new_log_list
 
-    # todo missing proper testing
     def compute_geweke_focal_tree(self, focal_tree="FM", norm: bool =True, kind="default", add: bool = True, first_range=[0.1, 0.2], last_percent=0.4):
-
-        if kind not in _geweke_kind:
-            raise ValueError(f"Given geweke kind {kind} not recognized!")
 
         new_log_list = gwd.geweke_diagnostic_focal_tree(trees=self.trees, focal_tree=focal_tree, norm=norm, kind=kind, first_range=first_range, last_percent=last_percent)
 

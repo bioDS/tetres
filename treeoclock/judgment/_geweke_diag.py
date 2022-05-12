@@ -1,7 +1,24 @@
-from treeoclock.trees.time_trees import TimeTreeSet
-
 import numpy as np
 import itertools
+import random
+
+from treeoclock.summary.compute_sos import compute_sos_mt
+from treeoclock.summary.frechet_mean import frechet_mean
+from treeoclock.trees.time_trees import TimeTreeSet
+from treeoclock.summary.centroid import Centroid
+
+
+def _treeset_centroid(trees: TimeTreeSet):
+    # Currently the only way to change the centroid variation for geweke diagnostic is to change this piece of code
+    return Centroid().compute_centroid(trees)[0]
+
+
+def _treeset_random(trees: TimeTreeSet):
+    return trees[random.randint(0, len(trees) - 1)]
+
+
+_focal_tree_functions = {"FM": frechet_mean, "Centroid": _treeset_centroid, "Random": _treeset_random}
+_geweke_kind = {"default", "crossed", "doublecrossed", "crosscompare"}
 
 
 def _check_percentage_input(first_range, last_percent):
@@ -21,16 +38,15 @@ def _check_percentage_input(first_range, last_percent):
 def geweke_diagnostic_distances(trees: TimeTreeSet, norm: bool = False, first_range=[0.1, 0.2], last_percent=0.4):
     _check_percentage_input(first_range, last_percent)
 
-    new_log_list = [1]  # Initialized list because the loop starts at 1
+    new_log_list = []  # Initialized list because the loop starts at 1
 
     distance_list = {f"{r},{s}": trees.fp_distance(r, s, norm=norm) ** 2
-                 for r, s in list(itertools.permutations(range(len(trees)), 2))}
+                     for r, s in list(itertools.permutations(range(len(trees)), 2))}
 
-    for i in range(1, len(trees)):
+    for i in range(0, len(trees)):
         if i < 10:
             # Setting 10 to be the smallest tree set for which the value is actually computed
             new_log_list.append(1)
-            # todo maybe instead check if either of the sets only contains a single tree and then append 1 or something
         else:
             first_set_sum = 0
             second_set_sum = 0
@@ -51,80 +67,55 @@ def geweke_diagnostic_distances(trees: TimeTreeSet, norm: bool = False, first_ra
             result += np.absolute((first_set_sum / np.max([len(first_set), 1])) - (intersum / intersum_division))
             result += np.absolute((intersum / intersum_division) - (second_set_sum / len(second_set)))
             new_log_list.append(np.sqrt(result))
-
     return new_log_list
 
 
-from treeoclock.summary.compute_sos import compute_sos_mt
-from treeoclock.summary.frechet_mean import frechet_mean
-from treeoclock.trees.time_trees import TimeTree
-
-
-def _treeset_centroid(trees: TimeTreeSet):
-    raise ValueError("Not Implemented!")
-    tree = TimeTree()
-
-    return tree
-
-
-import random
-
-
-def _treeset_random(trees: TimeTreeSet):
-    return trees[random.randint(0, len(trees)-1)]
-
-
-_focal_tree_functions = {"FM": frechet_mean, "Centroid": _treeset_centroid, "Random": _treeset_random}
-
-
-def geweke_diagnostic_focal_tree(trees: TimeTreeSet, focal_tree: str = "FM", norm: bool = False, kind: str = "default", first_range=[0.1, 0.2], last_percent=0.4):
+def geweke_diagnostic_focal_tree(trees: TimeTreeSet, focal_tree: str = "FM", norm: bool = False, kind: str = "default",
+                                 first_range=[0.1, 0.2], last_percent=0.4):
     _check_percentage_input(first_range, last_percent)
 
-    # todo kind should be similar to what focal_tree is, no checking in MChain but do it here!
-
     if focal_tree not in _focal_tree_functions:
-        raise ValueError("Given Focal Tree Not accepted!")
-    # focal_tree specifies a function via a dictionary, that computes a summary tree given a set of trees
+        raise ValueError("Given Focal Tree not accepted!")
+    if kind not in _geweke_kind:
+        raise ValueError("Given kind not accepted!")
 
-    new_log_list = [1]
-    for i in range(1, len(trees)):
+    new_log_list = []
+    for i in range(0, len(trees)):
         # if focal_tree is "FM":
-            if i < 10:  # todo temporary
-                # Setting 10 to be the smallest tree set for which the value is actually computed
-                new_log_list.append(1)
+        if i < 10:
+            # Setting 10 to be the smallest tree set for which the value is actually computed
+            new_log_list.append(1)
+        else:
+            first_set = trees[int(i * 0.1):int(i * 0.2)]
+            second_set = trees[int(i * 0.6):i]
+
+            first_focal = _focal_tree_functions[focal_tree](first_set)
+            second_focal = _focal_tree_functions[focal_tree](second_set)
+
+            if kind == "default":
+                variance_first_set = compute_sos_mt(first_focal, first_set, norm=norm) / len(first_set)
+                variance_second_set = compute_sos_mt(second_focal, second_set, norm=norm) / len(second_set)
+                new_log_list.append(abs(variance_first_set - variance_second_set))
+            elif kind == "crossed":
+                variance_firstfocal_second_set = compute_sos_mt(first_focal, second_set, norm=norm) / len(second_set)
+                variance_secondfocal_first_set = compute_sos_mt(second_focal, first_set, norm=norm) / len(first_set)
+                new_log_list.append(abs(variance_firstfocal_second_set - variance_secondfocal_first_set))
+            elif kind == "doublecrossed":
+                # compares the variation of two different trees for the same set
+                variance_first_set = compute_sos_mt(first_focal, first_set, norm=norm) / len(first_set)
+                variance_second_set = compute_sos_mt(second_focal, second_set, norm=norm) / len(second_set)
+                variance_firstfocal_second_set = compute_sos_mt(first_focal, second_set, norm=norm) / len(second_set)
+                variance_secondfocal_first_set = compute_sos_mt(second_focal, first_set, norm=norm) / len(first_set)
+                new_log_list.append(abs(variance_firstfocal_second_set - variance_first_set) +
+                                    abs(variance_secondfocal_first_set - variance_second_set))
+            elif kind == "crosscompare":
+                # compares the variation of two trees in one set
+                variance_first_set = compute_sos_mt(first_focal, first_set, norm=norm) / len(first_set)
+                variance_second_set = compute_sos_mt(second_focal, second_set, norm=norm) / len(second_set)
+                variance_firstfocal_second_set = compute_sos_mt(first_focal, second_set, norm=norm) / len(second_set)
+                variance_secondfocal_first_set = compute_sos_mt(second_focal, first_set, norm=norm) / len(first_set)
+                new_log_list.append(abs(variance_secondfocal_first_set - variance_first_set) +
+                                    abs(variance_firstfocal_second_set - variance_second_set))
             else:
-                # todo rename the variables, see above naming
-                sec10 = trees[int(i * 0.1):int(i * 0.2)]
-                last40 = trees[int(i * 0.6):i]
-
-                if kind == "default":
-                    var10 = compute_sos_mt(_focal_tree_functions[focal_tree](sec10), sec10, norm=norm) / len(sec10)
-                    var40 = compute_sos_mt(_focal_tree_functions[focal_tree](last40), last40, norm=norm) / len(last40)
-                    new_log_list.append(abs(var10 - var40))
-                elif kind == "crossed":
-                    var10_in40 = compute_sos_mt(_focal_tree_functions[focal_tree](sec10), last40, norm=norm) / len(last40)
-                    var40_in10 = compute_sos_mt(_focal_tree_functions[focal_tree](last40), sec10, norm=norm) / len(sec10)
-                    new_log_list.append(abs(var10_in40 - var40_in10))
-                elif kind == "doublecrossed":
-                    # compares the variation of two different trees for the same set
-                    fm10 = _focal_tree_functions[focal_tree](sec10)
-                    fm40 = _focal_tree_functions[focal_tree](last40)
-                    var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
-                    var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
-                    var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
-                    var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
-                    new_log_list.append(abs(var10_in40 - var10) + abs(var40_in10 - var40))
-                elif kind == "crosscompare":
-                    # compares the variation of two trees in one set
-                    fm10 = _focal_tree_functions[focal_tree](sec10)
-                    fm40 = _focal_tree_functions[focal_tree](last40)
-                    var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
-                    var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
-                    var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
-                    var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
-                    new_log_list.append(abs(var40_in10 - var10) + abs(var10_in40 - var40))
-                else:
-                    raise ValueError(f"The given kind {kind} is not recognized!")
-
+                raise ValueError(f"The given kind {kind} is not recognized!")
     return new_log_list
-
