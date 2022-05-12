@@ -141,7 +141,6 @@ class TimeTreeSet:
         elif isinstance(index, slice):
             ret = TimeTreeSet()
             ret.map = self.map
-            ret.common_clades = self.common_clades
             ret.trees = self.trees[index]
             return ret
         else:
