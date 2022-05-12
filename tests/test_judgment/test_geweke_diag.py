@@ -53,9 +53,9 @@ def test_MChain_compute_geweke_diagnostic_focal_FM(thirty_taxa_MChain):
     assert len(ret) == len(thirty_taxa_MChain.trees), "Geweke Focal FM failed!"
 
 
-def test_MChain_compute_geweke_diagnostic_focal_centroid(thirty_taxa_MChain):
-    ret = thirty_taxa_MChain.compute_geweke_focal_tree(focal_tree="Centroid")
-    assert len(ret) == len(thirty_taxa_MChain.trees), "Geweke Focal Centroid failed!"
+# def test_MChain_compute_geweke_diagnostic_focal_centroid(thirty_taxa_MChain):
+#     ret = thirty_taxa_MChain.compute_geweke_focal_tree(focal_tree="Centroid")
+#     assert len(ret) == len(thirty_taxa_MChain.trees), "Geweke Focal Centroid failed!"
 
 
 def test_MChain_compute_geweke_diagnostic_focal_kinds(thirty_taxa_MChain):
