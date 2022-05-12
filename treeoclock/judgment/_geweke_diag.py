@@ -55,9 +55,59 @@ def geweke_diagnostic_distances(trees: TimeTreeSet, norm: bool = False, first_ra
     return new_log_list
 
 
-def geweke_diagnostic_variance():
-    return 0
+from treeoclock.summary.compute_sos import compute_sos_mt
+from treeoclock.summary.frechet_mean import frechet_mean
 
 
-def geweke_diagnostic_summary():
-    return 0
+# todo missing default values!
+def geweke_diagnostic_focal_tree(trees: TimeTreeSet, focal_tree, norm, kind, first_range, last_percent):
+    _check_percentage_input(first_range, last_percent)
+
+    new_log_list = [1]
+    for i in range(1, len(trees)):
+        if focal_tree is "FM":
+            if i < 10:  # todo temporary
+                # Setting 10 to be the smallest tree set for which the value is actually computed
+                new_log_list.append(1)
+            else:
+                # todo rename the variables, see above naming
+                sec10 = trees[int(i * 0.1):int(i * 0.2)]
+                last40 = trees[int(i * 0.6):i]
+
+                if kind == "default":
+                    var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm) / len(sec10)
+                    var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm) / len(last40)
+                    new_log_list.append(abs(var10 - var40))
+                elif kind == "crossed":
+                    var10_in40 = compute_sos_mt(frechet_mean(sec10), last40, norm=norm) / len(last40)
+                    var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm) / len(sec10)
+                    new_log_list.append(abs(var10_in40 - var40_in10))
+                elif kind == "doublecrossed":
+                    # compares the variation of two different trees for the same set
+                    fm10 = frechet_mean(sec10)
+                    fm40 = frechet_mean(last40)
+                    var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
+                    var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
+                    var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
+                    var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
+                    new_log_list.append(abs(var10_in40 - var10) + abs(var40_in10 - var40))
+                elif kind == "crosscompare":
+                    # compares the variation of two trees in one set
+                    fm10 = frechet_mean(sec10)
+                    fm40 = frechet_mean(last40)
+                    var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
+                    var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
+                    var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
+                    var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
+                    new_log_list.append(abs(var40_in10 - var10) + abs(var10_in40 - var40))
+                else:
+                    raise ValueError(f"The given kind {kind} is not recognized!")
+
+        elif focal_tree is "Centroid":
+            raise ValueError("Not yet implemented!")
+        elif focal_tree is "random":
+            raise ValueError("Not yet implemented!")
+            # todo this actually does not need to have a summary tree? just use a randomly fixed tree or two randomly fixed trees?
+            #  compare the results
+    return new_log_list
+

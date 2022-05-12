@@ -12,8 +12,8 @@ from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
 
-_geweke_kind = {"default": 0, "crossed": 1, "doublecrossed": 2, "crosscompare": 3, }
-
+_geweke_kind = set(["default", "crossed", "doublecrossed", "crosscompare"])
+_geweke_summary = set(["FM", "Centroid", "random"])
 
 class MChain:
     def __init__(self, trees, log_file, summary, working_dir):
@@ -107,17 +107,28 @@ class MChain:
         else:
             raise ValueError("Not (yet) implemented!")
 
-    # todo missing tests
-    def compute_geweke_deviation(self, norm=False, add=True, first_range=[0.1, 0.2], last_percent=0.4):
-        # todo still WIP, name should change, also parameter checking before calling the funciton
-
-        # todo missing the range parameter and also add it to the column name part!
+    def compute_geweke_distances(self, norm: bool = False, add: bool = True, first_range=[0.1, 0.2], last_percent=0.4):
 
         new_log_list = gwd.geweke_diagnostic_distances(trees=self.trees, norm=norm,
                                                        first_range=first_range, last_percent=last_percent)
 
         if add:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_distances{'_norm' if norm else ''}")
+        return new_log_list
+
+    # todo missing proper testing
+    def compute_geweke_focal_tree(self, focal_tree="FM", norm: bool =True, kind="default", add: bool = True, first_range=[0.1, 0.2], last_percent=0.4):
+
+        if kind not in _geweke_kind:
+            raise ValueError(f"Given geweke kind {kind} not recognized!")
+        if focal_tree not in _geweke_summary:
+            raise ValueError(f"Given geweke_summary {focal_tree} is not implemented!")
+
+        new_log_list = gwd.geweke_diagnostic_focal_tree(trees=self.trees, focal_tree=focal_tree, norm=norm, kind=kind, first_range=first_range, last_percent=last_percent)
+
+        if add:
+            self.add_new_log_list(new_log_list=new_log_list,
+                                  col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{focal_tree}")
         return new_log_list
 
     # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
@@ -216,69 +227,6 @@ class MChain:
                     self.log_data[f"{key}_ess_cum_trace"][i] = self.get_ess(ess_key=key, ess_method=method, upper_i=i)
         return 0
 
-    # todo missing proper testing
-    def compute_geweke_diag(self, summary="FM", norm=True, kind="default", add=True):
-
-        # todo should get fraction 1 and fraction 2 as argument, default 0.1 and 0.5
-
-        # todo this actually does not need to have a summary tree? just use a randomly fixed tree or two randomly fixed trees?
-        #  compare the results
-
-        if kind not in _geweke_kind:
-            raise ValueError(f"Given geweke kind {kind} not recognized!")
-
-        # todo export all the stuff to external funciton and file, call with _geweke_kind[kind] to specify the thing that shall be returned?
-        #  here the external funciton gets an integer which corresponds to list[] which is a specific function maybe?
-
-        new_log_list = [1]
-        for i in range(1, len(self.trees)):
-            if summary is "FM":
-                if i < 10:  # todo temporary
-                    # Setting 10 to be the smallest tree set for which the value is actually computed
-                    new_log_list.append(1)
-                else:
-                    sec10 = self.trees[int(i * 0.1):int(i * 0.2)]
-                    last40 = self.trees[int(i * 0.6):i]
-
-                    if kind == "default":
-                        var10 = compute_sos_mt(frechet_mean(sec10), sec10, norm=norm) / len(sec10)
-                        var40 = compute_sos_mt(frechet_mean(last40), last40, norm=norm) / len(last40)
-                        new_log_list.append(abs(var10 - var40))
-                    elif kind == "crossed":
-                        var10_in40 = compute_sos_mt(frechet_mean(sec10), last40, norm=norm) / len(last40)
-                        var40_in10 = compute_sos_mt(frechet_mean(last40), sec10, norm=norm) / len(sec10)
-                        new_log_list.append(abs(var10_in40 - var40_in10))
-                    elif kind == "doublecrossed":
-                        # compares the variation of two different trees for the same set
-                        fm10 = frechet_mean(sec10)
-                        fm40 = frechet_mean(last40)
-                        var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
-                        var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
-                        var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
-                        var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
-                        new_log_list.append(abs(var10_in40 - var10) + abs(var40_in10 - var40))
-                    elif kind == "crosscompare":
-                        # compares the variation of two trees in one set
-                        fm10 = frechet_mean(sec10)
-                        fm40 = frechet_mean(last40)
-                        var10 = compute_sos_mt(fm10, sec10, norm=norm) / len(sec10)
-                        var40 = compute_sos_mt(fm40, last40, norm=norm) / len(last40)
-                        var10_in40 = compute_sos_mt(fm10, last40, norm=norm) / len(last40)
-                        var40_in10 = compute_sos_mt(fm40, sec10, norm=norm) / len(sec10)
-                        new_log_list.append(abs(var40_in10 - var10) + abs(var10_in40 - var40))
-                    # todo maybe a kind that computes the mean of all the others?
-                    # todo maybe a kind that will just return all variations
-                    else:
-                        raise ValueError(f"The given kind {kind} is not recognized!")
-
-            elif summary is "Centroid":
-                raise ValueError("Not yet implemented!")
-            else:
-                raise ValueError(f"Not implemented summary type {summary}!")
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list,
-                                  col_key=f"Geweke_diag{'_norm' if norm else ''}_{kind}_{summary}")
-        return new_log_list
 
     # todo missing tests
     # todo this is only applicable if the added list is starting at 0

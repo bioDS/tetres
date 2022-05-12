@@ -17,7 +17,20 @@ def test_MChain_compute_geweke_distances_wrongintervals(thirty_taxa_MChain):
         with pytest.raises(ValueError):
             thirty_taxa_MChain.compute_geweke_distances(first_range=first, last_percent=last)
 
-# Tests for geweke_diag_
+# Tests for geweke_diag_summary
+
+
+def test_MChain_compute_geweke_diag_new(thirty_taxa_MChain):
+    ret = thirty_taxa_MChain.compute_geweke_focal_tree(kind="crosscompare")
+    ret1 = thirty_taxa_MChain.compute_geweke_focal_tree()
+    assert [len(ret), len(ret1)] == [len(thirty_taxa_MChain.trees), len(thirty_taxa_MChain.trees)], "Geweke Diag failed"
+
+
+def test_MChain_compute_geweke_diag(thirty_taxa_MChain):
+    ret = thirty_taxa_MChain.compute_geweke_focal_tree()
+    ret1 = thirty_taxa_MChain.compute_geweke_focal_tree(norm=False)
+    assert [len(ret), len(ret1)] == [len(thirty_taxa_MChain.trees), len(thirty_taxa_MChain.trees)], "Geweke Diag failed"
+
 
 
 
