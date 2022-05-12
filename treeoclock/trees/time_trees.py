@@ -133,8 +133,19 @@ class TimeTreeSet:
             self.trees = []
         self.common_clades = set()
 
-    def __getitem__(self, index: int):
-        return self.trees[index]
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            if index >= len(self.trees):
+                raise IndexError("Index out of range!")
+            return self.trees[index]
+        elif isinstance(index, slice):
+            ret = TimeTreeSet()
+            ret.map = self.map
+            ret.common_clades = self.common_clades
+            ret.trees = self.trees[index]
+            return ret
+        else:
+            raise TypeError("Given Type for getitem not implemented!")
 
     def __len__(self):
         return len(self.trees)

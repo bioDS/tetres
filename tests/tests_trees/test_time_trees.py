@@ -400,3 +400,23 @@ def test_change_mapping_more(twelve_taxa_tts, twelve_taxa_tts_start):
     new_start.change_mapping(twelve_taxa_tts.map)
     assert new_start[0].fp_distance(twelve_taxa_tts[2279]) == 0, "Change mapping failed!"
 
+
+def test_timetreeset_getitem_int(twelve_taxa_tts):
+    assert isinstance(twelve_taxa_tts[0], TimeTree), "TTS getitem int failed!"
+
+
+def test_timetreeset_getitem_outofrange(twelve_taxa_tts):
+    with pytest.raises(IndexError):
+        twelve_taxa_tts[len(twelve_taxa_tts)]
+
+
+def test_timetreeset_getitem_slice(twelve_taxa_tts):
+    assert isinstance(twelve_taxa_tts[0:5], TimeTreeSet), "TTS getitem slice failed!"
+
+
+def test_timetreeset_getitem_wrongtype(twelve_taxa_tts):
+    with pytest.raises(TypeError):
+        twelve_taxa_tts[1,2]
+
+
+
