@@ -15,7 +15,7 @@ class Centroid:
     Class to compute the centroid algorithm with a set of parameters
     """
 
-    def __init__(self, variation="greedy", n_cores=None, select='random', start='FM', subsample_size=200,
+    def __init__(self, variation="greedy_omp", n_cores=None, select='random', start='FM', subsample_size=200,
                  tree_log_file="", max_iterations=None):
         self.variation = variation  # Which centroid variation to compute
         self.n_cores = n_cores  # How many cores to use whenever Multiprocessing is/will be used
