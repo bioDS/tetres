@@ -436,3 +436,18 @@ Pair best_sos_neighbour(Tree_List *input_trees, Tree_List *tree_set, int n_cores
         }
     return ret_pair;
 }
+
+
+void pairwise_distance(Tree_List *input_trees, long n, long *dm[n][n])
+{
+    #pragma omp parallel
+        for(int i=0; i < n-1; i++)
+        {
+            for (int j=i; j < n; j++)
+            {
+                long cur_d = findpath_distance(&input_trees->trees[i], &input_trees->trees[j]);
+                dm[i][j] = cur_d;
+                dm[j][i] = cur_d;
+            }
+        }
+}
