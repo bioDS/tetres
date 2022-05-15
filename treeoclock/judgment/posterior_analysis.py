@@ -29,18 +29,17 @@ def nbr_unique_trees(mchain: MChain, dm_name=""):
 
     # todo add the pairwise distance matrix as part of the MChain object, makes a lot of methods faster if recomputed or in general faster i believe!
 
-    if not os.path.exists(f"{mchain.working_dir}/{dm_name}.csv"):
+    if not os.path.exists(f"{mchain.working_dir}/{dm_name}.csv.gz"):
         pd = calc_pw_distances(mchain.trees)
         if dm_name:
             # todo this needs to be more efficient!!!
-            np.savetxt(f"{mchain.working_dir}/{dm_name}.csv", pd, delimiter=',', fmt='%i')
+            np.savetxt(fname=f"{mchain.working_dir}/{dm_name}.csv.gz", X=pd, delimiter=',', fmt='%i')
     else:
         # todo this should also be more efficient!
-        pd = np.genfromtxt(f"{mchain.working_dir}/{dm_name}.csv", delimiter=',', dtype=int)
+        pd = np.genfromtxt(fname=f"{mchain.working_dir}/{dm_name}.csv.gz", delimiter=',', dtype=int)
         # pd.astype(int, inplace=True)
-    
-    unique = 0
-    if not os.path.exists(f"{mchain.working_dir}/{dm_name}_uniques.csv"):
+
+    if not os.path.exists(f"{mchain.working_dir}/{dm_name}_uniques.csv.gz"):
         count = 0
         remove = set()
         for i in range(0, len(mchain.trees) - 1):
@@ -52,9 +51,10 @@ def nbr_unique_trees(mchain: MChain, dm_name=""):
             if zero:
                 count += 1
         unique = np.delete(pd, list(remove), 0)  # todo there is a problem with this deletion part i think
-        np.savetxt(f"{mchain.working_dir}/{dm_name}_uniques.csv", unique, delimiter=',', fmt='%i')
+
+        np.savetxt(fname=f"{mchain.working_dir}/{dm_name}_uniques.csv.gz", X=unique, delimiter=',', fmt='%i')
     else:
-        unique = np.genfromtxt(f"{mchain.working_dir}/{dm_name}_uniques.csv", delimiter=',', dtype=int)
+        unique = np.genfromtxt(fname=f"{mchain.working_dir}/{dm_name}_uniques.csv.gz", delimiter=',', dtype=int)
         # unique.astype(int, inplace=True)
     
     print(len(unique))
