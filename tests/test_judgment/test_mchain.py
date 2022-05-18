@@ -8,65 +8,57 @@ from treeoclock import enums as pkg_enums
 
 def test_MChain_construction_files():
     assert MChain(
-        trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-        summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
-        working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+        trees="30Taxa.trees",
+        log_file="30Taxa_beast2.log",
+        summary="30Taxa_centroid.tree",
+        working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
     ), "Construction files failed"
 
 
 def test_MChain_construction_TimeTreeSets(thirty_taxa_tts, thirty_taxa_centroid_tts):
     assert MChain(
         trees=thirty_taxa_tts,
-        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
+        log_file="30Taxa_beast2.log",
         summary=thirty_taxa_centroid_tts,
-        working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+        working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
     ), "Construction TTS failed"
 
 
 def test_MChain_construction_mixed1(thirty_taxa_tts):
     assert MChain(
         trees=thirty_taxa_tts,
-        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-        summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
-        working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+        log_file="30Taxa_beast2.log",
+        summary="30Taxa_centroid.tree",
+        working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
     ), "Construction TTS trees, centroid file failed"
 
 
 def test_MChain_construciton_mixed2(thirty_taxa_centroid_tts):
     assert MChain(
-        trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
+        trees="30Taxa.trees",
+        log_file="30Taxa_beast2.log",
         summary=thirty_taxa_centroid_tts,
-        working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+        working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
     ), "Construction trees file, TTS centroid failed"
 
 
-def test_MChain_construciton_summary_None():
+def test_MChain_construction_summary_None():
     assert MChain(
-        trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
+        trees="30Taxa.trees",
+        log_file="30Taxa_beast2.log",
         summary=None,
-        working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+        working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
     ), "Construction with summary=None failed"
 
 
-def test_MChain_construciton_workingdir_None():
-    assert MChain(
-        trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-        summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
-        working_dir=None
-    ), "Construction with working_dir=None failed"
-
-
-def test_MChain_construciton_workingdir_summary_None():
-    assert MChain(
-        trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-        log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-        summary=None,
-        working_dir=None
-    ), "Construction with working_dir=None failed"
+def test_MChain_construction_workingdir_None():
+    with pytest.raises(ValueError):
+        MChain(
+            trees="30Taxa.trees",
+            log_file="30Taxa_beast2.log",
+            summary="30Taxa_centroid.tree",
+            working_dir=None
+        )
 
 
 # testing construction exceptions
@@ -74,58 +66,58 @@ def test_MChain_wrong_trees():
     with pytest.raises(ValueError):
         MChain(
             trees=20,
-            log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-            summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
-            working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+            log_file="30Taxa_beast2.log",
+            summary="30Taxa_centroid.tree",
+            working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
         )
 
 
 def test_MChain_wrong_logfile_path():
     with pytest.raises(FileNotFoundError):
         MChain(
-            trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-            log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.log",
-            summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
-            working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+            trees="30Taxa.trees",
+            log_file="30Taxa.log",
+            summary="30Taxa_centroid.tree",
+            working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
         )
 
 
 def test_MChain_wrong_logfile_type():
     with pytest.raises(ValueError):
         MChain(
-            trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
+            trees="30Taxa.trees",
             log_file=20,
-            summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
-            working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+            summary="30Taxa_centroid.tree",
+            working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
         )
 
 
 def test_MChain_wrong_summary():
     with pytest.raises(ValueError):
         MChain(
-            trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-            log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
+            trees="30Taxa.trees",
+            log_file="30Taxa_beast2.log",
             summary=20,
-            working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+            working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
         )
 
 
 def test_MChain_wrong_workingdir_path():
     with pytest.raises(NotADirectoryError):
         MChain(
-            trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-            log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-            summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
-            working_dir=f"{Path(__file__).parent.parent.absolute()}/data/work/"
+            trees="30Taxa.trees",
+            log_file="30Taxa_beast2.log",
+            summary="30Taxa_centroid.tree",
+            working_dir=f"{Path(__file__).parent.parent.absolute()}/data/work"
         )
 
 
 def test_MChain_wrong_workingdir_type():
     with pytest.raises(ValueError):
         MChain(
-            trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-            log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-            summary=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_centroid.tree",
+            trees="30Taxa.trees",
+            log_file="30Taxa_beast2.log",
+            summary="30Taxa_centroid.tree",
             working_dir=20
         )
 
@@ -133,10 +125,10 @@ def test_MChain_wrong_workingdir_type():
 def test_MChain_wrong_treemaps():
     with pytest.raises(ValueError):
         MChain(
-            trees=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa.trees",
-            log_file=f"{Path(__file__).parent.parent.absolute()}/data/30Taxa_beast2.log",
-            summary=f"{Path(__file__).parent.parent.absolute()}/data/12Taxa.trees",
-            working_dir=f"{Path(__file__).parent.parent.absolute()}/data/"
+            trees="30Taxa.trees",
+            log_file="30Taxa_beast2.log",
+            summary="12Taxa.trees",
+            working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
         )
 
 
@@ -267,7 +259,7 @@ def test_MChain_get_ess_partial_correctness_arviz(thirty_taxa_MChain):
     result_partial = []
     for ess_key in thirty_taxa_MChain.get_key_names():
         result_partial.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="arviz", lower_i=0,
-                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]))
+                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]-1))
     assert result == result_partial, \
         "ESS partial returns wrong ESS!"
 
@@ -280,7 +272,7 @@ def test_MChain_get_ess_partial_correctness_coda(thirty_taxa_MChain):
     result_partial = []
     for ess_key in thirty_taxa_MChain.get_key_names():
         result_partial.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="coda", lower_i=0,
-                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]))
+                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]-1))
     assert result == result_partial, \
         "ESS partial returns wrong ESS!"
 
@@ -293,7 +285,7 @@ def test_MChain_get_ess_partial_correctness_tracerer(thirty_taxa_MChain):
     result_partial = []
     for ess_key in thirty_taxa_MChain.get_key_names():
         result_partial.append(thirty_taxa_MChain.get_ess(ess_key=ess_key, ess_method="tracerer", lower_i=0,
-                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]))
+                                                         upper_i=thirty_taxa_MChain.log_data.shape[0]-1))
     assert result == result_partial, \
         "ESS partial returns wrong ESS!"
 
