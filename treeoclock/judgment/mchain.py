@@ -26,7 +26,7 @@ class coupled_MChains():
             raise FileNotFoundError("Given Working directory does not exist!")
         self.working_dir = working_dir
 
-        self.MChain_list
+        self.MChain_list = []
         if type(trees) is list:
             if len(trees) != self.m_MChains or len(log_files) != self.m_MChains:
                 raise ValueError("m_chains and number of trees do not match!")
@@ -45,7 +45,7 @@ class coupled_MChains():
 
 
 class MChain:
-    def __init__(self, trees, log_file, summary, working_dir):
+    def __init__(self, working_dir, trees, log_file, summary=None):
 
         # Setting the Working directory
         if type(working_dir) is str:

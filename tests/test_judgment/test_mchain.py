@@ -2,7 +2,7 @@ import pytest
 import random
 import matplotlib.pyplot as plt
 from pathlib import Path
-from treeoclock.judgment.mchain import MChain
+from treeoclock.judgment.mchain import MChain, coupled_MChains
 import treeoclock.judgment.ess as ess
 from treeoclock import enums as pkg_enums
 
@@ -33,7 +33,7 @@ def test_MChain_construction_mixed1(thirty_taxa_tts):
     ), "Construction TTS trees, centroid file failed"
 
 
-def test_MChain_construciton_mixed2(thirty_taxa_centroid_tts):
+def test_MChain_construction_mixed2(thirty_taxa_centroid_tts):
     assert MChain(
         trees="30Taxa.trees",
         log_file="30Taxa_beast2.log",
@@ -453,4 +453,12 @@ def test_MChain_copute_ess_traces(thirty_taxa_MChain):
 def test_MChain_compute_in_chain_deviation(thirty_taxa_MChain):
     ret = thirty_taxa_MChain.compute_mean_in_chain_deviation()
     assert len(ret) == len(thirty_taxa_MChain.trees), "In Chain deviation failed!"
+
+
+def test_coupledMChain():
+    assert coupled_MChains(m_MChains=1,
+                           trees=["30Taxa.trees"],
+                           log_files=["30Taxa_beast2.log"],
+                           working_dir= f"{Path(__file__).parent.parent.absolute()}/data"
+                           ), "Construction coupledMChain with files failed!"
 
