@@ -13,20 +13,62 @@ from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
 
 
+# todo testing required!
+class coupled_MChains():
+    def __init__(self, m_MChains, trees, log_files, working_dir):
+        # todo currently still missing the summary parameter of MChain, but its not really used at this point
+        self.m_MChains = m_MChains
+
+        if type(trees) != type(log_files):
+            raise ValueError("trees and logfiles should be given with the same data type!")
+
+        if not os.path.isdir(working_dir):
+            raise FileNotFoundError("Given Working directory does not exist!")
+        self.working_dir = working_dir
+
+        self.MChain_list
+        if type(trees) is list:
+            if len(trees) != self.m_MChains or len(log_files) != self.m_MChains:
+                raise ValueError("m_chains and number of trees do not match!")
+            for i in range(self.m_MChains):
+                self.MChain_list.append(MChain(trees=trees[i], log_file=log_files[i], working_dir=working_dir))
+        elif type(trees) is str:
+            if not os.path.exists(f"{self.working_dir}/{trees}"):
+                raise FileNotFoundError(f"Given trees file {self.working_dir}/{trees} does not exist!")
+            if not os.path.exists(f"{self.working_dir}/{log_files}"):
+                raise FileNotFoundError(f"Given trees file {self.working_dir}/{log_files} does not exist!")
+            self.MChain_list.append(MChain(trees=trees, log_file=log_files, working_dir=working_dir))
+            for i in range(1, self.m_MChains):
+                self.MChain_list.append(MChain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}", working_dir=working_dir))
+        else:
+            raise ValueError("Unrecognized argument types of trees and log_files!")
+
+
 class MChain:
     def __init__(self, trees, log_file, summary, working_dir):
 
+        # Setting the Working directory
+        if type(working_dir) is str:
+            if os.path.isdir(working_dir):
+                self.working_dir = working_dir
+            else:
+                if type(working_dir) is str:
+                    raise NotADirectoryError(working_dir)
+                else:
+                    raise ValueError(working_dir)
+        else:
+            raise ValueError("Working directory type not recognized!")
         # Setting trees
         if type(trees) is TimeTreeSet:
             self.trees = trees
         elif type(trees) is str:
-            self.trees = TimeTreeSet(trees)
+            self.trees = TimeTreeSet(f"{self.working_dir}/{trees}")
         else:
             raise ValueError(trees)
 
         # Reading the log_file
-        if os.path.exists(log_file):
-            self.log_data = pd.read_csv(log_file, header=0, sep=r"\s+", comment="#")
+        if os.path.exists(f"{self.working_dir}/{log_file}"):
+            self.log_data = pd.read_csv(f"{self.working_dir}/{log_file}", header=0, sep=r"\s+", comment="#")
             self.chain_length = int(list(self.log_data["Sample"])[-1])
             self.log_sampling_interval = int(list(self.log_data["Sample"])[1])
             # assuming that the first iteration 0 tree and the last have been logged in the logfile
@@ -45,19 +87,12 @@ class MChain:
             if type(summary) is TimeTreeSet:
                 self.summary = summary
             elif type(summary) is str:
-                self.summary = TimeTreeSet(summary)
-            else:
-                raise ValueError(summary)
-
-        if working_dir is not None:
-            # Setting the Working directory
-            if os.path.isdir(working_dir):
-                self.working_dir = working_dir
-            else:
-                if type(working_dir) is str:
-                    raise NotADirectoryError(working_dir)
+                if os.path.exists(f"{self.working_dir}/{summary}"):
+                    self.summary = TimeTreeSet(f"{self.working_dir}/{summary}")
                 else:
-                    raise ValueError(working_dir)
+                    raise FileNotFoundError("Given summary tree not found!")
+            else:
+                raise ValueError("Wrong type summary given to MChain!")
 
         if summary is not None:
             # Check mapping of summary tree and tree set
@@ -174,9 +209,9 @@ class MChain:
     def compute_new_tree_summary_distance_log(self, summary="FM", norm=False, add=True):
         new_log_list = [0]  # initialize as the first iteration is just one tree
         for i in range(1, len(self.trees)):
-            if summary is "FM":
+            if summary == "FM":
                 new_log_list.append(self.trees[i].fp_distance(frechet_mean(self.trees[0:i]), norm=norm))
-            elif summary is "Centroid":
+            elif summary == "Centroid":
                 raise ValueError("Not yet implemented!")
             else:
                 raise ValueError(f"Not implemented summary type {summary}!")
