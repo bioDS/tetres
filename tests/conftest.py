@@ -183,8 +183,8 @@ def seventeen_taxa_nni_neighbours_newick():
 @pytest.fixture
 def thirty_taxa_MChain():
     return MChain(
-        trees=f"{Path(__file__).parent.absolute()}/data/30Taxa.trees",
-        log_file=f"{Path(__file__).parent.absolute()}/data/30Taxa_beast2.log",
-        summary=f"{Path(__file__).parent.absolute()}/data/30Taxa_centroid.tree",
-        working_dir=f"{Path(__file__).parent.absolute()}/data/"
+        trees=f"30Taxa.trees",
+        log_file=f"30Taxa_beast2.log",
+        summary=f"30Taxa_centroid.tree",
+        working_dir=f"{Path(__file__).parent.absolute()}/data"
     )
