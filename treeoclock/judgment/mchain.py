@@ -12,12 +12,16 @@ from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
 
+from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
+from treeoclock.judgment import _gelman_rubin_diag as grd
+
 
 # todo testing required!
 class coupled_MChains():
-    def __init__(self, m_MChains, trees, log_files, working_dir):
+    def __init__(self, m_MChains, trees, log_files, working_dir, name="cMC"):
         # todo currently still missing the summary parameter of MChain, but its not really used at this point
         self.m_MChains = m_MChains
+        self.name = name
 
         if type(trees) != type(log_files):
             raise ValueError("trees and logfiles should be given with the same data type!")
@@ -42,6 +46,36 @@ class coupled_MChains():
                 self.MChain_list.append(MChain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}", working_dir=working_dir))
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
+
+    def pwd_matrix(self, index1, index2=None):
+        if type(index1) is not int:
+            raise ValueError("Unrecognized index type!")
+        if index1 >= self.m_MChains:
+            raise IndexError("Given Index out of range!")
+
+        if index2 is None:
+            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}.csv.gz"):
+                dm = calc_pw_distances(self.MChain_list[index1].trees)
+                np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", X=dm, delimiter=',', fmt='%i')
+                return dm
+            else:
+                return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", delimiter=',', dtype=int)
+        else:
+            if type(index2) is not int:
+                raise ValueError("Unrecognized index type!")
+            if index1 == index2:
+                raise ValueError("Indeces are equal, only call with one index for pairwise distances of one set!")
+            if index2 >= self.m_MChains:
+                raise IndexError("Given Index out of range!")
+            if index2 < index1:
+                index1, index2 = index2, index1
+            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz"):
+                dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees)
+                np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',', fmt='%i')
+                return dm
+            else:
+                return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", delimiter=',', dtype=int)
+
 
 
 class MChain:
