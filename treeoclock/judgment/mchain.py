@@ -47,20 +47,25 @@ class coupled_MChains():
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
 
-    def pwd_matrix(self, index1, index2=None):
+    def pwd_matrix(self, index1, index2=None, csv: bool = False):
         if type(index1) is not int:
             raise ValueError("Unrecognized index type!")
         if index1 >= self.m_MChains:
             raise IndexError("Given Index out of range!")
 
         if index2 is None:
-            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}.csv.gz"):
+            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}.{'csv.gz' if csv else 'npy'}"):
                 dm = calc_pw_distances(self.MChain_list[index1].trees)
-                np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", X=dm, delimiter=',', fmt='%i')
+                if csv:
+                    np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", X=dm, delimiter=',', fmt='%i')
+                else:
+                    np.save(file=f"{self.working_dir}/{self.name}_{index1}.npy", arr=dm)
                 return dm
             else:
-                # todo use np.load() instead of txt and csv
-                return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", delimiter=',', dtype=int)
+                if csv:
+                    return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", delimiter=',', dtype=int)
+                else:
+                    return np.load(file=f"{self.working_dir}/{self.name}_{index1}.npy")
         else:
             if type(index2) is not int:
                 raise ValueError("Unrecognized index type!")
@@ -70,14 +75,18 @@ class coupled_MChains():
                 raise IndexError("Given Index out of range!")
             if index2 < index1:
                 index1, index2 = index2, index1
-            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz"):
+            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}_{index2}.{'csv.gz' if csv else 'npy'}"):
                 dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees)
-                # todo use np.savez() instead of txt and csv
-                np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',', fmt='%i')
+                if csv:
+                    np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',', fmt='%i')
+                else:
+                    np.save(file=f"{self.working_dir}/{self.name}_{index1}_{index2}.npy", arr=dm)
                 return dm
             else:
-                # todo use np.savez() instead of txt and csv
-                return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", delimiter=',', dtype=int)
+                if csv:
+                    return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", delimiter=',', dtype=int)
+                else:
+                    return np.load(f"{self.working_dir}/{self.name}_{index1}_{index2}.npy")
 
     def gelman_rubin_like_diagnostic_plot(self):
         # todo should compute the gelman rubin like diagnostic for all pairwise tree sets
