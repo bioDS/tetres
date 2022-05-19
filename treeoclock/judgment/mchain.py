@@ -59,6 +59,7 @@ class coupled_MChains():
                 np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", X=dm, delimiter=',', fmt='%i')
                 return dm
             else:
+                # todo use np.load() instead of txt and csv
                 return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", delimiter=',', dtype=int)
         else:
             if type(index2) is not int:
@@ -71,11 +72,18 @@ class coupled_MChains():
                 index1, index2 = index2, index1
             if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz"):
                 dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees)
+                # todo use np.savez() instead of txt and csv
                 np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',', fmt='%i')
                 return dm
             else:
+                # todo use np.savez() instead of txt and csv
                 return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", delimiter=',', dtype=int)
 
+    def gelman_rubin_like_diagnostic_plot(self):
+        # todo should compute the gelman rubin like diagnostic for all pairwise tree sets
+        #  then plot the information in a nxn matrix style, off diagonal top histogram of the value
+        #  off diagonal bottom mean and variance value printed, diagonal tbd maybe hist of in set variance or something
+        return grd.gelman_rubin_distance_diagnostic_plot(self)
 
 
 class MChain:
