@@ -4,23 +4,38 @@ from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, cal
 import random
 import numpy as np
 import seaborn as sns
-import pandas as pd
 import matplotlib.pyplot as plt
 
 
 def gelman_rubin_distance_diagnostic_plot(cMChain):
 
-    figure, axis = plt.subplots(cMChain.m_MChains, cMChain.m_MChains)
+    figure, axis = plt.subplots(nrows=cMChain.m_MChains, ncols=cMChain.m_MChains, constrained_layout=True, figsize=[9, 7])
     for i in range(cMChain.m_MChains-1):
         for j in range(i+1, cMChain.m_MChains):
             cur_psrf_like = gelman_rubin_distance_diagnostic_from_matrices(cMChain.pwd_matrix(i),
                                                                            cMChain.pwd_matrix(j),
                                                                            cMChain.pwd_matrix(i, j))
-            print(i, j)
-            axis[i, j] = sns.histplot(cur_psrf_like, stat="density", kde=True)
-            axis[j, i] = sns.boxplot(cur_psrf_like)
-            # axis[i, i] =
-    plt.savefig(fname=f"{cMChain.working_dir}/{cMChain.name}_grd_plot.png", dpi=200)
+            sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, fill=True)
+            for label in axis[i, j].get_xticklabels():
+                label.set_rotation(45)
+            sns.boxplot(ax=axis[j, i], data=cur_psrf_like)
+            # todo axis[i, i] some plot on diagonal missing
+
+    # Annotation of the plot
+    pad = 5  # in points
+    cols = [f"chain{m}" for m in range(cMChain.m_MChains)]
+    # Setting the col names
+    for ax, col in zip(axis[0], cols):
+        ax.annotate(col, xy=(0.5, 1), xytext=(0, pad),
+                    xycoords="axes fraction", textcoords="offset points",
+                    size="large", ha="right", va="baseline")
+    # Setting row names
+    for ax, col in zip(axis[:, 0], cols):
+        ax.annotate(col, xy=(0, 0.5), xytext=(-ax.yaxis.labelpad - pad, 0),
+                    xycoords=ax.yaxis.label, textcoords="offset points",
+                    size="large", ha="right", va="center")
+
+    plt.savefig(fname=f"{cMChain.working_dir}/{cMChain.name}_grd_plot.png", format="png", bbox_inches="tight", dpi=800)
 
 
 def gelman_rubin_distance_diagnostic_from_matrices(pwts1, pwts2, pwts1ts2,
