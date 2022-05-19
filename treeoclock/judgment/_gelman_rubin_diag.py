@@ -7,14 +7,15 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-def gelman_rubin_distance_diagnostic_plot(cMChain):
+def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
 
     figure, axis = plt.subplots(nrows=cMChain.m_MChains, ncols=cMChain.m_MChains, constrained_layout=True, figsize=[9, 7])
     for i in range(cMChain.m_MChains-1):
         for j in range(i+1, cMChain.m_MChains):
             cur_psrf_like = gelman_rubin_distance_diagnostic_from_matrices(cMChain.pwd_matrix(i),
                                                                            cMChain.pwd_matrix(j),
-                                                                           cMChain.pwd_matrix(i, j))
+                                                                           cMChain.pwd_matrix(i, j),
+                                                                           samples=samples)
             sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, fill=True)
             for label in axis[i, j].get_xticklabels():
                 label.set_rotation(45)

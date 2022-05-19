@@ -88,11 +88,11 @@ class coupled_MChains():
                 else:
                     return np.load(f"{self.working_dir}/{self.name}_{index1}_{index2}.npy")
 
-    def gelman_rubin_like_diagnostic_plot(self):
+    def gelman_rubin_like_diagnostic_plot(self, samples:int = 100):
         # todo should compute the gelman rubin like diagnostic for all pairwise tree sets
         #  then plot the information in a nxn matrix style, off diagonal top histogram of the value
         #  off diagonal bottom mean and variance value printed, diagonal tbd maybe hist of in set variance or something
-        return grd.gelman_rubin_distance_diagnostic_plot(self)
+        return grd.gelman_rubin_distance_diagnostic_plot(self, samples=samples)
 
 
 class MChain:
