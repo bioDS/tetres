@@ -23,7 +23,7 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
             sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False)
             for label in axis[i, j].get_xticklabels():
                 label.set_rotation(45)
-            sns.boxplot(ax=axis[j, i], data=cur_psrf_like, y="PSRF_like", hue="Treeset")
+            sns.boxplot(ax=axis[j, i], data=cur_psrf_like, x="Treeset", y="PSRF_like")
             # todo axis[i, i] some plot on diagonal missing
 
     # Annotation of the plot
@@ -60,6 +60,7 @@ def gelman_rubin_distance_diagnostic_from_matrices(pwts1, pwts2, pwts1ts2,
             in_sample_var = np.sum(pwts2[ts2_sample, :]) + np.sum(pwts2[:, ts2_sample])
             between_sample_var = np.sum(pwts1ts2[:, ts2_sample])
             psrf_like.append(["TS2", np.sqrt((between_sample_var / nt1) / (in_sample_var / nt2))])
+
     elif samples == "all":
         for cur_sample in range(nt1):
             in_sample_var = np.sum(pwts1[cur_sample, :]) + np.sum(pwts1[:, cur_sample])
