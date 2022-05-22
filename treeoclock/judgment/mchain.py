@@ -43,7 +43,8 @@ class coupled_MChains():
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{log_files} does not exist!")
             self.MChain_list.append(MChain(trees=trees, log_file=log_files, working_dir=working_dir))
             for i in range(1, self.m_MChains):
-                self.MChain_list.append(MChain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}", working_dir=working_dir))
+                self.MChain_list.append(
+                    MChain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}", working_dir=working_dir))
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
 
@@ -54,18 +55,20 @@ class coupled_MChains():
             raise IndexError("Given Index out of range!")
 
         if index2 is None:
-            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}.{'csv.gz' if csv else 'npy'}"):
-                dm = calc_pw_distances(self.MChain_list[index1].trees)
-                if csv:
-                    np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", X=dm, delimiter=',', fmt='%i')
-                else:
-                    np.save(file=f"{self.working_dir}/{self.name}_{index1}.npy", arr=dm)
-                return dm
-            else:
-                if csv:
-                    return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", delimiter=',', dtype=int)
-                else:
-                    return np.load(file=f"{self.working_dir}/{self.name}_{index1}.npy")
+            # todo this should be invoking the MChain function for its pairwise distance matrix instead?
+            return self.MChain_list[index1].pwd_matrix(index=index1, name=self.name)
+            # if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}.{'csv.gz' if csv else 'npy'}"):
+            #     dm = calc_pw_distances(self.MChain_list[index1].trees)
+            #     if csv:
+            #         np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", X=dm, delimiter=',', fmt='%i')
+            #     else:
+            #         np.save(file=f"{self.working_dir}/{self.name}_{index1}.npy", arr=dm)
+            #     return dm
+            # else:
+            #     if csv:
+            #         return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", delimiter=',', dtype=int)
+            #     else:
+            #         return np.load(file=f"{self.working_dir}/{self.name}_{index1}.npy")
         else:
             if type(index2) is not int:
                 raise ValueError("Unrecognized index type!")
@@ -78,17 +81,19 @@ class coupled_MChains():
             if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}_{index2}.{'csv.gz' if csv else 'npy'}"):
                 dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees)
                 if csv:
-                    np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',', fmt='%i')
+                    np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',',
+                               fmt='%i')
                 else:
                     np.save(file=f"{self.working_dir}/{self.name}_{index1}_{index2}.npy", arr=dm)
                 return dm
             else:
                 if csv:
-                    return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", delimiter=',', dtype=int)
+                    return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz",
+                                         delimiter=',', dtype=int)
                 else:
                     return np.load(f"{self.working_dir}/{self.name}_{index1}_{index2}.npy")
 
-    def gelman_rubin_like_diagnostic_plot(self, samples:int = 100):
+    def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
         # todo should compute the gelman rubin like diagnostic for all pairwise tree sets
         #  then plot the information in a nxn matrix style, off diagonal top histogram of the value
         #  off diagonal bottom mean and variance value printed, diagonal tbd maybe hist of in set variance or something
@@ -96,8 +101,11 @@ class coupled_MChains():
 
 
 class MChain:
-    def __init__(self, working_dir, trees, log_file, summary=None):
-
+    def __init__(self, working_dir, trees, log_file, summary=None, name: str = "MC"):
+        if type(name) is str:
+            self.name = name
+        else:
+            raise ValueError("Unrecognized type for name!")
         # Setting the Working directory
         if type(working_dir) is str:
             if os.path.isdir(working_dir):
@@ -155,6 +163,28 @@ class MChain:
                                      f"The given summary tree and tree set do not fit! "
                                      f"\n(Construction of class MChain failed!)")
 
+    def pwd_matrix(self, csv: bool = False, index="", name=""):
+        if not os.path.exists(
+                f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.{'csv.gz' if csv else 'npy'}"):
+            dm = calc_pw_distances(self.trees)
+            if csv:
+                np.savetxt(
+                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.csv.gz",
+                    X=dm, delimiter=',', fmt='%i')
+            else:
+                np.save(
+                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.npy",
+                    arr=dm)
+            return dm
+        else:
+            if csv:
+                return np.genfromtxt(
+                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.csv.gz",
+                    delimiter=',', dtype=int)
+            else:
+                return np.load(
+                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.npy")
+
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
 
@@ -191,18 +221,20 @@ class MChain:
         else:
             raise ValueError("Not (yet) implemented!")
 
-    def compute_geweke_distances(self, norm: bool = False, add: bool = True, first_range=[0.1, 0.2], last_percent=0.4):
+    def compute_geweke_distances(self, norm: bool = False, add: bool = True, first_range=[0.1, 0.2], last_percent=0.4, index="", name=""):
 
-        new_log_list = gwd.geweke_diagnostic_distances(trees=self.trees, norm=norm,
+        new_log_list = gwd.geweke_diagnostic_distances(pw_distances=self.pwd_matrix(index=index, name=name), norm=norm,
                                                        first_range=first_range, last_percent=last_percent)
 
         if add:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_distances{'_norm' if norm else ''}")
         return new_log_list
 
-    def compute_geweke_focal_tree(self, focal_tree="FM", norm: bool =True, kind="default", add: bool = True, first_range=[0.1, 0.2], last_percent=0.4):
+    def compute_geweke_focal_tree(self, focal_tree="FM", norm: bool = True, kind="default", add: bool = True,
+                                  first_range=[0.1, 0.2], last_percent=0.4):
 
-        new_log_list = gwd.geweke_diagnostic_focal_tree(trees=self.trees, focal_tree=focal_tree, norm=norm, kind=kind, first_range=first_range, last_percent=last_percent)
+        new_log_list = gwd.geweke_diagnostic_focal_tree(trees=self.trees, focal_tree=focal_tree, norm=norm, kind=kind,
+                                                        first_range=first_range, last_percent=last_percent)
 
         if add:
             self.add_new_log_list(new_log_list=new_log_list,
@@ -304,7 +336,6 @@ class MChain:
                 if not np.isnan(self.log_data[key][i]):
                     self.log_data[f"{key}_ess_cum_trace"][i] = self.get_ess(ess_key=key, ess_method=method, upper_i=i)
         return 0
-
 
     # todo missing tests
     # todo this is only applicable if the added list is starting at 0

@@ -186,5 +186,6 @@ def thirty_taxa_MChain():
         trees=f"30Taxa.trees",
         log_file=f"30Taxa_beast2.log",
         summary=f"30Taxa_centroid.tree",
-        working_dir=f"{Path(__file__).parent.absolute()}/data"
+        working_dir=f"{Path(__file__).parent.absolute()}/data",
+        name="30TestFix"
     )
