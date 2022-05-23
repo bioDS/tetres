@@ -55,20 +55,7 @@ class coupled_MChains():
             raise IndexError("Given Index out of range!")
 
         if index2 is None:
-            # todo this should be invoking the MChain function for its pairwise distance matrix instead?
-            return self.MChain_list[index1].pwd_matrix(index=index1, name=self.name)
-            # if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}.{'csv.gz' if csv else 'npy'}"):
-            #     dm = calc_pw_distances(self.MChain_list[index1].trees)
-            #     if csv:
-            #         np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", X=dm, delimiter=',', fmt='%i')
-            #     else:
-            #         np.save(file=f"{self.working_dir}/{self.name}_{index1}.npy", arr=dm)
-            #     return dm
-            # else:
-            #     if csv:
-            #         return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}.csv.gz", delimiter=',', dtype=int)
-            #     else:
-            #         return np.load(file=f"{self.working_dir}/{self.name}_{index1}.npy")
+            return self.MChain_list[index1].pwd_matrix(index=index1, name=self.name, csv=csv)
         else:
             if type(index2) is not int:
                 raise ValueError("Unrecognized index type!")
@@ -165,25 +152,25 @@ class MChain:
 
     def pwd_matrix(self, csv: bool = False, index="", name=""):
         if not os.path.exists(
-                f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.{'csv.gz' if csv else 'npy'}"):
+                f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.{'csv.gz' if csv else 'npy'}"):
             dm = calc_pw_distances(self.trees)
             if csv:
                 np.savetxt(
-                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.csv.gz",
+                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
                     X=dm, delimiter=',', fmt='%i')
             else:
                 np.save(
-                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.npy",
+                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy",
                     arr=dm)
             return dm
         else:
             if csv:
                 return np.genfromtxt(
-                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.csv.gz",
+                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
                     delimiter=',', dtype=int)
             else:
                 return np.load(
-                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index else ''}.npy")
+                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy")
 
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
