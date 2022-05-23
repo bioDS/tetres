@@ -20,11 +20,43 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
                                                                            cMChain.pwd_matrix(j),
                                                                            cMChain.pwd_matrix(i, j),
                                                                            samples=samples)
-            sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False)
+
+            sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False,
+                        common_norm=False)
+
+            import scipy
+            x0, x1 = axis[i, j].get_xlim()
+            x_pdf = np.linspace(x0, x1, 100)
+            y_pdf = scipy.stats.norm.pdf(x_pdf, loc=1, scale=0.005)
+            sns.lineplot(x=x_pdf, y=y_pdf, color="red", ax=axis[i, j])
+
             for label in axis[i, j].get_xticklabels():
                 label.set_rotation(45)
             sns.boxplot(ax=axis[j, i], data=cur_psrf_like, x="Treeset", y="PSRF_like")
-            # todo axis[i, i] some plot on diagonal missing
+
+
+            # sns.histplot(np.random.normal(1, 0.05, 1000), kde=False, stat="density", ax=axis[i, j], color="orange")
+
+            # from statsmodels.stats.weightstats import ztest
+            # zt = ztest(x1=cur_psrf_like[cur_psrf_like["Treeset"] == "TS1"]["PSRF_like"],
+            #            x2=cur_psrf_like[cur_psrf_like["Treeset"] == "TS2"]["PSRF_like"],
+            #            alternative="two-sided")
+            # print(zt)
+            # from scipy.stats import ks_2samp
+            # ks = ks_2samp(data1=cur_psrf_like[cur_psrf_like["Treeset"] == "TS1"]["PSRF_like"],
+            #          data2=cur_psrf_like[cur_psrf_like["Treeset"] == "TS2"]["PSRF_like"])
+            # print(ks)
+
+        # todo
+    #     cur_geweke = cMChain.MChain_list[i].compute_geweke_distances(index=i, name=cMChain.name, add=False)
+    #     cur_sample = cMChain.MChain_list[i].log_data["Sample"]
+    #     sns.lineplot(ax=axis[i, i], y=cur_geweke, x=cur_sample)
+    # # adding the last diagonal plot, because i will not run far enough
+    # cur_geweke = cMChain.MChain_list[cMChain.m_MChains-1].compute_geweke_distances(index=cMChain.m_MChains-1, name=cMChain.name, add=False)
+    # cur_sample = cMChain.MChain_list[cMChain.m_MChains-1].log_data["Sample"]
+    # sns.lineplot(ax=axis[cMChain.m_MChains-1, cMChain.m_MChains-1], y=cur_geweke, x=cur_sample)
+
+        
 
     # Annotation of the plot
     pad = 5  # in points

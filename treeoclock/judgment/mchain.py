@@ -210,7 +210,7 @@ class MChain:
 
     def compute_geweke_distances(self, norm: bool = False, add: bool = True, first_range=[0.1, 0.2], last_percent=0.4, index="", name=""):
 
-        new_log_list = gwd.geweke_diagnostic_distances(pw_distances=self.pwd_matrix(index=index, name=name), norm=norm,
+        new_log_list = gwd.geweke_diagnostic_distances(pw_distances=self.pwd_matrix(index=index, name=name),
                                                        first_range=first_range, last_percent=last_percent)
 
         if add:
