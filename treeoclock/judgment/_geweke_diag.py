@@ -7,6 +7,12 @@ from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.centroid import Centroid
 
+from ctypes import CDLL, POINTER, c_long, c_double
+import os
+
+
+lib = CDLL(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))}/judgment/geweke_parallel.so")
+
 
 def _treeset_centroid(trees: TimeTreeSet):
     # Currently the only way to change the centroid variation for geweke diagnostic is to change this piece of code
@@ -35,43 +41,17 @@ def _check_percentage_input(first_range, last_percent):
         raise ValueError("The given ranges overlap!")
 
 
-def geweke_diagnostic_distances(pw_distances, norm: bool = False, first_range=[0.1, 0.2], last_percent=0.4):
+def geweke_diagnostic_distances(pw_distances, first_range=[0.1, 0.2], last_percent=0.4):
     _check_percentage_input(first_range, last_percent)
 
-    new_log_list = []  # Initialized list because the loop starts at 1
+    n = pw_distances.shape[0]
+    new_log_list = np.zeros(n, dtype=c_double)
 
-    # todo this should probably be combinations and not permutations?
-    # todo change this to use the distance matrix computation! should become part of the visualize and analysis subpackage?
-    # distance_list = {f"{r},{s}": trees.fp_distance(r, s, norm=norm) ** 2
-    #                  for r, s in list(itertools.permutations(range(len(trees)), 2))}
+    lib.compute_geweke_list.argtypes = [c_long, POINTER((c_long * n) * n),
+                                        POINTER((c_double) * n), c_double, c_double, c_double]
+    pw_distances.dtype = c_long
+    lib.compute_geweke_list(n, pw_distances.ctypes.data_as(POINTER((c_long * n) * n)), new_log_list.ctypes.data_as(POINTER((c_double) * n)), first_range[0], first_range[1], last_percent)
 
-    for i in range(0, pw_distances.shape[0]):
-        if i < 10:
-            # Setting 10 to be the smallest tree set for which the value is actually computed
-            new_log_list.append(1)
-        else:
-            first_set_sum = 0
-            second_set_sum = 0
-            intersum = 0
-            intersum_division = 0
-            first_set = list(itertools.permutations(range(int(i * first_range[0]), int(i * first_range[1])), 2))
-            second_set = list(itertools.permutations(range(int(i * (1 - last_percent)), i), 2))
-            for r, s in first_set:
-                # first_set_sum += distance_list[f"{r},{s}"]
-                first_set_sum += pw_distances[r, s]
-            for r, s in second_set:
-                # second_set_sum += distance_list[f"{r},{s}"]
-                second_set_sum += pw_distances[r, s]
-            for r in range(int(i * first_range[0]), int(i * first_range[1])):
-                for s in range(int(i * (1 - last_percent)), i):
-                    intersum_division += 1
-                    # intersum += distance_list[f"{r},{s}"]
-                    intersum += pw_distances[r, s]
-
-            result = np.absolute((first_set_sum / np.max([len(first_set), 1])) - (second_set_sum / len(second_set)))
-            result += np.absolute((first_set_sum / np.max([len(first_set), 1])) - (intersum / intersum_division))
-            result += np.absolute((intersum / intersum_division) - (second_set_sum / len(second_set)))
-            new_log_list.append(np.sqrt(result))
     return new_log_list
 
 
