@@ -81,6 +81,8 @@ class coupled_MChains():
                     return np.load(f"{self.working_dir}/{self.name}_{index1}_{index2}.npy")
 
     def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
+        if len(self) < 2:
+            raise ValueError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_distance_diagnostic_plot(self, samples=samples)
 
     def __getitem__(self, index):

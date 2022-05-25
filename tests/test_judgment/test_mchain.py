@@ -454,13 +454,3 @@ def test_MChain_copute_ess_traces(thirty_taxa_MChain):
 def test_MChain_compute_in_chain_deviation(thirty_taxa_MChain):
     ret = thirty_taxa_MChain.compute_mean_in_chain_deviation()
     assert len(ret) == len(thirty_taxa_MChain.trees), "In Chain deviation failed!"
-
-
-def test_coupledMChain():
-    assert coupled_MChains(m_MChains=1,
-                           trees=["30Taxa.trees"],
-                           log_files=["30Taxa_beast2.log"],
-                           working_dir= f"{Path(__file__).parent.parent.absolute()}/data"
-                           ), "Construction coupledMChain with files failed!"
-
-# todo more coupledMChain tests to see if everything checks out!
