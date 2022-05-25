@@ -91,6 +91,9 @@ class coupled_MChains():
         else:
             raise TypeError("Given Type for getitem not implemented!")
 
+    def __len__(self):
+        return len(self.MChain_list)
+
 
 class MChain:
     def __init__(self, working_dir, trees, log_file, summary=None, name: str = "MC"):
