@@ -65,37 +65,12 @@ void compute_geweke_list(long n, long dm[][n], double geweke[n], double first_s,
                 last_len = 1;
             }
 
-
-//            (first_sum / first_len)
-//            (last_sum / last_len)
-//            (intersum / intersum_division)
             double result = 0;
             result = (double) fabs(((double) first_sum / (double) first_len) - ((double) last_sum / (double) last_len));
-            // printf("%ld\n", i);
-
 
             result += (double) fabs(((double) first_sum / (double) first_len) - ((double) intersum / (double) intersum_division));
             result += (double) fabs(((double) last_sum / (double) last_len) - ((double) intersum / (double) intersum_division));
 
-//            if(500 <= i && i <= 525)
-//            {
-//                   // printf("C: %f\n", sqrt(result));
-//                   // printf("Result%d: %ld \t %f \t %ld \t %f \t %ld \t %ld\n", i, first_sum, first_len, last_sum, last_len,  intersum, intersum_division);
-//                // printf("C: %f, %f\n", ((double) first_sum / (double) first_len), ((double) last_sum / (double) last_len));
-//            }
-
             geweke[i] = sqrt(result);
-//            floor(i * first_s)
-//            floor(i * first_e)
-//            floor(i * (1 - last))
-
         }
-
-//        for(int i=0; i < n; i++)
-//        {
-//            for (int j=0; j < n; j++)
-//            {
-//                dm[i][j] = findpath_distance(&tree_set_one->trees[i], &tree_set_two->trees[j]);
-//            }
-//        }
 }
