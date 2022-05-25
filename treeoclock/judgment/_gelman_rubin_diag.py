@@ -14,6 +14,9 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
 
     # todo a cMChain initialize pwd_matrices using multiprocessing?
 
+    # from distfit import distfit
+    # dist = distfit()
+
     for i in range(cMChain.m_MChains-1):
         for j in range(i+1, cMChain.m_MChains):
             cur_psrf_like = gelman_rubin_distance_diagnostic_from_matrices(cMChain.pwd_matrix(i),
@@ -23,19 +26,24 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
 
             sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False,
                         common_norm=False)
+            axis[i, j].axvline(x=np.mean(cur_psrf_like["PSRF_like"]), color="red")
+            axis[i, j].axvline(x=np.mean(cur_psrf_like["PSRF_like"]) + np.std(cur_psrf_like["PSRF_like"]), color="red", linestyle="--")
+            axis[i, j].axvline(x=np.mean(cur_psrf_like["PSRF_like"]) - np.std(cur_psrf_like["PSRF_like"]), color="red", linestyle="--")
+            # print(np.var(cur_psrf_like["PSRF_like"]))
+            # import scipy
+            # x0, x1 = axis[i, j].get_xlim()
+            # x_pdf = np.linspace(x0, x1, 100)
+            # y_pdf = scipy.stats.norm.pdf(x_pdf, loc=1, scale=0.005)
+            # sns.lineplot(x=x_pdf, y=y_pdf, color="red", ax=axis[i, j])
 
-            import scipy
-            x0, x1 = axis[i, j].get_xlim()
-            x_pdf = np.linspace(x0, x1, 100)
-            y_pdf = scipy.stats.norm.pdf(x_pdf, loc=1, scale=0.005)
-            sns.lineplot(x=x_pdf, y=y_pdf, color="red", ax=axis[i, j])
+            # dist.fit_transform(cur_psrf_like["PSRF_like"])
+            # # print(dist.summary)
+            # dist.plot(title="", ax=axis[i, j])
+            # axis[i, j].get_legend().remove()
 
             for label in axis[i, j].get_xticklabels():
                 label.set_rotation(45)
             sns.boxplot(ax=axis[j, i], data=cur_psrf_like, x="Treeset", y="PSRF_like")
-
-
-            # sns.histplot(np.random.normal(1, 0.05, 1000), kde=False, stat="density", ax=axis[i, j], color="orange")
 
             # from statsmodels.stats.weightstats import ztest
             # zt = ztest(x1=cur_psrf_like[cur_psrf_like["Treeset"] == "TS1"]["PSRF_like"],
@@ -47,14 +55,13 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
             #          data2=cur_psrf_like[cur_psrf_like["Treeset"] == "TS2"]["PSRF_like"])
             # print(ks)
 
-        # todo
-    #     cur_geweke = cMChain.MChain_list[i].compute_geweke_distances(index=i, name=cMChain.name, add=False)
-    #     cur_sample = cMChain.MChain_list[i].log_data["Sample"]
-    #     sns.lineplot(ax=axis[i, i], y=cur_geweke, x=cur_sample)
-    # # adding the last diagonal plot, because i will not run far enough
-    # cur_geweke = cMChain.MChain_list[cMChain.m_MChains-1].compute_geweke_distances(index=cMChain.m_MChains-1, name=cMChain.name, add=False)
-    # cur_sample = cMChain.MChain_list[cMChain.m_MChains-1].log_data["Sample"]
-    # sns.lineplot(ax=axis[cMChain.m_MChains-1, cMChain.m_MChains-1], y=cur_geweke, x=cur_sample)
+        cur_geweke = cMChain.MChain_list[i].compute_geweke_distances(index=i, name=cMChain.name, add=False)
+        cur_sample = range(0, cMChain.MChain_list[i].chain_length, cMChain.MChain_list[i].tree_sampling_interval)
+        sns.lineplot(ax=axis[i, i], y=cur_geweke, x=cur_sample)
+    # adding the last diagonal plot, because i will not run far enough
+    cur_geweke = cMChain.MChain_list[cMChain.m_MChains-1].compute_geweke_distances(index=cMChain.m_MChains-1, name=cMChain.name, add=False)
+    cur_sample = range(0, cMChain.MChain_list[i].chain_length, cMChain.MChain_list[i].tree_sampling_interval)
+    sns.lineplot(ax=axis[cMChain.m_MChains-1, cMChain.m_MChains-1], y=cur_geweke, x=cur_sample)
 
         
 
