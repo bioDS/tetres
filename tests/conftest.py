@@ -3,7 +3,7 @@ import pytest
 from pathlib import Path
 from testfixtures import TempDirectory
 from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.judgment.mchain import MChain
+from treeoclock.judgment.mchain import MChain, coupled_MChains
 
 
 @pytest.fixture()
@@ -189,3 +189,13 @@ def thirty_taxa_MChain():
         working_dir=f"{Path(__file__).parent.absolute()}/data",
         name="30TestFix"
     )
+
+
+@pytest.fixture
+def ten_taxa_cMChain():
+    return coupled_MChains(m_MChains=2,
+                    trees=["chain0.trees", "chain0_1.trees"],
+                    log_files=["chain0.log", "chain0_1.log"],
+                    working_dir=f"{Path(__file__).parent.absolute()}/data/cMChain",
+                    name="10TaxaFix"
+                    )

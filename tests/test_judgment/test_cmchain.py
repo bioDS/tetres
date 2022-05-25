@@ -29,3 +29,8 @@ def test_cMChain_gelman_rubin_plot_single_chain():
         coupled_chains.gelman_rubin_like_diagnostic_plot()
 
 
+def test_cMChain_gelman_rubin_plot(ten_taxa_cMChain):
+    assert ten_taxa_cMChain.gelman_rubin_like_diagnostic_plot(), "Gelman Rubin Plot failed!"
+
+
+
