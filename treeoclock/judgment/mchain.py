@@ -128,7 +128,7 @@ class MChain:
             self.chain_length = int(list(self.log_data["Sample"])[-1])
             self.log_sampling_interval = int(list(self.log_data["Sample"])[1])
             # assuming that the first iteration 0 tree and the last have been logged in the logfile
-            self.tree_sampling_interval = self.chain_length / (len(self.trees) - 1)
+            self.tree_sampling_interval = int(self.chain_length / (len(self.trees) - 1))
         # todo the logfile should be optional as it is possible to compute all new measures without the log file
         #  it is only relevant if we want to compare them or do something with those values
         #  maybe add the option logfile None which also throws errors when functions are called that might use the logfile
