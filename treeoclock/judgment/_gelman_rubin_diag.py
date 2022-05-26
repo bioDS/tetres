@@ -192,7 +192,7 @@ def gelman_rubin_trace_plot(cmchain, i, j):
 
     plt.savefig(fname=f"{cmchain.working_dir}/{cmchain.name}_{i}-{j}_single_value_grd.png",
                 format="png", bbox_inches="tight", dpi=800)
-
+    plt.clf()
 
 
 # todo funciton that just computes the cutoff point
