@@ -119,7 +119,7 @@ def gelman_rubin_trace_plot(cmchain, i, j):
 
     add = True  # will add 5 random samples psrf values and take the mean instead
     sample_from = 0.5  # percentage, last x percentage of trees will be sampled and the mean will be the psrf_like
-    threshold_percentage = [0.1, 0.5, 0.25, 0.75]
+    threshold_percentage = [0, 0.1, 0.5, 0.25, 0.75]
 
     dmi = cmchain.pwd_matrix(i)
     dmj = cmchain.pwd_matrix(j)
@@ -182,7 +182,18 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     starty = 0.8
     for k, v in cutoff.items():
         plt.axvline(x=v, label=f"{k}", color="red")
+        # todo this text is not good, it should be on top of the plot or something
+        #  not sure how to savely put it somewhere ...
         plt.text(x=v+0.05, y=starty, s=f'{v}/{k}', rotation=315, fontsize=7, zorder=20)
         starty -= 0.1
-    
-    plt.show()
+
+    # todo make it return the plot and then do a comparison plot for different values maybe?
+    # todo this could also be creating multiple plots underneath each other for different sample from parameters
+
+    plt.savefig(fname=f"{cmchain.working_dir}/{cmchain.name}_{i}-{j}_single_value_grd.png",
+                format="png", bbox_inches="tight", dpi=800)
+
+
+
+# todo funciton that just computes the cutoff point
+#  then based on the cutoff compute the new tree sets and log filed to check convergence in tracer

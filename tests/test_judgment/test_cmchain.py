@@ -59,4 +59,5 @@ def test_cMChain_gelman_rubin_plot(ten_taxa_cMChain):
 
 def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
     ten_taxa_cMChain.gelman_rubin_trace_plot(i=0, j=1)
-    assert True
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/{ten_taxa_cMChain.name}_{0}-{1}_single_value_grd.png"), \
+        "Single value Gelman Rubin Plot failed!"
