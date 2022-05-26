@@ -85,6 +85,11 @@ class coupled_MChains():
             raise ValueError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_distance_diagnostic_plot(self, samples=samples)
 
+    def gelman_rubin_trace_plot(self, i, j):
+        if len(self) < 2:
+            raise TypeError("Gelman Rubin only possible with multiple Chains!")
+        return grd.gelman_rubin_trace_plot(self, i, j)
+
     def __getitem__(self, index):
         if isinstance(index, int):
             if index >= len(self.MChain_list):

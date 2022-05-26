@@ -57,3 +57,6 @@ def test_cMChain_gelman_rubin_plot(ten_taxa_cMChain):
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/{ten_taxa_cMChain.name}_grd_plot.png"), "Gelman Rubin Plot failed!"
 
 
+def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
+    ten_taxa_cMChain.gelman_rubin_trace_plot(i=0, j=1)
+    assert True

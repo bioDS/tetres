@@ -114,14 +114,75 @@ def gelman_rubin_distance_diagnostic_from_matrices(pwts1, pwts2, pwts1ts2,
     return pd.DataFrame(data=psrf_like, columns=["Treeset", "PSRF_like"])
 
 
-def gelman_rubin_diagnostic_list(cMChain, i, j):
+def gelman_rubin_trace_plot(cmchain, i, j):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
 
-    # todo check index i and j for validity
+    add = True  # will add 5 random samples psrf values and take the mean instead
+    sample_from = 0.5  # percentage, last x percentage of trees will be sampled and the mean will be the psrf_like
+    threshold_percentage = [0.1, 0.5, 0.25, 0.75]
 
-    # todo check that both chains have same sized tree set
+    dmi = cmchain.pwd_matrix(i)
+    dmj = cmchain.pwd_matrix(j)
+    dmij = cmchain.pwd_matrix(i, j)
 
+    if dmi.shape != dmj.shape:
+        raise ValueError("Treesets have different sizes!")
 
+    df = []
 
+    cutoff = {k: 0 for k in threshold_percentage}
+    consecutive = 0
 
-    return 0
+    for cur_sample in range(1, dmi.shape[0]):
+        # starting at 10 to use add and because small treesets don't make so much sense
+        i_in_var = np.sum(dmi[cur_sample, :cur_sample]) + np.sum(dmi[:cur_sample, cur_sample])
+        i_between_var = np.sum(dmij[cur_sample, :cur_sample])
+        psrf_like = np.sqrt((i_between_var/cur_sample) / (i_in_var/cur_sample))
+        if add and cur_sample-int(cur_sample*(1-sample_from)) >= 10:
+            psrf_like = [psrf_like]
+            for x in range(int(cur_sample*(1-sample_from)), cur_sample-1):
+                x_in_var = np.sum(dmi[x, :cur_sample]) + np.sum(dmi[:cur_sample, x])
+                x_between_var = np.sum(dmij[x, :cur_sample])
+                psrf_like.append(np.sqrt((x_between_var/cur_sample) / (x_in_var/cur_sample)))
+            psrf_like = np.median(psrf_like)
+        df.append([cur_sample, psrf_like, f"chain_{i}"])
+        
+        j_in_var = np.sum(dmj[cur_sample, :cur_sample]) + np.sum(dmj[:cur_sample, cur_sample])
+        j_between_var = np.sum(dmij[:cur_sample, cur_sample])
+        psrf_like = np.sqrt((j_between_var/cur_sample) / (j_in_var/cur_sample))
+        if add and cur_sample-int(cur_sample*(1-sample_from)) > 10:
+            psrf_like = [psrf_like]
+            for x in range(int(cur_sample*(1-sample_from)), cur_sample-1):
+                x_in_var = np.sum(dmj[x, :cur_sample]) + np.sum(dmj[:cur_sample, x])
+                x_between_var = np.sum(dmij[:cur_sample, x])
+                psrf_like.append(np.sqrt((x_between_var/cur_sample) / (x_in_var/cur_sample)))
+            psrf_like = np.median(psrf_like)
+        df.append([cur_sample, psrf_like, f"chain_{j}"])
+
+        if 0.99 < df[-1][1] < 1.01 and 0.99 < df[-2][1] < 1.01:
+            consecutive += 1
+            for k in cutoff.keys():
+                if cutoff[k] == 0 and consecutive >= int(k*cur_sample):
+                    cutoff[k] = cur_sample
+        else:
+            consecutive = 0
+
+    df = pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"])
+    sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5)
+
+    plt.axhline(y=1.01, linestyle="--", color="red")
+    plt.axhline(y=0.99, linestyle="--", color="red")
+
+    plt.axhline(y=1.05, linestyle="--", color="orange")
+    plt.axhline(y=0.95, linestyle="--", color="orange")
+
+    plt.axhline(y=1.1, linestyle="--", color="yellow")
+    plt.axhline(y=0.9, linestyle="--", color="yellow")
+
+    starty = 0.8
+    for k, v in cutoff.items():
+        plt.axvline(x=v, label=f"{k}", color="red")
+        plt.text(x=v+0.05, y=starty, s=f'{v}/{k}', rotation=315, fontsize=7, zorder=20)
+        starty -= 0.1
+    
+    plt.show()
