@@ -9,7 +9,7 @@ import numpy as np
 
 def visualize_largest_cc(chain, i):
     dmi = chain.pwd_matrix(i)
-    visualize_matrix(dmi, log_data=chain[i].log_data, outfile=f"{chain.working_dir}/{chain.name}_largest_cc.png")
+    visualize_matrix(dmi, log_data=chain[i].log_data, outfile=f"{chain.working_dir}/{chain.name}_{i}_largest_cc.png")
 
 
 def visualize_matrix(d_matrix, log_data, outfile):
@@ -38,12 +38,12 @@ def visualize_matrix(d_matrix, log_data, outfile):
     # pos = nx.spring_layout(largest_cc, seed=7)
     pos = nx.nx_agraph.graphviz_layout(largest_cc, prog="fdp")
 
-    print(log_data.iloc[lcc_i])
+    # print(log_data.iloc[lcc_i])
 
     sizes = list(log_data.iloc[lcc_i]["likelihood"])
     min = np.min(sizes)
     max = np.max(sizes)
-    print(min, max, sizes)
+    # print(min, max, sizes)
     sizes = [(s - min)/(max - min) for s in sizes]
 
     nx.draw_networkx_nodes(largest_cc, pos, node_size=[s*100 for s in sizes])
