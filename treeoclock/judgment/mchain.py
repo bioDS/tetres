@@ -35,16 +35,18 @@ class coupled_MChains():
             if len(trees) != self.m_MChains or len(log_files) != self.m_MChains:
                 raise ValueError("m_chains and number of trees do not match!")
             for i in range(self.m_MChains):
-                self.MChain_list.append(MChain(trees=trees[i], log_file=log_files[i], working_dir=working_dir))
+                self.MChain_list.append(MChain(trees=trees[i], log_file=log_files[i],
+                                               working_dir=working_dir, name=f"{self.name}_{i}"))
         elif type(trees) is str:
             if not os.path.exists(f"{self.working_dir}/{trees}"):
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{trees} does not exist!")
             if not os.path.exists(f"{self.working_dir}/{log_files}"):
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{log_files} does not exist!")
-            self.MChain_list.append(MChain(trees=trees, log_file=log_files, working_dir=working_dir))
+            self.MChain_list.append(MChain(trees=trees, log_file=log_files, working_dir=working_dir, name=f"{self.name}_{0}"))
             for i in range(1, self.m_MChains):
                 self.MChain_list.append(
-                    MChain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}", working_dir=working_dir))
+                    MChain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}",
+                           working_dir=working_dir, name=f"{self.name}_{i}"))
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
 
