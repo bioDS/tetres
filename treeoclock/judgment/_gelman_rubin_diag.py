@@ -83,6 +83,7 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
 
     plt.savefig(fname=f"{cMChain.working_dir}/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
                 format="png", bbox_inches="tight", dpi=800)
+    plt.clf()
 
 
 def gelman_rubin_distance_diagnostic_from_matrices(pwts1, pwts2, pwts1ts2,
