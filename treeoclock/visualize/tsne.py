@@ -11,10 +11,10 @@ def _tsne_coords_from_pwd(pwd_matrix, dim=2):
 
 def tsne_coords_from_mchain(mchain, dim=2):
     # computing or loading the tsne coordinates
-    if not os.path.exists(f"{mchain.working_dir}/{mchain.name}_tsne_{dim}d_coords.npy"):
+    if not os.path.exists(f"{mchain.working_dir}/data/{mchain.name}_tsne_{dim}d_coords.npy"):
         pwd_matrix = mchain.pwd_matrix()
         coords = _tsne_coords_from_pwd(pwd_matrix=pwd_matrix, dim=dim)
-        np.save(file=f"{mchain.working_dir}/{mchain.name}_tsne_{dim}d_coords.npy", arr=coords)
+        np.save(file=f"{mchain.working_dir}/data/{mchain.name}_tsne_{dim}d_coords.npy", arr=coords)
         return coords
     else:
-        return np.load(f"{mchain.working_dir}/{mchain.name}_tsne_{dim}d_coords.npy")
+        return np.load(f"{mchain.working_dir}/data/{mchain.name}_tsne_{dim}d_coords.npy")
