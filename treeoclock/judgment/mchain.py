@@ -29,6 +29,9 @@ class coupled_MChains():
         if not os.path.isdir(working_dir):
             raise FileNotFoundError("Given Working directory does not exist!")
         self.working_dir = working_dir
+        for d in ["data", "plots"]:
+            if not os.path.isdir(f"{self.working_dir}/{d}"):
+                os.mkdir(f"{self.working_dir}/{d}")
 
         self.MChain_list = []
         if type(trees) is list:
@@ -121,6 +124,11 @@ class MChain:
                     raise ValueError(working_dir)
         else:
             raise ValueError("Working directory type not recognized!")
+
+        for d in ["data", "plots"]:
+            if not os.path.isdir(f"{self.working_dir}/{d}"):
+                os.mkdir(f"{self.working_dir}/{d}")
+
         # Setting trees
         if type(trees) is TimeTreeSet:
             self.trees = trees
@@ -168,6 +176,7 @@ class MChain:
                                      f"\n(Construction of class MChain failed!)")
 
     def pwd_matrix(self, csv: bool = False, index="", name=""):
+        # todo this should work natively with the name of coupled mchains now, without all these parameters?
         if not os.path.exists(
                 f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.{'csv.gz' if csv else 'npy'}"):
             dm = calc_pw_distances(self.trees)
