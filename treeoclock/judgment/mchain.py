@@ -70,20 +70,20 @@ class coupled_MChains():
                 raise IndexError("Given Index out of range!")
             if index2 < index1:
                 index1, index2 = index2, index1
-            if not os.path.exists(f"{self.working_dir}/{self.name}_{index1}_{index2}.{'csv.gz' if csv else 'npy'}"):
+            if not os.path.exists(f"{self.working_dir}/data/{self.name}_{index1}_{index2}.{'csv.gz' if csv else 'npy'}"):
                 dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees)
                 if csv:
-                    np.savetxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',',
+                    np.savetxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',',
                                fmt='%i')
                 else:
-                    np.save(file=f"{self.working_dir}/{self.name}_{index1}_{index2}.npy", arr=dm)
+                    np.save(file=f"{self.working_dir}/data/{self.name}_{index1}_{index2}.npy", arr=dm)
                 return dm
             else:
                 if csv:
-                    return np.genfromtxt(fname=f"{self.working_dir}/{self.name}_{index1}_{index2}.csv.gz",
+                    return np.genfromtxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}.csv.gz",
                                          delimiter=',', dtype=int)
                 else:
-                    return np.load(f"{self.working_dir}/{self.name}_{index1}_{index2}.npy")
+                    return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}.npy")
 
     def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
         if len(self) < 2:
@@ -178,25 +178,25 @@ class MChain:
     def pwd_matrix(self, csv: bool = False, index="", name=""):
         # todo this should work natively with the name of coupled mchains now, without all these parameters?
         if not os.path.exists(
-                f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.{'csv.gz' if csv else 'npy'}"):
+                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.{'csv.gz' if csv else 'npy'}"):
             dm = calc_pw_distances(self.trees)
             if csv:
                 np.savetxt(
-                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
+                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
                     X=dm, delimiter=',', fmt='%i')
             else:
                 np.save(
-                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy",
+                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy",
                     arr=dm)
             return dm
         else:
             if csv:
                 return np.genfromtxt(
-                    fname=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
+                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
                     delimiter=',', dtype=int)
             else:
                 return np.load(
-                    file=f"{self.working_dir}/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy")
+                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy")
 
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
