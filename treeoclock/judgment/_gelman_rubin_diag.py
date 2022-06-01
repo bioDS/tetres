@@ -213,8 +213,8 @@ def gelman_rubin_trace_plot(cmchain, i, j):
 
             axis[row, col].set_ylabel(f"{threshold_percentage[row]}", color="green")
             axis[row, col].set_xlabel(f"{sample_from[col]}", color="blue")
-    figure.supylabel("Threshold Time (%)", color="green")
-    figure.supxlabel("Sample from last x% of trees", color="blue")
+    figure.supylabel("Threshold Time (fraction of iterations)", color="green")
+    figure.supxlabel("Sample from last x-fraction of trees", color="blue")
 
     # plt.axhline(y=1.05, linestyle="--", color="orange")
     # plt.axhline(y=0.95, linestyle="--", color="orange")
