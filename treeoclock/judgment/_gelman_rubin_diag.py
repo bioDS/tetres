@@ -81,7 +81,7 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
                     xycoords=ax.yaxis.label, textcoords="offset points",
                     size="large", ha="right", va="center")
 
-    plt.savefig(fname=f"{cMChain.working_dir}/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
+    plt.savefig(fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
 
@@ -169,6 +169,10 @@ def gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from, threshold_percent
 def gelman_rubin_trace_plot(cmchain, i, j):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
 
+    # todo add a window line, i.e. cutoff and start line, including all trees that contributed to the decision to cutoff
+    # todo  this is only applicable if the value is >0 i think, should see
+    #  todo also include a sample from 0.9 i.e. a 10 % burnin constantly?
+
     sample_from = [0, 0.1, 0.5, 0.75, 1, 0.25]
     sample_from = np.sort(sample_from)
     threshold_percentage = [0, 0.1, 0.25, 0.5, 0.75, 1.0]
@@ -209,7 +213,7 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     # plt.axhline(y=1.1, linestyle="--", color="yellow")
     # plt.axhline(y=0.9, linestyle="--", color="yellow")
 
-    plt.savefig(fname=f"{cmchain.working_dir}/{cmchain.name}_{i}-{j}_grd_singlevalue_evaluation.png",
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_singlevalue_evaluation.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
 
