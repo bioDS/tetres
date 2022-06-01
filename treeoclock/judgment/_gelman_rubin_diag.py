@@ -81,8 +81,9 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
                     xycoords=ax.yaxis.label, textcoords="offset points",
                     size="large", ha="right", va="center")
 
-    plt.savefig(fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
-                format="png", bbox_inches="tight", dpi=800)
+    plt.savefig(
+        fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
+        format="png", bbox_inches="tight", dpi=800)
     plt.clf()
 
 
@@ -128,7 +129,8 @@ def gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from, threshold_percent
 
     df = []
 
-    cutoff = {k: -1 for k in threshold_percentage}
+    cutoff_start = {k: -1 for k in threshold_percentage}
+    cutoff_end = {k: -1 for k in threshold_percentage}
     consecutive = 0
 
     for cur_sample in range(1, dmi.shape[0]):
@@ -157,23 +159,20 @@ def gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from, threshold_percent
 
         if 0.99 < df[-1][1] < 1.01 and 0.99 < df[-2][1] < 1.01:
             consecutive += 1
-            for k in cutoff.keys():
-                if cutoff[k] == -1 and consecutive >= int(k*cur_sample):
-                    cutoff[k] = cur_sample
+            for k in cutoff_end.keys():
+                if cutoff_end[k] == -1 and consecutive >= int(k * cur_sample):
+                    cutoff_end[k] = cur_sample
+                    cutoff_start[k] = int((cur_sample - consecutive))  # * (1 - sample_from))
         else:
             consecutive = 0
 
-    return pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"]), cutoff
+    return pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"]), cutoff_start, cutoff_end
 
 
 def gelman_rubin_trace_plot(cmchain, i, j):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
 
-    # todo add a window line, i.e. cutoff and start line, including all trees that contributed to the decision to cutoff
-    # todo  this is only applicable if the value is >0 i think, should see
-    #  todo also include a sample from 0.9 i.e. a 10 % burnin constantly?
-
-    sample_from = [0, 0.1, 0.5, 0.75, 1, 0.25]
+    sample_from = [0, 0.1, 0.5, 0.75, 1, 0.25, 0.9]
     sample_from = np.sort(sample_from)
     threshold_percentage = [0, 0.1, 0.25, 0.5, 0.75, 1.0]
     threshold_percentage = np.sort(threshold_percentage)
@@ -184,8 +183,8 @@ def gelman_rubin_trace_plot(cmchain, i, j):
                                 squeeze=False, sharex=True, sharey=True)
 
     for col in range(len(sample_from)):
-        df, cutoff = gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from=sample_from[col],
-                                                    threshold_percentage=threshold_percentage)
+        df, cutoff_start, cutoff_end = gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from=sample_from[col],
+                                                                      threshold_percentage=threshold_percentage)
         for row in range(len(threshold_percentage)):
             sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
             # axis[row, col].axhline(y=1.01, linestyle="--", color="red")
@@ -197,10 +196,20 @@ def gelman_rubin_trace_plot(cmchain, i, j):
             # axis[row, col].set_ylim([0.8, 1.2])
             # axis[row, col].set_yticks = np.arange(0.8, 1.2, 0.05)
 
-            axis[row, col].axvline(x=cutoff[threshold_percentage[row]], color="red")
-            axis[row, col].text(x=cutoff[threshold_percentage[row]] + 0.1, y=1.1,
-                                s=f'{cutoff[threshold_percentage[row]]}',
-                                fontsize=8, zorder=20)
+            if cutoff_end[threshold_percentage[row]] != -1:
+                axis[row, col].axvline(x=cutoff_end[threshold_percentage[row]], color="red")
+                axis[row, col].text(x=cutoff_end[threshold_percentage[row]] + 0.1, y=-.05,
+                                    s=f'{cutoff_end[threshold_percentage[row]]}',
+                                    transform=axis[row, col].get_xaxis_transform(),
+                                    fontsize=8, zorder=20, ha="center",
+                                    va="top", rotation=-45, color="red")
+            if cutoff_start[threshold_percentage[row]] != -1:
+                axis[row, col].axvline(x=cutoff_start[threshold_percentage[row]], color="green")
+                axis[row, col].text(x=cutoff_start[threshold_percentage[row]] + 0.1, y=-.5,
+                                    s=f'{cutoff_start[threshold_percentage[row]]}',
+                                    transform=axis[row, col].get_xaxis_transform(),
+                                    fontsize=8, zorder=20, ha="center",
+                                    va="top", rotation=-45, color="green")
 
             axis[row, col].set_ylabel(f"{threshold_percentage[row]}", color="green")
             axis[row, col].set_xlabel(f"{sample_from[col]}", color="blue")
@@ -216,4 +225,3 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_singlevalue_evaluation.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
-
