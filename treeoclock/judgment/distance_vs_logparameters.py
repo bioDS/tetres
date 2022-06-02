@@ -66,3 +66,40 @@ def plot_sos_log_comparison(mchain):
                     x="SoS", y=f"{log_key}", color="blue")
     plt.show()
     plt.clf()
+
+
+def plot_loglik_along_path(mchain):
+    # todo
+    #  I need a alignment withing the mchain object
+    #  I need a loglikelihood computation for a given tree from the mchain
+    #  I then need shortest paths and the likelihood along this shortest path for the plot
+
+    # todo future feature maybe, not yet implemented!
+
+    log_key = "posterior"
+
+    distances = mchain.pwd_matrix()
+    log_values = mchain.log_data[log_key]
+
+    if distances.shape[0] < log_values.shape[0] and (mchain.tree_sampling_interval % mchain.log_sampling_interval == 0):
+        sampling_diff = int(mchain.tree_sampling_interval / mchain.log_sampling_interval)
+        log_values = log_values[::2]  # deleting logs that do not have a tree
+    elif distances.shape[0] > log_values.shape[0]:
+        raise ValueError("Problem with tree sample size!")
+
+    log_values = np.array(log_values)
+
+    x = 0
+    df = []
+    for i in range(distances.shape[0]):
+        df.append([x, log_values[i]])
+        if i < distances.shape[0]-1:
+            x += distances[i, i+1]
+
+    df = pd.DataFrame(df, columns=["Sample", f"{log_key}"])
+    sns.lineplot(data=df, x="Sample", y=f"{log_key}", marker="o")
+    plt.xlabel("RNNI dist to previous tree")
+    plt.show()
+    plt.clf()
+    return 0
+
