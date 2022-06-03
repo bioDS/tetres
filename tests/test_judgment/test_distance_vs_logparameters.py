@@ -17,3 +17,8 @@ def test_plot_sos_log_comparison(thirty_taxa_MChain):
 def test_loglike_along_path(thirty_taxa_MChain):
     plot_loglik_along_path(thirty_taxa_MChain)
     assert True
+
+
+def test_plot_log_neighbours(thirty_taxa_MChain):
+    plot_log_neighbours(thirty_taxa_MChain)
+    assert True
