@@ -28,7 +28,10 @@ def test_process_template_wrongwd():
 
 
 def test_process_template_wd():
-    os.remove(f"{Path(__file__).parent.parent.absolute()}/data/beast_helper/DS1.xml")
+    try:
+        os.remove(f"{Path(__file__).parent.parent.absolute()}/data/beast_helper/DS1.xml")
+    except FileNotFoundError:
+        pass
     process_template("DS1-template.xml", "DS1.xml", "config.toml",
                      working_dir=f"{Path(__file__).parent.parent.absolute()}/data/beast_helper")
     assert os.path.exists(f"{Path(__file__).parent.parent.absolute()}/data/beast_helper/DS1.xml"), \
@@ -36,7 +39,10 @@ def test_process_template_wd():
 
 
 def test_process_template_no_wd():
-    os.remove(f"{Path(__file__).parent.parent.absolute()}/data/beast_helper/DS1.xml")
+    try:
+        os.remove(f"{Path(__file__).parent.parent.absolute()}/data/beast_helper/DS1.xml")
+    except FileNotFoundError:
+        pass
     working_dir = f"{Path(__file__).parent.parent.absolute()}/data/beast_helper"
     process_template(f"{working_dir}/DS1-template.xml", f"{working_dir}/DS1.xml",
                      f"{working_dir}/config.toml")
