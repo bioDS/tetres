@@ -1,6 +1,6 @@
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
-
+import gc
 import random
 import numpy as np
 import seaborn as sns
@@ -85,6 +85,8 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
         fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
         format="png", bbox_inches="tight", dpi=800)
     plt.clf()
+    plt.close("all")
+    gc.collect()
 
 
 def gelman_rubin_distance_diagnostic_from_matrices(pwts1, pwts2, pwts1ts2,
@@ -225,3 +227,5 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_singlevalue_evaluation.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
+    plt.close("all")
+    gc.collect()
