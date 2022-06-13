@@ -100,45 +100,38 @@ def plot_loglik_along_path(mchain):
 def plot_log_neighbours(mchain, threshold):
     # todo a proper test case for this is necessary if i develop more about this part
 
-    log_key = "posterior"
+    # if log_key not in mchain.log_data:
+    #     raise ValueError("Unrecognized log_key value!")
 
-    distances = mchain.pwd_matrix()
-    log_values = mchain.log_data[log_key]
-
-    if distances.shape[0] < log_values.shape[0] and (mchain.tree_sampling_interval % mchain.log_sampling_interval == 0):
-        sampling_diff = int(mchain.tree_sampling_interval / mchain.log_sampling_interval)
-        log_values = log_values[::2]  # deleting logs that do not have a tree
-    elif distances.shape[0] > log_values.shape[0]:
-        raise ValueError("Problem with tree sample size!")
-
-    log_values = np.array(log_values)
-
-    # todo delete multiples of the same tree, for this delete from matrix and from log values list
-
-    max_diff = np.max(log_values) - np.min(log_values)
-
-    seen = {}
     df = []
-    for i in range(distances.shape[0]):
-        l1 = np.where((distances[i, :] < threshold) & (distances[i, :] > 0))[0]
-        # l1 = np.append(l1, np.where(distances[:, i] == 1)[0])
-        if np.all(distances[:(i-1), i]):
-            for x in l1:
-                if np.all(distances[:(x-1), x]):
-                    # df.append([log_values[i], log_values[x]])
-                    df.append([abs(log_values[i] - log_values[x])/max_diff])
-    df = pd.DataFrame(df, columns=["Value"])
-    sns.violinplot(data=df, x="Value", inner="stick", cut=0)
-    # df = pd.DataFrame(df, columns=["x", "y"])
-    # sns.scatterplot(data=df, x="x", y="y")
+    for log_key in ["posterior", "likelihood"]:
+        distances = mchain.pwd_matrix()
+        log_values = mchain.log_data[log_key]
 
-    # ax = plt.axis()  # Getting current axis limits
-    # plt.axline([0, 0], [1, 1], color='red')  # Plot f(x)=x
-    # plt.axline([0, max_diff], [1, 1+max_diff], color="orange")
-    # plt.axline([0, -max_diff], [1, 1-max_diff], color="orange")
-    # plt.axis(ax)  # Resetting the axis limits
+        if distances.shape[0] < log_values.shape[0] and (mchain.tree_sampling_interval % mchain.log_sampling_interval == 0):
+            sampling_diff = int(mchain.tree_sampling_interval / mchain.log_sampling_interval)
+            log_values = log_values[::sampling_diff]  # deleting logs that do not have a tree
+        elif distances.shape[0] > log_values.shape[0]:
+            raise ValueError("Problem with tree sample size!")
 
-    # todo make the plot look nice and add labels and label sizes for the paper!
+        log_values = np.array(log_values)
+
+        max_diff = np.max(log_values) - np.min(log_values)
+
+        for i in range(distances.shape[0]):
+            l1 = np.where((distances[i, :] < threshold) & (distances[i, :] > 0))[0]
+            # l1 = np.append(l1, np.where(distances[:, i] == 1)[0])
+            if np.all(distances[:(i-1), i]):
+                for x in l1:
+                    if np.all(distances[:(x-1), x]):
+                        # df.append([log_values[i], log_values[x]])
+                        df.append([abs(log_values[i] - log_values[x])/max_diff, log_key])
+    
+    df = pd.DataFrame(df, columns=["Value", "Parameter"])
+    sns.violinplot(data=df, x="Value", y="Parameter", inner="stick", cut=0)
+    plt.xlim(0, 1)
+    plt.xlabel("Log value - normalized by biggest observed difference in dataset")
+    plt.suptitle(f"Comparing log parameters for trees at distance {threshold}")
 
     plt.show()
 
