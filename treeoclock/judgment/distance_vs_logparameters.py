@@ -97,11 +97,7 @@ def plot_loglik_along_path(mchain):
     return 0
 
 
-def plot_log_neighbours(mchain, threshold):
-    # todo a proper test case for this is necessary if i develop more about this part
-
-    # if log_key not in mchain.log_data:
-    #     raise ValueError("Unrecognized log_key value!")
+def plot_log_neighbours(mchain):
 
     df = []
     for log_key in ["posterior", "likelihood"]:
@@ -116,23 +112,34 @@ def plot_log_neighbours(mchain, threshold):
 
         log_values = np.array(log_values)
 
-        max_diff = np.max(log_values) - np.min(log_values)
-
+        max_diff = abs(np.max(log_values) - np.min(log_values))
+        max_d = np.max(distances)
         for i in range(distances.shape[0]):
-            l1 = np.where((distances[i, :] < threshold) & (distances[i, :] > 0))[0]
+            # low distances
+            l1 = np.where((distances[i, :] < int(0.1*max_d)) & (distances[i, :] > 0))[0]
             # l1 = np.append(l1, np.where(distances[:, i] == 1)[0])
             if np.all(distances[:(i-1), i]):
                 for x in l1:
                     if np.all(distances[:(x-1), x]):
                         # df.append([log_values[i], log_values[x]])
-                        df.append([abs(log_values[i] - log_values[x])/max_diff, log_key])
-    
-    df = pd.DataFrame(df, columns=["Value", "Parameter"])
-    sns.violinplot(data=df, x="Value", y="Parameter", inner="stick", cut=0)
-    plt.xlim(0, 1)
-    plt.xlabel("Log value - normalized by biggest observed difference in dataset")
-    plt.suptitle(f"Comparing log parameters for trees at distance {threshold}")
-
+                        df.append([abs(log_values[i] - log_values[x])/max_diff, log_key, f"0-{int(0.1*max_d)}"])
+            # high distances
+            l1 = np.where((distances[i, :] < max_d) & (distances[i, :] > int(0.9*max_d)))[0]
+            # l1 = np.append(l1, np.where(distances[:, i] == 1)[0])
+            if np.all(distances[:(i-1), i]):
+                for x in l1:
+                    if np.all(distances[:(x-1), x]):
+                        # df.append([log_values[i], log_values[x]])
+                        df.append([abs(log_values[i] - log_values[x])/max_diff, log_key, f"{int(0.9*max_d)}-{max_d}"])
+    df = pd.DataFrame(df, columns=["Value", "Parameter", "Offset"])
+    # sns.violinplot(data=df, x="Value", y="Parameter", inner="stick", cut=0)
+    sns.boxplot(data=df, y="Value", x="Parameter", hue="Offset")
+    # plt.xlim(0, 1)
+    plt.ylabel("Difference of normalized log value")
+    low_samples = len(df[(df["Offset"] == f"0-{int(0.1*max_d)}") & (df["Parameter"] == "likelihood")])
+    high_samples = len(df[(df["Offset"] == f"{int(0.9*max_d)}-{max_d}") & (df["Parameter"] == "likelihood")])
+    # plt.suptitle(f"Comparing log parameters for {samples} trees with distance < {threshold}")
+    plt.suptitle(f"Comparing log parameters\n10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})")
     plt.show()
 
     return 0
