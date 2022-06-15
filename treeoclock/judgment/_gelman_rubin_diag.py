@@ -12,10 +12,9 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
     figure, axis = plt.subplots(nrows=cMChain.m_MChains, ncols=cMChain.m_MChains, constrained_layout=True,
                                 figsize=[9, 7])
 
-    # todo a cMChain initialize pwd_matrices using multiprocessing?
-
-    # from distfit import distfit
-    # dist = distfit()
+    # initializing the scaled axis for the upper part of the plot:
+    scaled_x_axis = np.arange(0.9, 2, 0.1)
+    scaled_y_axis = np.arange(0, 120, 20)
 
     for i in range(cMChain.m_MChains - 1):
         for j in range(i + 1, cMChain.m_MChains):
@@ -24,39 +23,33 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
                                                                            cMChain.pwd_matrix(i, j),
                                                                            samples=samples)
 
+            # upper triangle of plot
             sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False,
                         common_norm=False)
-            axis[i, j].axvline(x=np.mean(cur_psrf_like["PSRF_like"]), color="red")
-            axis[i, j].axvline(x=np.mean(cur_psrf_like["PSRF_like"]) + np.std(cur_psrf_like["PSRF_like"]), color="red",
-                               linestyle="--")
-            axis[i, j].axvline(x=np.mean(cur_psrf_like["PSRF_like"]) - np.std(cur_psrf_like["PSRF_like"]), color="red",
-                               linestyle="--")
-            # print(np.var(cur_psrf_like["PSRF_like"]))
-            # import scipy
-            # x0, x1 = axis[i, j].get_xlim()
-            # x_pdf = np.linspace(x0, x1, 100)
-            # y_pdf = scipy.stats.norm.pdf(x_pdf, loc=1, scale=0.005)
-            # sns.lineplot(x=x_pdf, y=y_pdf, color="red", ax=axis[i, j])
-
-            # dist.fit_transform(cur_psrf_like["PSRF_like"])
-            # # print(dist.summary)
-            # dist.plot(title="", ax=axis[i, j])
-            # axis[i, j].get_legend().remove()
-
+            axis[i, j].set_xticks(scaled_x_axis)
+            axis[i, j].set_yticks(scaled_y_axis)
             for label in axis[i, j].get_xticklabels():
+                label.set_rotation(90)
+
+            # lower triangle of plot
+            sns.kdeplot(ax=axis[j, i], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False,
+                        common_norm=False)
+            # todo maybe add a line at 1 (if in the xtick range) indicating ideal and then the actual mean
+            axis[j, i].axvline(x=np.mean(cur_psrf_like["PSRF_like"]), color="red")
+            axis[j, i].axvline(x=np.mean(cur_psrf_like["PSRF_like"]) + np.std(cur_psrf_like["PSRF_like"]), color="red",
+                               linestyle="--")
+            axis[j, i].axvline(x=np.mean(cur_psrf_like["PSRF_like"]) - np.std(cur_psrf_like["PSRF_like"]), color="red",
+                               linestyle="--")
+
+            for label in axis[j, i].get_xticklabels():
                 label.set_rotation(45)
-            sns.boxplot(ax=axis[j, i], data=cur_psrf_like, x="Treeset", y="PSRF_like")
+            axis[j, i].set_xticks(np.linspace(axis[j, i].get_xticks().min(),
+                                              axis[j, i].get_xticks().max(),
+                                              5))
 
-            # from statsmodels.stats.weightstats import ztest
-            # zt = ztest(x1=cur_psrf_like[cur_psrf_like["Treeset"] == "TS1"]["PSRF_like"],
-            #            x2=cur_psrf_like[cur_psrf_like["Treeset"] == "TS2"]["PSRF_like"],
-            #            alternative="two-sided")
-            # print(zt)
-            # from scipy.stats import ks_2samp
-            # ks = ks_2samp(data1=cur_psrf_like[cur_psrf_like["Treeset"] == "TS1"]["PSRF_like"],
-            #          data2=cur_psrf_like[cur_psrf_like["Treeset"] == "TS2"]["PSRF_like"])
-            # print(ks)
+            # sns.boxplot(ax=axis[j, i], data=cur_psrf_like, x="Treeset", y="PSRF_like")
 
+        # putting geweke on diagonal of the plot
         cur_geweke = cMChain.MChain_list[i].compute_geweke_distances(index=i, name=cMChain.name, add=False)
         cur_sample = range(0, cMChain[i].chain_length + cMChain[i].tree_sampling_interval,
                            cMChain[i].tree_sampling_interval)
@@ -81,6 +74,7 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
                     xycoords=ax.yaxis.label, textcoords="offset points",
                     size="large", ha="right", va="center")
 
+    # plt.show()
     plt.savefig(
         fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
         format="png", bbox_inches="tight", dpi=800)
