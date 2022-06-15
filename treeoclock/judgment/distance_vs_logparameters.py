@@ -140,6 +140,9 @@ def plot_log_neighbours(mchain):
     high_samples = len(df[(df["Offset"] == f"{int(0.9*max_d)}-{max_d}") & (df["Parameter"] == "likelihood")])
     # plt.suptitle(f"Comparing log parameters for {samples} trees with distance < {threshold}")
     plt.suptitle(f"Comparing log parameters\n10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})")
-    plt.show()
 
+    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot.png", dpi=400, bbox_inches="tight")
+    # plt.show()
+    plt.clf()
+    plt.close()
     return 0
