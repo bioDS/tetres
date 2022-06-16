@@ -4,8 +4,9 @@ import os
 
 
 def _tsne_coords_from_pwd(pwd_matrix, dim=2):
+    internal_matrix = pwd_matrix + pwd_matrix.transpose()
     mds = manifold.TSNE(n_components=dim, metric="precomputed", learning_rate='auto')
-    coords = mds.fit_transform(pwd_matrix)
+    coords = mds.fit_transform(internal_matrix)
     return coords
 
 
