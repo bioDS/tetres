@@ -13,7 +13,7 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
                                 figsize=[9, 7])
 
     # initializing the scaled axis for the upper part of the plot:
-    scaled_x_axis = np.arange(0.9, 2, 0.1)
+    scaled_x_axis = np.arange(0.8, 1.7, 0.1)
     scaled_y_axis = np.arange(0, 120, 20)
 
     for i in range(cMChain.m_MChains - 1):
@@ -28,6 +28,8 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
                         common_norm=False)
             axis[i, j].set_xticks(scaled_x_axis)
             axis[i, j].set_yticks(scaled_y_axis)
+            axis[i, j].set_xlim(np.min(scaled_x_axis), np.max(scaled_x_axis))
+            axis[i, j].set_ylim(np.min(scaled_y_axis), np.max(scaled_y_axis))
             for label in axis[i, j].get_xticklabels():
                 label.set_rotation(90)
 
