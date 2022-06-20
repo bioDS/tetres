@@ -131,27 +131,34 @@ def gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from, threshold_percent
     cutoff_end = {k: -1 for k in threshold_percentage}
     consecutive = 0
 
-    for cur_sample in range(1, dmi.shape[0]):
-        # starting at 10 to use add and because small treesets don't make so much sense
-        i_in_var = np.sum(dmi[cur_sample, :cur_sample]) + np.sum(dmi[:cur_sample, cur_sample])
-        i_between_var = np.sum(dmij[cur_sample, :cur_sample])
-        psrf_like = np.sqrt((i_between_var / cur_sample) / (i_in_var / cur_sample))
+    for cur_sample in range(dmi.shape[0]):
+        i_in_var = np.nansum(dmi[cur_sample, :(cur_sample+1)]) + np.nansum(dmi[:(cur_sample+1), cur_sample])
+        if i_in_var == 0:
+            i_in_var = 1
+        i_between_var = np.nansum(dmij[cur_sample, :(cur_sample+1)])
+        psrf_like = np.sqrt((i_between_var / (cur_sample+1)) / (i_in_var / (cur_sample+1)))
         psrf_like = [psrf_like]
         for x in range(int(cur_sample * (1 - sample_from)), cur_sample - 1):
-            x_in_var = np.sum(dmi[x, :cur_sample]) + np.sum(dmi[:cur_sample, x])
-            x_between_var = np.sum(dmij[x, :cur_sample])
-            psrf_like.append(np.sqrt((x_between_var / cur_sample) / (x_in_var / cur_sample)))
+            x_in_var = np.nansum(dmi[x, :(cur_sample+1)]) + np.nansum(dmi[:(cur_sample+1), x])
+            if x_in_var == 0:
+                x_in_var = 1
+            x_between_var = np.nansum(dmij[x, :(cur_sample+1)])
+            psrf_like.append(np.sqrt((x_between_var / (cur_sample+1)) / (x_in_var / (cur_sample+1))))
         psrf_like = np.median(psrf_like)
         df.append([cur_sample, psrf_like, f"chain_{i}"])
 
-        j_in_var = np.sum(dmj[cur_sample, :cur_sample]) + np.sum(dmj[:cur_sample, cur_sample])
-        j_between_var = np.sum(dmij[:cur_sample, cur_sample])
-        psrf_like = np.sqrt((j_between_var / cur_sample) / (j_in_var / cur_sample))
+        j_in_var = np.nansum(dmj[cur_sample, :(cur_sample+1)]) + np.nansum(dmj[:(cur_sample+1), cur_sample])
+        if j_in_var == 0:
+            j_in_var = 1
+        j_between_var = np.nansum(dmij[:(cur_sample+1), cur_sample])
+        psrf_like = np.sqrt((j_between_var / (cur_sample+1)) / (j_in_var / (cur_sample+1)))
         psrf_like = [psrf_like]
         for x in range(int(cur_sample * (1 - sample_from)), cur_sample - 1):
-            x_in_var = np.sum(dmj[x, :cur_sample]) + np.sum(dmj[:cur_sample, x])
-            x_between_var = np.sum(dmij[:cur_sample, x])
-            psrf_like.append(np.sqrt((x_between_var / cur_sample) / (x_in_var / cur_sample)))
+            x_in_var = np.nansum(dmj[x, :(cur_sample+1)]) + np.nansum(dmj[:(cur_sample+1), x])
+            if x_in_var == 0:
+                x_in_var = 1
+            x_between_var = np.nansum(dmij[:(cur_sample+1), x])
+            psrf_like.append(np.sqrt((x_between_var / (cur_sample+1)) / (x_in_var / (cur_sample+1))))
         psrf_like = np.median(psrf_like)
         df.append([cur_sample, psrf_like, f"chain_{j}"])
 
