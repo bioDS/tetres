@@ -135,11 +135,15 @@ def plot_log_neighbours(mchain):
     # sns.violinplot(data=df, x="Value", y="Parameter", inner="stick", cut=0)
     sns.boxplot(data=df, y="Value", x="Parameter", hue="Offset")
     # plt.xlim(0, 1)
-    plt.ylabel("Difference of normalized log value")
+    plt.xlabel("")
+    plt.ylabel("Difference of\nnormalized log value", fontsize=20)
     low_samples = len(df[(df["Offset"] == f"0-{int(0.1*max_d)}") & (df["Parameter"] == "likelihood")])
     high_samples = len(df[(df["Offset"] == f"{int(0.9*max_d)}-{max_d}") & (df["Parameter"] == "likelihood")])
     # plt.suptitle(f"Comparing log parameters for {samples} trees with distance < {threshold}")
-    plt.suptitle(f"Comparing log parameters\n10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})")
+    plt.suptitle(f"Comparing log parameters\n10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})",
+                 fontsize=20)
+    plt.tick_params(labelsize=20)
+    plt.tight_layout()
 
     plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot.png", dpi=400, bbox_inches="tight")
     # plt.show()
