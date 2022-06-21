@@ -140,8 +140,8 @@ def plot_log_neighbours(mchain):
     low_samples = len(df[(df["Offset"] == f"0-{int(0.1*max_d)}") & (df["Parameter"] == "likelihood")])
     high_samples = len(df[(df["Offset"] == f"{int(0.9*max_d)}-{max_d}") & (df["Parameter"] == "likelihood")])
     # plt.suptitle(f"Comparing log parameters for {samples} trees with distance < {threshold}")
-    plt.suptitle(f"Comparing log parameters\n10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})",
-                 fontsize=20)
+    plt.title(f"10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})",
+                 fontsize=20, y=-0.25)
     plt.tick_params(labelsize=20)
     plt.tight_layout()
 
