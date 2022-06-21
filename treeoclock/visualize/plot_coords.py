@@ -83,30 +83,20 @@ def plot_density_over_coordinates(coords, density, filename):
     return 0
 
 
-def plot_multiple_chains_tsne(mchain, names):
-    # names = [f"chain{i}" for i in range(coupled_chains.m_MChains)])  # todo this should be default names
+def plot_multiple_chains_tsne(mchain, names=None):
+    if names is None:
+        names = [f"chain{i}" for i in range(mchain.m_MChains)]
 
     # labels = []
-    combined_matrix = np.array([])
+
     cmap = plt.cm.Set1
     colors = []
     for i in range(mchain.m_MChains):
         colors.extend([cmap(i) for _ in range(len(mchain[i].trees))])
         # labels.append([names[i] for _ in range(len(mchain[i].trees))])
-        cur_row = np.array([])
-        for j in range(mchain.m_MChains):
-            # print(i, j)
-            if i < j:
-                cur_row = np.concatenate((cur_row, mchain.pwd_matrix(i, j)),
-                                         axis=1) if cur_row.size else mchain.pwd_matrix(i, j)
-            elif i > j:
-                cur_row = np.concatenate((cur_row, np.zeros(mchain.pwd_matrix(j, i).shape)),
-                                         axis=1) if cur_row.size else np.zeros(mchain.pwd_matrix(j, i).shape)
-            elif i == j:
-                cur_row = np.concatenate((cur_row, mchain.pwd_matrix(i)),
-                                         axis=1) if cur_row.size else mchain.pwd_matrix(i)
-            # print(cur_row.shape)
-        combined_matrix = np.concatenate((combined_matrix, cur_row)) if combined_matrix.size else cur_row
+
+    combined_matrix = mchain.pwd_matrix_all()
+
         # print(combined_matrix.shape)
     # todo save the combined distance matrix!
     # todo make other visualization methods possible
@@ -143,7 +133,8 @@ def plot_multiple_chains_tsne(mchain, names):
     markers = [plt.Line2D([0, 0], [0, 0], color=cmap(i), marker='o', linestyle='') for i in range(mchain.m_MChains)]
     plt.legend(markers, names, numpoints=1)
 
-    plt.savefig(f"{mchain.working_dir}/plots/{mchain.name}_tsne_all_chains.png", dpi=400, bbox_inches="tight")
+    plt.show()
+    # plt.savefig(f"{mchain.working_dir}/plots/{mchain.name}_tsne_all_chains.png", dpi=400, bbox_inches="tight")
     # plt.show()
     # if filename is None:
     #     plt.show()

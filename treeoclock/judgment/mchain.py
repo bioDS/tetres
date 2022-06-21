@@ -27,7 +27,7 @@ class coupled_MChains():
             raise ValueError("trees and logfiles should be given with the same data type!")
 
         if not os.path.isdir(working_dir):
-            raise FileNotFoundError("Given Working directory does not exist!")
+            raise FileNotFoundError(f"Given Working directory does not exist! |{working_dir}|")
         self.working_dir = working_dir
         for d in ["data", "plots"]:
             if not os.path.isdir(f"{self.working_dir}/{d}"):
@@ -84,6 +84,30 @@ class coupled_MChains():
                                          delimiter=',', dtype=int)
                 else:
                     return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}.npy")
+
+    # todo testing required
+    def pwd_matrix_all(self):
+        if not os.path.exists(f"{self.working_dir}/data/{self.name}_all.npy"):
+            combined_matrix = np.array([])
+            for i in range(self.m_MChains):
+                cur_row = np.array([])
+                for j in range(self.m_MChains):
+                    # print(i, j)
+                    if i < j:
+                        cur_row = np.concatenate((cur_row, self.pwd_matrix(i, j)),
+                                                 axis=1) if cur_row.size else self.pwd_matrix(i, j)
+                    elif i > j:
+                        cur_row = np.concatenate((cur_row, np.zeros(self.pwd_matrix(j, i).shape)),
+                                                 axis=1) if cur_row.size else np.zeros(self.pwd_matrix(j, i).shape)
+                    elif i == j:
+                        cur_row = np.concatenate((cur_row, self.pwd_matrix(i)),
+                                                 axis=1) if cur_row.size else self.pwd_matrix(i)
+                    # print(cur_row.shape)
+                combined_matrix = np.concatenate((combined_matrix, cur_row)) if combined_matrix.size else cur_row
+            np.save(file=f"{self.working_dir}/data/{self.name}_all.npy", arr=combined_matrix)
+            return combined_matrix
+        else:
+            return np.load(f"{self.working_dir}/data/{self.name}_all.npy")
 
     def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
         if len(self) < 2:
@@ -279,7 +303,7 @@ class MChain:
                 focal_tree = self.trees[i]
             elif focal_tree_type == "centroid":
                 sys.exit("Not yet implemented")
-                focal_tree = frechet_mean(self.trees[0:i + 1])
+                # focal_tree = frechet_mean(self.trees[0:i + 1])
             else:
                 raise ValueError(f"Unknown type {focal_tree_type} given!")
             new_log_list.append(compute_sos_mt(focal_tree, self.trees[0:i + 1], n_cores=None, norm=norm) / (i + 1))
@@ -291,6 +315,7 @@ class MChain:
         return new_log_list
 
     # todo missing test and proper management of the average parameter
+    # todo delete the enums things, not really useful in this case
     def compute_new_tree_distance_log(self, average: enums.Average = enums.Average.MEAN, norm: bool = False,
                                       add: bool = True):
         new_log_list = [0]  # initialize as the first iteration is just one tree
