@@ -191,6 +191,7 @@ def gelman_rubin_trace_plot(cmchain, i, j):
         df, cutoff_start, cutoff_end = gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from=sample_from[col],
                                                                       threshold_percentage=threshold_percentage)
         for row in range(len(threshold_percentage)):
+            axis[row, col].set_ylim([0.9, 1.1])
             sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
             # axis[row, col].axhline(y=1.01, linestyle="--", color="red")
             # axis[row, col].axhline(y=0.99, linestyle="--", color="red")
@@ -201,20 +202,26 @@ def gelman_rubin_trace_plot(cmchain, i, j):
             # axis[row, col].set_ylim([0.8, 1.2])
             # axis[row, col].set_yticks = np.arange(0.8, 1.2, 0.05)
 
-            if cutoff_end[threshold_percentage[row]] != -1:
+            if cutoff_end[threshold_percentage[row]] != -1 and cutoff_start[threshold_percentage[row]] != -1:
                 axis[row, col].axvline(x=cutoff_end[threshold_percentage[row]], color="red")
-                axis[row, col].text(x=cutoff_end[threshold_percentage[row]] + 0.1, y=-.05,
-                                    s=f'{cutoff_end[threshold_percentage[row]]}',
-                                    transform=axis[row, col].get_xaxis_transform(),
-                                    fontsize=8, zorder=20, ha="center",
-                                    va="top", rotation=-45, color="red")
-            if cutoff_start[threshold_percentage[row]] != -1:
+                # axis[row, col].text(x=cutoff_end[threshold_percentage[row]] + 0.1, y=-.05,
+                #                     s=f'{cutoff_end[threshold_percentage[row]]}',
+                #                     transform=axis[row, col].get_xaxis_transform(),
+                #                     fontsize=8, zorder=20, ha="center",
+                #                     va="top", rotation=-45, color="red")
+            # if cutoff_start[threshold_percentage[row]] != -1:
                 axis[row, col].axvline(x=cutoff_start[threshold_percentage[row]], color="green")
-                axis[row, col].text(x=cutoff_start[threshold_percentage[row]] + 0.1, y=-.5,
-                                    s=f'{cutoff_start[threshold_percentage[row]]}',
+                # axis[row, col].text(x=cutoff_start[threshold_percentage[row]] + 0.1, y=-.5,
+                #                     s=f'{cutoff_start[threshold_percentage[row]]}',
+                #                     transform=axis[row, col].get_xaxis_transform(),
+                #                     fontsize=8, zorder=20, ha="center",
+                #                     va="top", rotation=-45, color="green")
+
+                axis[row, col].text(x=cutoff_end[threshold_percentage[row]]-(0.5*(cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]])) + 0.1, y=-.05,
+                                    s=f'{cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]]}',
                                     transform=axis[row, col].get_xaxis_transform(),
                                     fontsize=8, zorder=20, ha="center",
-                                    va="top", rotation=-45, color="green")
+                                    va="top", color="black")
 
             axis[row, col].set_ylabel(f"{threshold_percentage[row]}", color="green")
             axis[row, col].set_xlabel(f"{sample_from[col]}", color="blue")
