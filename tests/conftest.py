@@ -193,9 +193,9 @@ def thirty_taxa_MChain():
 
 @pytest.fixture
 def ten_taxa_cMChain():
-    return coupled_MChains(m_MChains=2,
-                    trees=["chain0.trees", "chain0_1.trees"],
-                    log_files=["chain0.log", "chain0_1.log"],
+    return coupled_MChains(m_MChains=3,
+                    trees=["chain0.trees", "chain0_1.trees", "chain0_2.trees"],
+                    log_files=["chain0.log", "chain0_1.log", "chain0_2.log"],
                     working_dir=f"{Path(__file__).parent.absolute()}/data/cMChain",
                     name="10TaxaFix"
                     )
