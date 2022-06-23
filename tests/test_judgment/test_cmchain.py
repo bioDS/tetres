@@ -61,3 +61,8 @@ def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
     ten_taxa_cMChain.gelman_rubin_trace_plot(i=0, j=1)
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_grd_singlevalue_evaluation.png"), \
         "Gelman Rubin Trace Plot failed!"
+
+
+def test_cMChain_cladesetcomparator(ten_taxa_cMChain):
+    ten_taxa_cMChain.cladesetcomparator(beast_applauncher="/home/lars/.local/share/beast/bin/applauncher")
+    assert True

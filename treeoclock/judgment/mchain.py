@@ -14,6 +14,7 @@ from treeoclock import enums
 
 from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
 from treeoclock.judgment import _gelman_rubin_diag as grd
+from treeoclock.judgment import _cladesetcomparator as csc
 
 
 # todo testing required!
@@ -38,6 +39,7 @@ class coupled_MChains():
             if len(trees) != self.m_MChains or len(log_files) != self.m_MChains:
                 raise ValueError("m_chains and number of trees do not match!")
             for i in range(self.m_MChains):
+                self.tree_files = trees.copy()
                 self.MChain_list.append(MChain(trees=trees[i], log_file=log_files[i],
                                                working_dir=working_dir, name=f"{self.name}_{i}"))
         elif type(trees) is str:
@@ -129,6 +131,11 @@ class coupled_MChains():
 
     def __len__(self):
         return len(self.MChain_list)
+
+    def cladesetcomparator(self, beast_applauncher):
+        if not self.tree_files:
+            raise ValueError("Missing tree_files list!")
+        csc._cladesetcomp(self, beast_applauncher)
 
 
 class MChain:
