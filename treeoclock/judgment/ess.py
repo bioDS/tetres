@@ -65,7 +65,11 @@ def ess_stripplot(cmchain, ess_method):
     plt.ylabel("ESS")
     plt.suptitle(f"Number of samples: {len(cmchain[0].trees)}, burn-in={burnin*100}%")
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/ess_comparison.png", dpi=400)
+    plt.clf()
+    plt.close()
 
 
 # todo implement a pseudo ess value using the centroid or fm tree instead of a random fixed focal tree

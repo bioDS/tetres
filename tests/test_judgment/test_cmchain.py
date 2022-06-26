@@ -63,12 +63,11 @@ def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
         "Gelman Rubin Trace Plot failed!"
 
 
-# todo not proper test
 def test_cMChain_cladesetcomparator(ten_taxa_cMChain):
     ten_taxa_cMChain.cladesetcomparator(beast_applauncher="/home/lars/.local/share/beast/bin/applauncher")
-    assert True
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/cc.png"), "Cladeset comparator failed!"
 
 
 def test_cMChain_ess_table(ten_taxa_cMChain):
     ten_taxa_cMChain.ess_stripplot()
-    assert True
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/ess_comparison.png"), "ESS stripplot failed!"
