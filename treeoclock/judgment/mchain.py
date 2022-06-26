@@ -1,4 +1,3 @@
-import itertools
 import sys
 import os
 import pandas as pd
@@ -136,6 +135,9 @@ class coupled_MChains():
         if not self.tree_files:
             raise ValueError("Missing tree_files list!")
         csc._cladesetcomp(self, beast_applauncher)
+
+    def ess_stripplot(self, ess_method="tracerer"):
+        ess.ess_stripplot(self, ess_method)
 
 
 class MChain:
@@ -292,11 +294,18 @@ class MChain:
         upper_i = len(self.trees)
         if "upper_i" in kwargs:
             upper_i = kwargs["upper_i"]
+        dist = "rnni"
+        if "dist" in kwargs:
+            dist = kwargs["dist"]
+        sample_range = 10
+        if "sample_range" in kwargs:
+            sample_range = kwargs["sample_range"]
         chain_length = 1
         if upper_i > 0:
             chain_length = (self.chain_length / (len(self.trees) - 1)) * (upper_i - 1)
         return ess.pseudo_ess(tree_set=self.trees[0:upper_i], chain_length=chain_length,
-                              sampling_interval=self.chain_length / (len(self.trees) - 1))
+                              sampling_interval=self.chain_length / (len(self.trees) - 1),
+                              dist=dist, sample_range=sample_range)
 
     # todo missing tests
     # the rnni variance log is essentially a running mean plot
