@@ -43,7 +43,7 @@ def pseudo_ess(tree_set, chain_length, sampling_interval, dist="rnni", sample_ra
     # todo this can be changed to median or mean, look at JC paper min is best and median also good
     #  however mean seems to be not a good choice,
     #  in the test case min is the only one not overestimating the ESS
-    return np.min(ess)
+    return np.median(ess)  # median seems to be better!
 
 
 def ess_stripplot(cmchain, ess_method):
