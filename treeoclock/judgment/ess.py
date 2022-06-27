@@ -48,15 +48,9 @@ def pseudo_ess(ess_method, tree_set, chain_length, sampling_interval, dist="rnni
 
 def ess_stripplot(cmchain, ess_method):
     burnin = 0
-    df = []
-    for chain in cmchain:
-        for k in chain.log_data.keys():
-            if k != "Sample":
-                df.append([k, chain.get_ess(ess_key=k, ess_method=ess_method), chain.name])
-        df.append(["Pseudo_ESS_RNNI", chain.get_pseudo_ess(ess_method=ess_method, sample_range=100), chain.name])
-        df.append(["Pseudo_ESS_RF", chain.get_pseudo_ess(ess_method=ess_method, dist="rf", sample_range=100), chain.name])
 
-    df = pd.DataFrame(df, columns=["Key", "Value", "Chain"])
+    df = _ess_df(cmchain, chain_indeces=range(cmchain.m_MChains), ess_method=ess_method)
+
     ax = sns.stripplot(data=df, x="Key", y="Value", hue="Chain")
 
     for label in ax.get_xticklabels():
@@ -70,6 +64,25 @@ def ess_stripplot(cmchain, ess_method):
     plt.savefig(fname=f"{cmchain.working_dir}/plots/ess_{ess_method}_comparison.png", dpi=400)
     plt.clf()
     plt.close()
+
+
+def _ess_df(cmchain, chain_indeces, ess_method, start=-1, end=-1):
+    if start == -1:
+        start = 0
+    if end == -1:
+        end = len(cmchain[0].trees) - 1
+    df = []
+    for chain in chain_indeces:
+        for k in cmchain[chain].log_data.keys():
+            if k != "Sample":
+                df.append([k, cmchain[chain].get_ess(ess_key=k, ess_method=ess_method, lower_i=start, upper_i=end), cmchain[chain].name])
+        df.append(
+            ["Pseudo_ESS_RNNI", cmchain[chain].get_pseudo_ess(ess_method=ess_method, sample_range=100, lower_i=start, upper_i=end), cmchain[chain].name])
+        df.append(
+            ["Pseudo_ESS_RF", cmchain[chain].get_pseudo_ess(ess_method=ess_method, dist="rf", sample_range=100, lower_i=start, upper_i=end), cmchain[chain].name])
+
+    df = pd.DataFrame(df, columns=["Key", "Value", "Chain"])
+    return df
 
 
 # todo implement a pseudo ess value using the centroid or fm tree instead of a random fixed focal tree
