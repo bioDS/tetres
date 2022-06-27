@@ -288,9 +288,14 @@ class MChain:
         return new_log_list
 
     # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
-    def get_pseudo_ess(self, **kwargs):
+    def get_pseudo_ess(self, ess_method="arviz", **kwargs):
         # todo all the testing for upper_i and lower_i but ideally this will be part of the other funciton so this is temporary
         # todo should return the same as RWTY package but also possibly computed with the RNNI distance measure
+        if type(ess_method) is str:
+            if not hasattr(ess, f"{ess_method}_ess"):
+                raise ValueError(f"The given ESS method {ess_method} does not exist!")
+        else:
+            raise ValueError(ess_method)
         upper_i = len(self.trees)
         if "upper_i" in kwargs:
             upper_i = kwargs["upper_i"]
@@ -303,7 +308,7 @@ class MChain:
         chain_length = 1
         if upper_i > 0:
             chain_length = (self.chain_length / (len(self.trees) - 1)) * (upper_i - 1)
-        return ess.pseudo_ess(tree_set=self.trees[0:upper_i], chain_length=chain_length,
+        return ess.pseudo_ess(ess_method=ess_method, tree_set=self.trees[0:upper_i], chain_length=chain_length,
                               sampling_interval=self.chain_length / (len(self.trees) - 1),
                               dist=dist, sample_range=sample_range)
 

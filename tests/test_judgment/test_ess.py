@@ -26,10 +26,12 @@ def test_arviz_ess(thirty_taxa_log_data):
 def test_pseudo_ess(thirty_taxa_MChain):
     state = random.getstate()  # get the random seed state
     random.seed(10)  # Fixing the seed to get the same result
-    p_ess = int(pseudo_ess(tree_set=thirty_taxa_MChain.trees, chain_length=thirty_taxa_MChain.chain_length,
-                           sampling_interval=thirty_taxa_MChain.chain_length / (len(thirty_taxa_MChain.trees) - 1)))
+    p_ess = []
+    for method in ["tracerer", "arviz", "coda"]:
+        p_ess.append(int(pseudo_ess(ess_method="tracerer", tree_set=thirty_taxa_MChain.trees, chain_length=thirty_taxa_MChain.chain_length,
+                           sampling_interval=thirty_taxa_MChain.chain_length / (len(thirty_taxa_MChain.trees) - 1))))
     random.setstate(state)  # reset the random seed to previous state
-    assert p_ess == 921, "Pseudo ESS failed!"
+    assert p_ess == [865, 855, 866], "Pseudo ESS failed!"
 
 
 from treeoclock.judgment.ess import _multi_dim_ess, _ess_tracerer_rsample

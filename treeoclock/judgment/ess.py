@@ -27,7 +27,7 @@ def arviz_ess(data_list, **kwargs):
     return az.ess(np.asarray(data_list))
 
 
-def pseudo_ess(tree_set, chain_length, sampling_interval, dist="rnni", sample_range=10):
+def pseudo_ess(ess_method, tree_set, chain_length, sampling_interval, dist="rnni", sample_range=10):
     ess = []
     samples = random.sample(range(len(tree_set)), sample_range)
 
@@ -39,7 +39,7 @@ def pseudo_ess(tree_set, chain_length, sampling_interval, dist="rnni", sample_ra
             cur_distance_list = [t.fp_distance(cur_focal_fix) for t in tree_set]
         else:
             raise ValueError(f"Unkown distance given {dist}!")
-        ess.append(coda_ess(data_list=cur_distance_list, chain_length=chain_length, sampling_interval=sampling_interval))
+        ess.append(globals()[f"{ess_method}_ess"](data_list=cur_distance_list, chain_length=chain_length, sampling_interval=sampling_interval))
     # todo this can be changed to median or mean, look at JC paper min is best and median also good
     #  however mean seems to be not a good choice,
     #  in the test case min is the only one not overestimating the ESS
@@ -67,7 +67,7 @@ def ess_stripplot(cmchain, ess_method):
     plt.tight_layout()
     # plt.show()
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/ess_comparison.png", dpi=400)
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/ess_{ess_method}_comparison.png", dpi=400)
     plt.clf()
     plt.close()
 
