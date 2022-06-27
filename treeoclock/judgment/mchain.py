@@ -120,6 +120,11 @@ class coupled_MChains():
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_trace_plot(self, i, j)
 
+    def gelman_rubin_trace_ess_plot(self, i, j):
+        if len(self) < 2:
+            raise TypeError("Gelman Rubin only possible with multiple Chains!")
+        return grd.gr_trace_ess(self, i, j)
+
     def __getitem__(self, index):
         if isinstance(index, int):
             if index >= len(self.MChain_list):
@@ -296,9 +301,21 @@ class MChain:
                 raise ValueError(f"The given ESS method {ess_method} does not exist!")
         else:
             raise ValueError(ess_method)
+        lower_i = 0
+        if "lower_i" in kwargs:
+            lower_i = kwargs["lower_i"]
         upper_i = len(self.trees)
         if "upper_i" in kwargs:
             upper_i = kwargs["upper_i"]
+
+        if "lower_i" in kwargs or "upper_i" in kwargs:
+            if type(lower_i) is not int or type(upper_i) is not int:
+                raise ValueError("Wrong type for upper or lower index!")
+            if upper_i > self.log_data.shape[0]:
+                raise IndexError(f"{upper_i} out of range!")
+            if lower_i > upper_i or lower_i < 0 or upper_i < 0:
+                raise ValueError("Something went wrong with the given upper and lower index!")
+
         dist = "rnni"
         if "dist" in kwargs:
             dist = kwargs["dist"]
@@ -307,8 +324,8 @@ class MChain:
             sample_range = kwargs["sample_range"]
         chain_length = 1
         if upper_i > 0:
-            chain_length = (self.chain_length / (len(self.trees) - 1)) * (upper_i - 1)
-        return ess.pseudo_ess(ess_method=ess_method, tree_set=self.trees[0:upper_i], chain_length=chain_length,
+            chain_length = (self.chain_length / (len(self.trees) - 1)) * ((upper_i - 1) - lower_i)
+        return ess.pseudo_ess(ess_method=ess_method, tree_set=self.trees[lower_i:upper_i], chain_length=chain_length,
                               sampling_interval=self.chain_length / (len(self.trees) - 1),
                               dist=dist, sample_range=sample_range)
 
