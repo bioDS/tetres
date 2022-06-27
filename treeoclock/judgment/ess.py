@@ -81,8 +81,7 @@ def _ess_df(cmchain, chain_indeces, ess_method, start=-1, end=-1):
         df.append(
             ["Pseudo_ESS_RF", cmchain[chain].get_pseudo_ess(ess_method=ess_method, dist="rf", sample_range=100, lower_i=start, upper_i=end), cmchain[chain].name])
 
-    df = pd.DataFrame(df, columns=["Key", "Value", "Chain"])
-    return df
+    return pd.DataFrame(df, columns=["Key", "Value", "Chain"])
 
 
 # todo implement a pseudo ess value using the centroid or fm tree instead of a random fixed focal tree
