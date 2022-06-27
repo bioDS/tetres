@@ -53,8 +53,8 @@ def ess_stripplot(cmchain, ess_method):
         for k in chain.log_data.keys():
             if k != "Sample":
                 df.append([k, chain.get_ess(ess_key=k, ess_method=ess_method), chain.name])
-        df.append(["Pseudo_ESS_RNNI", chain.get_pseudo_ess(sample_range=100), chain.name])
-        df.append(["Pseudo_ESS_RF", chain.get_pseudo_ess(dist="rf", sample_range=100), chain.name])
+        df.append(["Pseudo_ESS_RNNI", chain.get_pseudo_ess(ess_method=ess_method, sample_range=100), chain.name])
+        df.append(["Pseudo_ESS_RF", chain.get_pseudo_ess(ess_method=ess_method, dist="rf", sample_range=100), chain.name])
 
     df = pd.DataFrame(df, columns=["Key", "Value", "Chain"])
     ax = sns.stripplot(data=df, x="Key", y="Value", hue="Chain")

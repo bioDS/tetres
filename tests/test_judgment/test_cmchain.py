@@ -68,6 +68,7 @@ def test_cMChain_cladesetcomparator(ten_taxa_cMChain):
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/cc.png"), "Cladeset comparator failed!"
 
 
-def test_cMChain_ess_table(ten_taxa_cMChain):
-    ten_taxa_cMChain.ess_stripplot()
-    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/ess_comparison.png"), "ESS stripplot failed!"
+def test_cMChain_ess_stripplot(ten_taxa_cMChain):
+    for method in ["tracerer", "coda", "arviz"]:
+        ten_taxa_cMChain.ess_stripplot(ess_method=method)
+        assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/ess_{method}_comparison.png"), "ESS stripplot failed!"
