@@ -5,6 +5,8 @@ from pathlib import Path
 from treeoclock.judgment.mchain import MChain, coupled_MChains
 import treeoclock.judgment.ess as ess
 from treeoclock import enums as pkg_enums
+import os
+
 
 def test_MChain_construction_files():
     assert MChain(
@@ -454,3 +456,10 @@ def test_MChain_copute_ess_traces(thirty_taxa_MChain):
 def test_MChain_compute_in_chain_deviation(thirty_taxa_MChain):
     ret = thirty_taxa_MChain.compute_mean_in_chain_deviation()
     assert len(ret) == len(thirty_taxa_MChain.trees), "In Chain deviation failed!"
+
+
+def test_MChain_get_simmatrix(thirty_taxa_MChain):
+    for beta in [1, 2, 0.5]:
+        thirty_taxa_MChain.get_simmatrix(beta=beta)
+        assert os.path.exists(f"{thirty_taxa_MChain.working_dir}/data/30TestFix_{'' if beta == 1 else f'{beta}_'}similarity.npy"),\
+            "Similarity matrix computation failed!"

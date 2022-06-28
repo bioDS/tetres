@@ -14,6 +14,7 @@ from treeoclock import enums
 from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
 from treeoclock.judgment import _gelman_rubin_diag as grd
 from treeoclock.judgment import _cladesetcomparator as csc
+from treeoclock.clustree.spectral_clustree import _spectral_clustree
 
 
 # todo testing required!
@@ -460,6 +461,25 @@ class MChain:
             raise KeyError(f"Given Value {value_key} does not exist!")
         _plots._log_trace_plot(self.log_data[value_key][:5])
         return 0
+
+    def get_simmatrix(self, index="", name="", beta=1):
+        if not os.path.exists(
+                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
+
+            matrix = self.pwd_matrix()
+            similarity = np.exp(-beta * matrix / matrix.std())
+            np.save(
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy",
+                arr=similarity)
+            return similarity
+        else:
+            return np.load(
+                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
+
+    def spectral_clustree(self, n_clus, beta):
+        c = _spectral_clustree(self.get_simmatrix(), n_clus=n_clus, beta=beta)
+        print(c)
+
 
     # todo add function that add the ESS traces as columns in the dataframe for the Tracer Visualization
     #  this is easier than writing my own plots
