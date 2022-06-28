@@ -6,6 +6,7 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
+from treeoclock.judgment.ess import _ess_df
 
 
 def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
@@ -239,3 +240,53 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     plt.clf()
     plt.close("all")
     gc.collect()
+
+
+def gr_trace_ess(cmchain, i, j):
+    # the idea is to set the parameters both to 0.5 which seems to be a good choice in the other evaluations
+    tp = 0.5
+    sf = 0.5
+
+    df, cutoff_start, cutoff_end = gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from=sf,
+                                                                  threshold_percentage=[tp])
+
+    figure, axis = plt.subplots(ncols=2, nrows=1,
+                                constrained_layout=True, squeeze=False)
+
+    sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, legend=False, ax=axis[0, 0])
+
+    axis[0, 0].set_xticks = set(df["Sample"])
+    axis[0, 0].set_ylim([0.9, 1.1])
+
+    axis[0, 0].axvline(x=cutoff_end[tp], color="red")
+    axis[0, 0].axvline(x=cutoff_start[tp], color="green")
+    axis[0, 0].text(x=cutoff_end[tp] - (
+                0.5 * (cutoff_end[tp] - cutoff_start[tp])) + 0.1, y=.05,
+                        s=f'{cutoff_end[tp] - cutoff_start[tp]}',
+                        fontsize=8, zorder=20, ha="center",
+                        transform=axis[0, 0].get_xaxis_transform(),
+                        va="top", color="black")
+    axis[0, 0].axhline(y=1.01, linestyle="--", color="red")
+    axis[0, 0].axhline(y=0.99, linestyle="--", color="red")
+
+    # todo think about how to incorporate the ess values into the cutoff values more properly?
+    #  this should only affect the end cutoff and the start stays the same,
+    #  i.e. a criterion to add more trees to the sample
+
+    ess_method = "arviz"
+    df = _ess_df(cmchain=cmchain, chain_indeces=[i, j], ess_method=ess_method, start=cutoff_start[tp], end=cutoff_end[tp])
+    sns.stripplot(data=df, x="Key", y="Value", hue="Chain", ax=axis[0, 1])
+    for label in axis[0, 1].get_xticklabels():
+        label.set_rotation(90)
+    axis[0, 1].set_xlabel("")
+    axis[0, 1].set_ylabel("ESS")
+    
+    axis[0, 1].axhline(y=cutoff_end[tp] - cutoff_start[tp], linestyle="--", color="red")
+    axis[0, 1].axhline(y=0.75*(cutoff_end[tp] - cutoff_start[tp]), linestyle="dotted", color="orange")
+
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_gress_{ess_method}.png",
+                format="png", bbox_inches="tight", dpi=400)
+    plt.clf()
+    plt.close("all")
+    gc.collect()
+
