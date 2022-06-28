@@ -258,14 +258,16 @@ def gr_trace_ess(cmchain, i, j):
     axis[0, 0].set_xticks = set(df["Sample"])
     axis[0, 0].set_ylim([0.9, 1.1])
 
-    axis[0, 0].axvline(x=cutoff_end[tp], color="red")
-    axis[0, 0].axvline(x=cutoff_start[tp], color="green")
-    axis[0, 0].text(x=cutoff_end[tp] - (
-                0.5 * (cutoff_end[tp] - cutoff_start[tp])) + 0.1, y=.05,
-                        s=f'{cutoff_end[tp] - cutoff_start[tp]}',
-                        fontsize=8, zorder=20, ha="center",
-                        transform=axis[0, 0].get_xaxis_transform(),
-                        va="top", color="black")
+    if cutoff_end[tp] != -1 and cutoff_start[tp] != -1:
+        axis[0, 0].axvline(x=cutoff_end[tp], color="red")
+        axis[0, 0].axvline(x=cutoff_start[tp], color="green")
+
+        axis[0, 0].text(x=cutoff_end[tp] - (
+                    0.5 * (cutoff_end[tp] - cutoff_start[tp])) + 0.1, y=.05,
+                            s=f'{cutoff_end[tp] - cutoff_start[tp]}',
+                            fontsize=8, zorder=20, ha="center",
+                            transform=axis[0, 0].get_xaxis_transform(),
+                            va="top", color="black")
     axis[0, 0].axhline(y=1.01, linestyle="--", color="red")
     axis[0, 0].axhline(y=0.99, linestyle="--", color="red")
 
