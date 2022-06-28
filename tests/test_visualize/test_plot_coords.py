@@ -1,5 +1,5 @@
 from treeoclock.visualize.tsne import tsne_coords_from_mchain
-from treeoclock.visualize.plot_coords import plot_coords, plot_density_over_coordinates, plot_multiple_chains_tsne
+from treeoclock.visualize.plot_coords import plot_coords, plot_density_over_coordinates, plot_all_chains_tsne
 
 import numpy as np
 
@@ -23,5 +23,5 @@ def test_plot_density(ten_taxa_cMChain):
 
 
 def test_plot_multiple_chains_tsne(ten_taxa_cMChain):
-    plot_multiple_chains_tsne(ten_taxa_cMChain)
+    plot_all_chains_tsne(ten_taxa_cMChain)
     assert True
