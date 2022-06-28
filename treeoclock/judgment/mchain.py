@@ -476,10 +476,19 @@ class MChain:
             return np.load(
                     file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
-    def spectral_clustree(self, n_clus, beta):
-        c = _spectral_clustree(self.get_simmatrix(), n_clus=n_clus, beta=beta)
-        print(c)
+    def spectral_clustree(self, n_clus=2, beta=1, index="", name="",):
+        if not os.path.exists(
+                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_"
+                f"{'' if beta == 1 else f'{beta}_'}clustering.npy"):
 
+            clustering = _spectral_clustree(self.get_simmatrix(beta=beta), n_clus=n_clus)
+            np.save(
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}clustering.npy",
+                arr=clustering)
+            return clustering
+        else:
+            return np.load(
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}clustering.npy")
 
     # todo add function that add the ESS traces as columns in the dataframe for the Tracer Visualization
     #  this is easier than writing my own plots
