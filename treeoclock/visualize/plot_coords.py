@@ -40,7 +40,7 @@ def plot_coords(coords, filename=None, colors=None):
     plt.clf()
 
 
-def plot_density_over_coordinates(coords, density, filename):
+def plot_density_over_coordinates(coords, density, filename, animate: bool = False):
     if coords.shape[1] != 2:
         raise ValueError(f"Wrong dimenstion coordinates given {coords.shape[1]}!")
     if density.shape[0] != coords.shape[0]:
@@ -58,38 +58,45 @@ def plot_density_over_coordinates(coords, density, filename):
 
     xi, yi = np.mgrid[np.min(x):np.max(x):1000j, np.min(y):np.max(y):1000j]
 
-    zi = griddata(points=(x, y), values=z, xi=(xi, yi), method='linear', fill_value=np.min(z))
+    zi = griddata(points=(x, y), values=z, xi=(xi, yi), method='cubic', fill_value=np.min(z))
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     # ax.scatter(x, y, z)
     dens = ax.plot_surface(xi, yi, zi, rstride=1, cstride=1, cmap=plt.cm.Spectral_r)
 
-    def init():
-        ax.view_init(elev=10., azim=0)
-        return [dens]
+    if animate:
+        def init():
+            ax.view_init(elev=15., azim=0)
+            return [dens]
+    
+        def animate(i):
+            ax.view_init(elev=15., azim=i * 45)
+            return [dens]
+    
+        anim = FuncAnimation(fig, animate, init_func=init,
+                             frames=8, interval=20000, blit=True)
+        # # Save
+        writergif = PillowWriter(fps=30)
+        anim.save(f'{filename}/distribution.gif', writer=writergif)
 
-    def animate(i):
-        ax.view_init(elev=15., azim=i * 45)
-        return [dens]
-
-    anim = FuncAnimation(fig, animate, init_func=init,
-                         frames=8, interval=1000, blit=True)
-    # # Save
-    writergif = PillowWriter(fps=30)
-    anim.save(f'{filename}/distribution.gif', writer=writergif)
-
+    else:
+        ax.view_init(elev=21., azim=45)
+        plt.savefig(f"{filename}/distribution.png", dpi=200, bbox_inches="tight")
+    
     plt.clf()
     return 0
 
 
-def plot_multiple_chains_tsne(mchain, names=None):
+def plot_all_chains_tsne(mchain, names=None):
     if names is None:
         names = [f"chain{i}" for i in range(mchain.m_MChains)]
 
     # labels = []
 
     cmap = plt.cm.Set1
+    # todo add parameter to merge chains and see them as one ?
+    # todo ore only plot specific chains like a list of indeces
     colors = []
     for i in range(mchain.m_MChains):
         colors.extend([cmap(i) for _ in range(len(mchain[i].trees))])
@@ -105,7 +112,7 @@ def plot_multiple_chains_tsne(mchain, names=None):
     # todo ideally this should be outsorced and possible with tsne recognizing the input differently maybe
     from treeoclock.visualize.tsne import _tsne_coords_from_pwd
     # todo it is totally fine to run tsne 10 times and select the solutin with the lowest KL divergence
-    coords = _tsne_coords_from_pwd(pwd_matrix=combined_matrix, dim=2)  # todo dimension
+    coords, kl_divergence = _tsne_coords_from_pwd(pwd_matrix=combined_matrix, dim=2)  # todo dimension
 
     # continue with the rest and color the dots accordingly
 
@@ -132,9 +139,11 @@ def plot_multiple_chains_tsne(mchain, names=None):
 
     markers = [plt.Line2D([0, 0], [0, 0], color=cmap(i), marker='o', linestyle='') for i in range(mchain.m_MChains)]
     plt.legend(markers, names, numpoints=1)
-
-    plt.show()
-    # plt.savefig(f"{mchain.working_dir}/plots/{mchain.name}_tsne_all_chains.png", dpi=400, bbox_inches="tight")
+    
+    plt.suptitle(f"KL-d: {kl_divergence}")
+    
+    # plt.show()
+    plt.savefig(f"{mchain.working_dir}/plots/{mchain.name}_tsne_all_chains.png", dpi=400, bbox_inches="tight")
     # plt.show()
     # if filename is None:
     #     plt.show()
