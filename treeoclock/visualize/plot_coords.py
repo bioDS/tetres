@@ -6,7 +6,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 # todo in the future a cluster parameter will be added
 # todo in the future likely a center parameter will be added to visualize summary trees
 # todo in the future maybe adding a dimension parameter ?
-def plot_coords(coords, filename=None, colors=None):
+def plot_coords(coords, filename=None, colors=None, colorbar=False):
     # Normalizing the colors
     if colors is not None:
         colors = [(c - np.min(colors)) / (np.max(colors) - np.min(colors)) for c in colors]
@@ -28,9 +28,10 @@ def plot_coords(coords, filename=None, colors=None):
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(x, y, z, c=colors, s=s)
     else:
-        raise ValueError(f"Not supported number of dimenstions to plot {coords.shape[1]}!")
+        raise ValueError(f"Unsupported number of dimensions to plot {coords.shape[1]}!")
 
-    if colors is not None:
+    # if colors is not None:
+    if colorbar:
         plt.colorbar(plt.cm.ScalarMappable(norm=None, cmap=cmap), orientation="horizontal")
 
     if filename is None:
@@ -88,6 +89,7 @@ def plot_density_over_coordinates(coords, density, filename, animate: bool = Fal
     return 0
 
 
+# todo this should become part of the judgment package as this is not a visualization thing
 def plot_all_chains_tsne(mchain, names=None):
     if names is None:
         names = [f"chain{i}" for i in range(mchain.m_MChains)]
@@ -112,6 +114,7 @@ def plot_all_chains_tsne(mchain, names=None):
     # todo ideally this should be outsorced and possible with tsne recognizing the input differently maybe
     from treeoclock.visualize.tsne import _tsne_coords_from_pwd
     # todo it is totally fine to run tsne 10 times and select the solutin with the lowest KL divergence
+    # todo the coords should be saved! and then loaded if called again!
     coords, kl_divergence = _tsne_coords_from_pwd(pwd_matrix=combined_matrix, dim=2)  # todo dimension
 
     # continue with the rest and color the dots accordingly
@@ -132,7 +135,7 @@ def plot_all_chains_tsne(mchain, names=None):
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(x, y, z, c=colors, s=s)
     else:
-        raise ValueError(f"Not supported number of dimenstions to plot {coords.shape[1]}!")
+        raise ValueError(f"Unsupported number of dimensions to plot {coords.shape[1]}!")
 
     # plt.colorbar(plt.cm.ScalarMappable(norm=None, cmap=cmap), orientation="horizontal")
     # plt.legend([cmap(i) for i in ], names)
