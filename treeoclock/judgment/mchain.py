@@ -122,9 +122,27 @@ class coupled_MChains():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy")
 
+    def clustree_all(self, n_clus=2, beta=1):
+        if not os.path.exists(
+                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all.npy"):
+            similarity = self.similarity_matrix_all(beta=beta)
+            similarity = similarity + similarity.transpose()
+            clustering = _spectral_clustree(similarity, n_clus=n_clus)
+            np.save(
+                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all.npy",
+                arr=clustering)
+            return clustering
+        else:
+            return np.load(
+                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all.npy")
+
     def spectral_cluster_all(self, n_clus=2, beta=1):
-        # todo saving of the clustering!
         all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus)
+
+    def split_all_trees(self, n_clus, beta=1):
+        clustering = self.clustree_all(n_clus=n_clus, beta=beta)
+
+        return 0
 
     def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
         if len(self) < 2:
