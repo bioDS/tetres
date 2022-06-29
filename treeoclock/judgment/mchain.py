@@ -15,6 +15,7 @@ from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, cal
 from treeoclock.judgment import _gelman_rubin_diag as grd
 from treeoclock.judgment import _cladesetcomparator as csc
 from treeoclock.clustree.spectral_clustree import _spectral_clustree
+from treeoclock.judgment._plotting import all_chains_spectral_clustree
 
 
 # todo testing required!
@@ -110,6 +111,20 @@ class coupled_MChains():
             return combined_matrix
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all.npy")
+
+    def similarity_matrix_all(self, beta=1):
+        if not os.path.exists(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy"):
+            matrix = self.pwd_matrix_all()
+            similarity = np.exp(-beta * matrix / matrix.std())
+            np.save(file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy",
+                    arr=similarity)
+            return similarity
+        else:
+            return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy")
+
+    def spectral_cluster_all(self, n_clus=2, beta=1):
+        # todo saving of the clustering!
+        all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus)
 
     def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
         if len(self) < 2:

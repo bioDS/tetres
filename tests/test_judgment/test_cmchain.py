@@ -78,3 +78,9 @@ def test_cMChain_ess_stripplot(ten_taxa_cMChain):
     for method in ["tracerer", "coda", "arviz"]:
         ten_taxa_cMChain.ess_stripplot(ess_method=method)
         assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/ess_{method}_comparison.png"), "ESS stripplot failed!"
+
+
+def test_cMChain_spectral_cluster_all(ten_taxa_cMChain):
+    ten_taxa_cMChain.spectral_cluster_all()
+    assert True
+
