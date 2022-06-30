@@ -141,6 +141,34 @@ class coupled_MChains():
 
     def split_all_trees(self, n_clus, beta=1):
         clustering = self.clustree_all(n_clus=n_clus, beta=beta)
+        # todo split log and tree files into new files to assess them as individual analyses
+
+        try:
+            os.mkdir(f"{self.working_dir}/{n_clus}_cluster")
+        except FileExistsError:
+            # raise FileExistsError("Cluster directory already exists! No overwriting implemented!")
+            pass
+
+        sample_dict = {}
+        for c in range(n_clus):
+            # try:
+            f = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.log", "x")
+            f.write("\t".join(v for v in list(self[0].log_data.keys())))
+            f.write("\n")
+            f.close()
+            sample_dict[c] = 0
+            # todo write the tree file part
+
+        for chain in range(self.m_MChains):
+            for index, row in self[chain].log_data.iterrows():
+                cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.log", "a")
+                cur_value_list = row.values
+                cur_value_list[0] = sample_dict[clustering[index]]
+                sample_dict[clustering[index]] += 1
+                cur_file.write("\t".join([str(v) for v in cur_value_list]))
+                cur_file.write("\n")
+                cur_file.close()
+                # todo write the tree file part
 
         return 0
 
