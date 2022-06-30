@@ -151,25 +151,55 @@ class coupled_MChains():
 
         sample_dict = {}
         for c in range(n_clus):
-            # try:
-            f = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.log", "x")
-            f.write("\t".join(v for v in list(self[0].log_data.keys())))
-            f.write("\n")
-            f.close()
-            sample_dict[c] = 0
-            # todo write the tree file part
+            try:
+                f = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.log", "x")
+                f.write("\t".join(v for v in list(self[0].log_data.keys())))
+                f.write("\n")
+                f.close()
+                sample_dict[c] = 0
+            except FileExistsError:
+                raise FileExistsError("Log files from clustering already exist, manual deletion for recomputation "
+                                      "required!")
+            # tree files are initialized with the map and properties of chain at postion 0
+            try:
+                f = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.trees", "x")
+                f.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self[0].trees[0].ctree.num_leaves};\n\t\tTaxlabels\n")
+                for taxa in range(1, self[0].trees[0].ctree.num_leaves+1):
+                    f.write(f"\t\t\t{taxa}\n")
+                f.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
+                for taxa in range(1, self[0].trees[0].ctree.num_leaves):
+                    f.write(f"\t\t\t{taxa} {self[0].trees.map[taxa]},\n")
+                f.write(f"\t\t\t{self[0].trees[0].ctree.num_leaves} {self[0].trees.map[self[0].trees[0].ctree.num_leaves]}\n")
+                f.write(";\n")
+                f.close()
+
+            except FileExistsError:
+                raise FileExistsError("Tree files from clustering already exist, manual deletion for recomputation "
+                                      "required!")
 
         for chain in range(self.m_MChains):
+            if chain != 0:
+                if self[chain].trees.map != self[0].trees.map:
+                    raise ValueError("Problem of unequal maps between the tree sets!")
             for index, row in self[chain].log_data.iterrows():
+                # writing the log file
                 cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.log", "a")
                 cur_value_list = row.values
                 cur_value_list[0] = sample_dict[clustering[index]]
-                sample_dict[clustering[index]] += 1
                 cur_file.write("\t".join([str(v) for v in cur_value_list]))
                 cur_file.write("\n")
                 cur_file.close()
-                # todo write the tree file part
 
+                # writing the tree file
+                cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.trees", "a")
+                cur_file.write(f"tree STATE_{sample_dict[clustering[index]]} = {self[chain].trees[index].get_newick()}\n")
+                cur_file.close()
+                # increasing the sample for the respective clustering
+                sample_dict[clustering[index]] += 1
+        for c in range(n_clus):
+            cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.trees", "a")
+            cur_file.write("End;")
+            cur_file.close()
         return 0
 
     def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
