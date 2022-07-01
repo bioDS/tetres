@@ -3,10 +3,12 @@ import os
 import pandas as pd
 import numpy as np
 import itertools
+import linecache
+import re
 
 from treeoclock.judgment import ess, _plots
 from treeoclock.judgment import _geweke_diag as gwd
-from treeoclock.trees.time_trees import TimeTreeSet
+from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
@@ -149,6 +151,8 @@ class coupled_MChains():
             # raise FileExistsError("Cluster directory already exists! No overwriting implemented!")
             pass
 
+        # todo this split needs to be based on the runs as well, i.e. not global but for each chain the split needs to happen!
+
         sample_dict = {}
         for c in range(n_clus):
             try:
@@ -192,7 +196,20 @@ class coupled_MChains():
 
                 # writing the tree file
                 cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.trees", "a")
-                cur_file.write(f"tree STATE_{sample_dict[clustering[index]]} = {self[chain].trees[index].get_newick()}\n")
+
+                re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
+
+                offset = 10 + (2 * self[0].trees[0].ctree.num_leaves)
+                file = f"{self.working_dir}/{self.tree_files[chain]}"
+                line = index + 1 + offset
+                cur_tree = linecache.getline(file, line)
+                cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
+
+                if not TimeTree(cur_tree).fp_distance(self[chain].trees[index]) == 0:
+                    raise ValueError("Wrong offset!")
+
+                cur_file.write(f"tree STATE_{sample_dict[clustering[index]]} = {cur_tree}\n")
+
                 cur_file.close()
                 # increasing the sample for the respective clustering
                 sample_dict[clustering[index]] += 1
@@ -228,10 +245,10 @@ class coupled_MChains():
     def __len__(self):
         return len(self.MChain_list)
 
-    def cladesetcomparator(self, beast_applauncher):
+    def cladesetcomparator(self, beast_applauncher, burnin=10):
         if not self.tree_files:
             raise ValueError("Missing tree_files list!")
-        csc._cladesetcomp(self, beast_applauncher)
+        csc._cladesetcomp(self, beast_applauncher, burnin=burnin)
 
     def ess_stripplot(self, ess_method="tracerer"):
         ess.ess_stripplot(self, ess_method)
