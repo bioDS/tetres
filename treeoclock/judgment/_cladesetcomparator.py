@@ -5,7 +5,7 @@ from PIL import Image
 import shutil
 
 
-def _cladesetcomp(cmchain, beast_applauncher):
+def _cladesetcomp(cmchain, beast_applauncher, burnin=10):
     img_list = []
 
     cwd = os.getcwd()  # Getting current Working directory
@@ -18,7 +18,8 @@ def _cladesetcomp(cmchain, beast_applauncher):
         run_cladesetcomparator(tree_file1=cmchain.tree_files[i],
                                tree_file2=cmchain.tree_files[j],
                                out_file_png=f"plots/temp/{i}_{j}_cc.png",
-                               beast_applauncher=beast_applauncher)
+                               beast_applauncher=beast_applauncher,
+                               burnin=burnin)
         img_list.append([Image.open(f"plots/temp/{i}_{j}_cc.png"), i, j])
 
     print(len(img_list))
