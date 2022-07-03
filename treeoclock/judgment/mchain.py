@@ -141,7 +141,7 @@ class coupled_MChains():
     def spectral_cluster_all(self, n_clus=2, beta=1):
         all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus)
 
-    def split_all_trees(self, n_clus, beta=1):
+    def split_all_trees(self, n_clus, beta=1, burn_in=5):
         clustering = self.clustree_all(n_clus=n_clus, beta=beta)
         # todo split log and tree files into new files to assess them as individual analyses
 
@@ -186,33 +186,34 @@ class coupled_MChains():
                 if self[chain].trees.map != self[0].trees.map:
                     raise ValueError("Problem of unequal maps between the tree sets!")
             for index, row in self[chain].log_data.iterrows():
-                # writing the log file
-                cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.log", "a")
-                cur_value_list = row.values
-                cur_value_list[0] = sample_dict[clustering[index]]
-                cur_file.write("\t".join([str(v) for v in cur_value_list]))
-                cur_file.write("\n")
-                cur_file.close()
+                if index > int((self[chain].log_data.shape[0] / 100) * burn_in):
+                    # writing the log file
+                    cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.log", "a")
+                    cur_value_list = row.values
+                    cur_value_list[0] = sample_dict[clustering[index]]
+                    cur_file.write("\t".join([str(v) for v in cur_value_list]))
+                    cur_file.write("\n")
+                    cur_file.close()
 
-                # writing the tree file
-                cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.trees", "a")
+                    # writing the tree file
+                    cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.trees", "a")
 
-                re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
+                    re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
 
-                offset = 10 + (2 * self[0].trees[0].ctree.num_leaves)
-                file = f"{self.working_dir}/{self.tree_files[chain]}"
-                line = index + 1 + offset
-                cur_tree = linecache.getline(file, line)
-                cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
+                    offset = 10 + (2 * self[0].trees[0].ctree.num_leaves)
+                    file = f"{self.working_dir}/{self.tree_files[chain]}"
+                    line = index + 1 + offset
+                    cur_tree = linecache.getline(file, line)
+                    cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
 
-                if not TimeTree(cur_tree).fp_distance(self[chain].trees[index]) == 0:
-                    raise ValueError("Wrong offset!")
+                    if not TimeTree(cur_tree).fp_distance(self[chain].trees[index]) == 0:
+                        raise ValueError("Wrong offset!")
 
-                cur_file.write(f"tree STATE_{sample_dict[clustering[index]]} = {cur_tree}\n")
+                    cur_file.write(f"tree STATE_{sample_dict[clustering[index]]} = {cur_tree}\n")
 
-                cur_file.close()
-                # increasing the sample for the respective clustering
-                sample_dict[clustering[index]] += 1
+                    cur_file.close()
+                    # increasing the sample for the respective clustering
+                    sample_dict[clustering[index]] += 1
         for c in range(n_clus):
             cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.trees", "a")
             cur_file.write("End;")
