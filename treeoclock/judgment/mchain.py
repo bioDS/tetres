@@ -169,7 +169,7 @@ class coupled_MChains():
                 f = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.trees", "x")
                 f.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self[0].trees[0].ctree.num_leaves};\n\t\tTaxlabels\n")
                 for taxa in range(1, self[0].trees[0].ctree.num_leaves+1):
-                    f.write(f"\t\t\t{taxa}\n")
+                    f.write(f"\t\t\t{self[0].trees.map[taxa]}\n")
                 f.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
                 for taxa in range(1, self[0].trees[0].ctree.num_leaves):
                     f.write(f"\t\t\t{taxa} {self[0].trees.map[taxa]},\n")
