@@ -105,3 +105,12 @@ def test_cMChain_split_all_trees(ten_taxa_cMChain):
     # todo this test should first remove the files and then run the test
     assert True
 
+
+def test_pwd_matrix_all(ten_taxa_cMChain):
+    matrix = ten_taxa_cMChain.pwd_matrix_all()
+    assert matrix.shape == (3003, 3003), "PWD matrix all failed!"
+
+
+def test_pwd_matrix_all_rf(ten_taxa_cMChain):
+    matrix = ten_taxa_cMChain.pwd_matrix_all(rf=True)
+    assert matrix.shape == (3003, 3003), "PWD matrix RF all failed!"

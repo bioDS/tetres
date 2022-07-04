@@ -91,28 +91,28 @@ class coupled_MChains():
                     return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy")
 
     # todo testing required
-    def pwd_matrix_all(self):
-        if not os.path.exists(f"{self.working_dir}/data/{self.name}_all.npy"):
+    def pwd_matrix_all(self, rf: bool = False):
+        if not os.path.exists(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy"):
             combined_matrix = np.array([])
             for i in range(self.m_MChains):
                 cur_row = np.array([])
                 for j in range(self.m_MChains):
                     # print(i, j)
                     if i < j:
-                        cur_row = np.concatenate((cur_row, self.pwd_matrix(i, j)),
-                                                 axis=1) if cur_row.size else self.pwd_matrix(i, j)
+                        cur_row = np.concatenate((cur_row, self.pwd_matrix(i, j, rf=rf)),
+                                                 axis=1) if cur_row.size else self.pwd_matrix(i, j, rf=rf)
                     elif i > j:
-                        cur_row = np.concatenate((cur_row, np.zeros(self.pwd_matrix(j, i).shape)),
-                                                 axis=1) if cur_row.size else np.zeros(self.pwd_matrix(j, i).shape)
+                        cur_row = np.concatenate((cur_row, np.zeros(self.pwd_matrix(j, i, rf=rf).shape)),
+                                                 axis=1) if cur_row.size else np.zeros(self.pwd_matrix(j, i, rf=rf).shape)
                     elif i == j:
-                        cur_row = np.concatenate((cur_row, self.pwd_matrix(i)),
-                                                 axis=1) if cur_row.size else self.pwd_matrix(i)
+                        cur_row = np.concatenate((cur_row, self.pwd_matrix(i, rf=rf)),
+                                                 axis=1) if cur_row.size else self.pwd_matrix(i, rf=rf)
                     # print(cur_row.shape)
                 combined_matrix = np.concatenate((combined_matrix, cur_row)) if combined_matrix.size else cur_row
-            np.save(file=f"{self.working_dir}/data/{self.name}_all.npy", arr=combined_matrix)
+            np.save(file=f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy", arr=combined_matrix)
             return combined_matrix
         else:
-            return np.load(f"{self.working_dir}/data/{self.name}_all.npy")
+            return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
     def similarity_matrix_all(self, beta=1):
         if not os.path.exists(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy"):
