@@ -44,6 +44,20 @@ def test_cMChain_pwd_matrix(ten_taxa_cMChain):
     assert errors == [], f"PWD matrix went wrong! {errors}"
 
 
+def test_cMChain_pwd_matrix_rf(ten_taxa_cMChain):
+    errors = []
+    dm0 = ten_taxa_cMChain.pwd_matrix(0, rf=True)
+    if dm0.shape != (1001, 1001):
+        errors.append("dm0 wrong shape!")
+    dm1 = ten_taxa_cMChain.pwd_matrix(1, rf=True)
+    if dm1.shape != (1001, 1001):
+        errors.append("dm0 wrong shape!")
+    dm01 = ten_taxa_cMChain.pwd_matrix(0, 1, rf=True)
+    if dm01.shape != (1001, 1001):
+        errors.append("dm0 wrong shape!")
+    assert errors == [], f"PWD matrix went wrong! {errors}"
+
+
 def test_cMChain_pwdm_errors(ten_taxa_cMChain):
     with pytest.raises(ValueError):
         for i in ["HI", 1.0, 2]:
@@ -80,7 +94,14 @@ def test_cMChain_ess_stripplot(ten_taxa_cMChain):
         assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/ess_{method}_comparison.png"), "ESS stripplot failed!"
 
 
+# todo test temporary
 def test_cMChain_spectral_cluster_all(ten_taxa_cMChain):
-    ten_taxa_cMChain.spectral_cluster_all()
+    ten_taxa_cMChain.spectral_cluster_all(n_clus=3)
+    assert True
+
+
+def test_cMChain_split_all_trees(ten_taxa_cMChain):
+    ten_taxa_cMChain.split_all_trees(n_clus=3)
+    # todo this test should first remove the files and then run the test
     assert True
 

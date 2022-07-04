@@ -58,14 +58,14 @@ class coupled_MChains():
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
 
-    def pwd_matrix(self, index1, index2=None, csv: bool = False):
+    def pwd_matrix(self, index1, index2=None, csv: bool = False, rf: bool = False):
         if type(index1) is not int:
             raise ValueError("Unrecognized index type!")
         if index1 >= self.m_MChains:
             raise IndexError("Given Index out of range!")
 
         if index2 is None:
-            return self.MChain_list[index1].pwd_matrix(index=index1, name=self.name, csv=csv)
+            return self.MChain_list[index1].pwd_matrix(index=index1, name=self.name, csv=csv, rf=rf)
         else:
             if type(index2) is not int:
                 raise ValueError("Unrecognized index type!")
@@ -75,20 +75,20 @@ class coupled_MChains():
                 raise IndexError("Given Index out of range!")
             if index2 < index1:
                 index1, index2 = index2, index1
-            if not os.path.exists(f"{self.working_dir}/data/{self.name}_{index1}_{index2}.{'csv.gz' if csv else 'npy'}"):
-                dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees)
+            if not os.path.exists(f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
+                dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees, rf=rf)
                 if csv:
-                    np.savetxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}.csv.gz", X=dm, delimiter=',',
+                    np.savetxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz", X=dm, delimiter=',',
                                fmt='%i')
                 else:
-                    np.save(file=f"{self.working_dir}/data/{self.name}_{index1}_{index2}.npy", arr=dm)
+                    np.save(file=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy", arr=dm)
                 return dm
             else:
                 if csv:
-                    return np.genfromtxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}.csv.gz",
+                    return np.genfromtxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz",
                                          delimiter=',', dtype=int)
                 else:
-                    return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}.npy")
+                    return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy")
 
     # todo testing required
     def pwd_matrix_all(self):
