@@ -124,19 +124,19 @@ class coupled_MChains():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy")
 
-    def clustree_all(self, n_clus=2, beta=1):
+    def clustree_all(self, n_clus=2, beta=1, rf: bool = False):
         if not os.path.exists(
-                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all.npy"):
-            similarity = self.similarity_matrix_all(beta=beta)
+                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy"):
+            similarity = self.similarity_matrix_all(beta=beta, rf=rf)
             similarity = similarity + similarity.transpose()
             clustering = _spectral_clustree(similarity, n_clus=n_clus)
             np.save(
-                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all.npy",
+                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy",
                 arr=clustering)
             return clustering
         else:
             return np.load(
-                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all.npy")
+                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy")
 
     def spectral_cluster_all(self, n_clus=2, beta=1):
         all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus)

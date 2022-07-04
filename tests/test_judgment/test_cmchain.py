@@ -107,21 +107,18 @@ def test_cMChain_split_all_trees(ten_taxa_cMChain):
 
 
 def test_pwd_matrix_all(ten_taxa_cMChain):
-    matrix = ten_taxa_cMChain.pwd_matrix_all()
-    assert matrix.shape == (3003, 3003), "PWD matrix all failed!"
-
-
-def test_pwd_matrix_all_rf(ten_taxa_cMChain):
-    matrix = ten_taxa_cMChain.pwd_matrix_all(rf=True)
-    assert matrix.shape == (3003, 3003), "PWD matrix RF all failed!"
+    for rf in [True, False]:
+        matrix = ten_taxa_cMChain.pwd_matrix_all(rf=rf)
+        assert matrix.shape == (3003, 3003), "PWD matrix all failed!"
 
 
 def test_similarity_matrix_all(ten_taxa_cMChain):
-    matrix = ten_taxa_cMChain.similarity_matrix_all()
-    assert matrix.shape == (3003, 3003), "Similarity matrix computation failed!"
+    for rf in [True, False]:
+        matrix = ten_taxa_cMChain.similarity_matrix_all(rf=rf)
+        assert matrix.shape == (3003, 3003), "Similarity matrix computation failed!"
 
 
-def test_similarity_matrix_all_rf(ten_taxa_cMChain):
-    matrix = ten_taxa_cMChain.similarity_matrix_all(rf=True)
-    assert matrix.shape == (3003, 3003), "Similarity matrix RF computation failed!"
-
+def test_clustree_all(ten_taxa_cMChain):
+    for rf in [True, False]:
+        clustering = ten_taxa_cMChain.clustree_all(rf=rf)
+        assert clustering.shape == (3003, 1), "Clustering all trees failed!"
