@@ -138,8 +138,8 @@ class coupled_MChains():
             return np.load(
                 f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy")
 
-    def spectral_cluster_all(self, n_clus=2, beta=1):
-        all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus)
+    def plot_clustree_all(self, n_clus=2, beta=1, rf: bool = False):
+        all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus, rf=rf)
 
     def split_all_trees(self, n_clus, beta=1, burn_in=5):
         clustering = self.clustree_all(n_clus=n_clus, beta=beta)

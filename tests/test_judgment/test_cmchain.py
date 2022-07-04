@@ -94,18 +94,6 @@ def test_cMChain_ess_stripplot(ten_taxa_cMChain):
         assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/ess_{method}_comparison.png"), "ESS stripplot failed!"
 
 
-# todo test temporary
-def test_cMChain_spectral_cluster_all(ten_taxa_cMChain):
-    ten_taxa_cMChain.spectral_cluster_all(n_clus=3)
-    assert True
-
-
-def test_cMChain_split_all_trees(ten_taxa_cMChain):
-    ten_taxa_cMChain.split_all_trees(n_clus=3)
-    # todo this test should first remove the files and then run the test
-    assert True
-
-
 def test_pwd_matrix_all(ten_taxa_cMChain):
     for rf in [True, False]:
         matrix = ten_taxa_cMChain.pwd_matrix_all(rf=rf)
@@ -121,4 +109,19 @@ def test_similarity_matrix_all(ten_taxa_cMChain):
 def test_clustree_all(ten_taxa_cMChain):
     for rf in [True, False]:
         clustering = ten_taxa_cMChain.clustree_all(rf=rf)
-        assert clustering.shape == (3003, 1), "Clustering all trees failed!"
+        assert clustering.shape == (3003,), "Clustering all trees failed!"
+
+
+def test_plot_clustree_all(ten_taxa_cMChain):
+    for rf in [True, False]:
+        ten_taxa_cMChain.plot_clustree_all(rf=rf)
+        assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_2clustering_all{'_rf' if rf else ''}.png"),\
+            "Plotting clustree all failed!"
+
+
+# todo temporary
+def test_cMChain_split_all_trees(ten_taxa_cMChain):
+    ten_taxa_cMChain.split_all_trees(n_clus=3)
+    # todo this test should first remove the files and then run the test
+    # todo this is currently not implemented for rf option !!!
+    assert True
