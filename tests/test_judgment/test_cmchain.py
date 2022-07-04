@@ -119,6 +119,13 @@ def test_plot_clustree_all(ten_taxa_cMChain):
             "Plotting clustree all failed!"
 
 
+def test_tsne_all(ten_taxa_cMChain):
+    for rf in [True, False]:
+        ten_taxa_cMChain.tsne_all(rf=rf)
+        assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_2D_tSNE_all{'_rf' if rf else ''}.npy"), \
+            "2D tSNE all chains failed!"
+
+
 # todo temporary
 def test_cMChain_split_all_trees(ten_taxa_cMChain):
     ten_taxa_cMChain.split_all_trees(n_clus=3)
