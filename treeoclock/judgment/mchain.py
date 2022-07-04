@@ -320,28 +320,28 @@ class MChain:
                                      f"The given summary tree and tree set do not fit! "
                                      f"\n(Construction of class MChain failed!)")
 
-    def pwd_matrix(self, csv: bool = False, index="", name=""):
+    def pwd_matrix(self, csv: bool = False, index="", name="", rf=False):
         # todo this should work natively with the name of coupled mchains now, without all these parameters?
         if not os.path.exists(
-                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.{'csv.gz' if csv else 'npy'}"):
-            dm = calc_pw_distances(self.trees)
+                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
+            dm = calc_pw_distances(self.trees, rf=rf)
             if csv:
                 np.savetxt(
-                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
+                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.csv.gz",
                     X=dm, delimiter=',', fmt='%i')
             else:
                 np.save(
-                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy",
+                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.npy",
                     arr=dm)
             return dm
         else:
             if csv:
                 return np.genfromtxt(
-                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.csv.gz",
+                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.csv.gz",
                     delimiter=',', dtype=int)
             else:
                 return np.load(
-                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}.npy")
+                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.npy")
 
     def get_key_names(self):
         return list(self.log_data.columns)[1:]

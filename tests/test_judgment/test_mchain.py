@@ -458,6 +458,18 @@ def test_MChain_compute_in_chain_deviation(thirty_taxa_MChain):
     assert len(ret) == len(thirty_taxa_MChain.trees), "In Chain deviation failed!"
 
 
+def test_MChain_pwd_matrix(thirty_taxa_MChain):
+    thirty_taxa_MChain.pwd_matrix()
+    assert os.path.exists(f"{thirty_taxa_MChain.working_dir}/data/30TestFix.npy"),\
+            "Similarity matrix computation failed!"
+
+
+def test_MChain_pwd_matrix(thirty_taxa_MChain):
+    pwd = thirty_taxa_MChain.pwd_matrix(rf=True)
+    assert os.path.exists(f"{thirty_taxa_MChain.working_dir}/data/30TestFix_rf.npy"),\
+            "Similarity matrix computation failed!"
+
+
 def test_MChain_get_simmatrix(thirty_taxa_MChain):
     for beta in [1, 2, 0.5]:
         thirty_taxa_MChain.get_simmatrix(beta=beta)
