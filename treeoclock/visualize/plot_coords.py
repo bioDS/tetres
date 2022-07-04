@@ -90,7 +90,7 @@ def plot_density_over_coordinates(coords, density, filename, animate: bool = Fal
 
 
 # todo this should become part of the judgment package as this is not a visualization thing
-def plot_all_chains_tsne(mchain, names=None):
+def plot_all_chains_tsne(mchain, names=None, rf: bool = False):
     if names is None:
         names = [f"chain{i}" for i in range(mchain.m_MChains)]
 
@@ -104,7 +104,7 @@ def plot_all_chains_tsne(mchain, names=None):
         colors.extend([cmap(i) for _ in range(len(mchain[i].trees))])
         # labels.append([names[i] for _ in range(len(mchain[i].trees))])
 
-    combined_matrix = mchain.pwd_matrix_all()
+    combined_matrix = mchain.pwd_matrix_all(rf=rf)
 
         # print(combined_matrix.shape)
     # todo save the combined distance matrix!
@@ -124,7 +124,7 @@ def plot_all_chains_tsne(mchain, names=None):
 
     # todo s is the size, so it would be possible to scale based on the colors
     #  or also another value
-    s = [5 for _ in range(coords.shape[0])]
+    s = [1 for _ in range(coords.shape[0])]
 
     if coords.shape[1] == 2:
         x, y = zip(*coords)
@@ -146,7 +146,7 @@ def plot_all_chains_tsne(mchain, names=None):
     plt.suptitle(f"KL-d: {kl_divergence}")
     
     # plt.show()
-    plt.savefig(f"{mchain.working_dir}/plots/{mchain.name}_tsne_all_chains.png", dpi=400, bbox_inches="tight")
+    plt.savefig(f"{mchain.working_dir}/plots/{mchain.name}_tsne_all_chains{'_rf' if rf else ''}.png", dpi=400, bbox_inches="tight")
     # plt.show()
     # if filename is None:
     #     plt.show()
