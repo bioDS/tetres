@@ -206,9 +206,6 @@ class coupled_MChains():
                     cur_tree = linecache.getline(file, line)
                     cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
 
-                    if not TimeTree(cur_tree).fp_distance(self[chain].trees[index]) == 0:
-                        raise ValueError("Wrong offset!")
-
                     cur_file.write(f"tree STATE_{sample_dict[clustering[index]]} = {cur_tree}\n")
 
                     cur_file.close()
