@@ -114,15 +114,15 @@ class coupled_MChains():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def similarity_matrix_all(self, beta=1):
-        if not os.path.exists(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy"):
-            matrix = self.pwd_matrix_all()
+    def similarity_matrix_all(self, beta=1, rf: bool = False):
+        if not os.path.exists(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy"):
+            matrix = self.pwd_matrix_all(rf=rf)
             similarity = np.exp(-beta * matrix / matrix.std())
-            np.save(file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy",
+            np.save(file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy",
                     arr=similarity)
             return similarity
         else:
-            return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all.npy")
+            return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy")
 
     def clustree_all(self, n_clus=2, beta=1):
         if not os.path.exists(
