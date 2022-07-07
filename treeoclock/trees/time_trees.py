@@ -64,6 +64,24 @@ class TimeTree:
 
         return TimeTree(new_newick)
 
+    def write_nexus(self, taxa_map, file_name, name="TimeTree"):
+        try:
+            file = open(file_name, "x")
+            file.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self.ctree.num_leaves};\n\t\tTaxlabels\n")
+            for taxa in range(1, self.ctree.num_leaves + 1):
+                file.write(f"\t\t\t{taxa_map[taxa]}\n")
+            file.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
+            for taxa in range(1, self.ctree.num_leaves):
+                file.write(f"\t\t\t{taxa} {taxa_map[taxa]},\n")
+            file.write(
+                f"\t\t\t{self.ctree.num_leaves} {taxa_map[self.ctree.num_leaves]}\n")
+            file.write(";\n")
+            file.write(f"tree {name} = {self.get_newick()}\n")
+            file.write("End;")
+            file.close()
+        except FileExistsError:
+            raise FileExistsError("File already exists, manual deletion required!")
+
 
 def neighbourhood(tree: TimeTree):
     lib.rank_move.argtypes = [POINTER(TREE), c_long]
