@@ -11,4 +11,7 @@ def test_annotate_centroid(twelve_taxa_tts):
     assert acen.fp_distance(reversed_cen) == 0, "Centroid annotation failed"
 
 
-# todo easy test case to see if it is doing the right thing with extracting heights of the ranks!
+def test_annotate_tree(five_taxa_tts):
+    t = annotate_centroid(five_taxa_tts[0], five_taxa_tts)
+    assert t.get_newick(f=5) == '((1:3,2:3):1.66667,(3:2,(4:1,5:1):1):2.66667);',\
+        "Annotation of tree with branch-lengths failed!"

@@ -15,10 +15,13 @@ def annotate_centroid(tree: TimeTree, tree_set: TimeTreeSet):
         index = 0
         for node in t.etree.traverse('levelorder'):
             if len(node2leaves[node]) != 1:
+                # case of node not a leaf
                 if index == 0:
+                    # this is only for the root
                     node.name = node.dist
                 else:
-                    node.name = node.dist + node.up.name  # Top down for loop makes this possible
+                    node.name = node.dist + node.up.name
+                    # Top down for loop makes this possible
                 index += 1
                 cur_distances.append(node.name)
         cur_distances = sorted(cur_distances)
@@ -32,6 +35,8 @@ def annotate_centroid(tree: TimeTree, tree_set: TimeTreeSet):
 
 
 def _ctree_to_ete3_annotation(ctree, branch_lengths):
+    # adapted recursion from treeoclock.trees._converter using the float branch lengths instead of integers
+
     nl = ctree.num_leaves
     nn = (nl * 2) - 2  # number of nodes - 1, max index in ctree.tree
 
