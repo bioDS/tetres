@@ -19,6 +19,8 @@ from treeoclock.judgment import _cladesetcomparator as csc
 from treeoclock.clustree.spectral_clustree import _spectral_clustree
 from treeoclock.judgment._plotting import all_chains_spectral_clustree
 from treeoclock.visualize.tsne import _tsne_coords_from_pwd
+from treeoclock.summary.centroid import Centroid
+from treeoclock.summary.annotate_centroid import annotate_centroid
 
 
 # todo testing required!
@@ -156,10 +158,8 @@ class coupled_MChains():
 
     def split_all_trees(self, n_clus, beta=1, burn_in=5):
         clustering = self.clustree_all(n_clus=n_clus, beta=beta)
-        # todo split log and tree files into new files to assess them as individual analyses
-
         try:
-            os.mkdir(f"{self.working_dir}/{n_clus}_cluster")
+            os.mkdir(f"{self.working_dir}/{n_clus}_cluster")  # todo maybe name the cluster based on rf also!
         except FileExistsError:
             # raise FileExistsError("Cluster directory already exists! No overwriting implemented!")
             pass
@@ -260,10 +260,29 @@ class coupled_MChains():
         if not self.tree_files:
             raise ValueError("Missing tree_files list!")
         csc._cladesetcomp(self, beast_applauncher, burnin=burnin)
+        # todo add the compare chronogram on the lower diag of the plot?
 
     def ess_stripplot(self, ess_method="tracerer"):
         ess.ess_stripplot(self, ess_method)
 
+    def cen_for_each_chain(self):
+        cen = Centroid(variation="greedy_omp")
+        for chain in self.MChain_list:
+            cen_tree, sos = cen.compute_centroid(chain.trees)
+            cen_tree = annotate_centroid(cen_tree, chain.trees)
+            try:
+                file = open(f"{chain.working_dir}/data/{chain.name}_cen_sos.log", "x")
+                file.write(f"Sum of squared RNNI distances: {sos}\n")
+                file.close()
+            except FileExistsError:
+                raise FileExistsError("Previous Centroid sos log exists, manual deltion required!")
+            cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
+
+    def compare_chain_summaries(self):
+        # maybe the compare chronogram
+        # rnni distances between the trees
+        # something else?
+        return 0
 
 class MChain:
     def __init__(self, working_dir, trees, log_file, summary=None, name: str = "MC"):

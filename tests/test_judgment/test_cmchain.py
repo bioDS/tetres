@@ -126,7 +126,19 @@ def test_tsne_all(ten_taxa_cMChain):
             "2D tSNE all chains failed!"
 
 
-# todo temporary
+def test_cen_for_each_chain(ten_taxa_cMChain):
+    for chain in ten_taxa_cMChain:
+        os.remove(f"{chain.working_dir}/data/{chain.name}_cen_sos.log")
+        os.remove(f"{chain.working_dir}/{chain.name}_cen.tree")
+    ten_taxa_cMChain.cen_for_each_chain()
+    for chain in ten_taxa_cMChain:
+        assert os.path.exists(f"{chain.working_dir}/{chain.name}_cen.tree"), "Failed to write centroid file!"
+
+
+# todo test the centroid comparison
+
+
+#todo temporary
 def test_cMChain_split_all_trees(ten_taxa_cMChain):
     ten_taxa_cMChain.split_all_trees(n_clus=3)
     # todo this test should first remove the files and then run the test
