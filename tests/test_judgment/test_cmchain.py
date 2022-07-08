@@ -128,14 +128,26 @@ def test_tsne_all(ten_taxa_cMChain):
 
 def test_cen_for_each_chain(ten_taxa_cMChain):
     for chain in ten_taxa_cMChain:
-        os.remove(f"{chain.working_dir}/data/{chain.name}_cen_sos.log")
-        os.remove(f"{chain.working_dir}/{chain.name}_cen.tree")
+        try:
+            os.remove(f"{chain.working_dir}/data/{chain.name}_cen_sos.log")
+        except FileNotFoundError:
+            pass
+        try:
+            os.remove(f"{chain.working_dir}/{chain.name}_cen.tree")
+        except FileNotFoundError:
+            pass
     ten_taxa_cMChain.cen_for_each_chain()
     for chain in ten_taxa_cMChain:
         assert os.path.exists(f"{chain.working_dir}/{chain.name}_cen.tree"), "Failed to write centroid file!"
 
 
-# todo test the centroid comparison
+def test_compare_chain_summaries(ten_taxa_cMChain):
+    try:
+        os.remove(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_cen_distances.log")
+    except FileNotFoundError:
+        pass
+    ten_taxa_cMChain.compare_chain_summaries()
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_cen_distances.log"), "Compare chain summaries failed!"
 
 
 #todo temporary

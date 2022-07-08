@@ -48,6 +48,9 @@ class coupled_MChains():
                 self.tree_files = trees.copy()
                 self.MChain_list.append(MChain(trees=trees[i], log_file=log_files[i],
                                                working_dir=working_dir, name=f"{self.name}_{i}"))
+
+        # todo check that the mappings are all the same for every chain if not change them to one!
+
         elif type(trees) is str:
             if not os.path.exists(f"{self.working_dir}/{trees}"):
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{trees} does not exist!")
@@ -279,10 +282,15 @@ class coupled_MChains():
             cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
 
     def compare_chain_summaries(self):
-        # maybe the compare chronogram
-        # rnni distances between the trees
-        # something else?
-        return 0
+        # todo maybe add the compare chronogram
+        trees = []
+        for chain in self.MChain_list:
+            trees.append(TimeTreeSet(f"{chain.working_dir}/{chain.name}_cen.tree"))
+        with open(f"{self.working_dir}/data/{self.name}_cen_distances.log", "w+") as file:
+            for i, j in itertools.combinations(range(self.m_MChains), 2):
+                file.write(f"{self.MChain_list[i].name} - {self.MChain_list[j].name} :\t")
+                file.write(f"{trees[i][0].fp_distance(trees[j][0])}")
+                file.write("\n")
 
 class MChain:
     def __init__(self, working_dir, trees, log_file, summary=None, name: str = "MC"):
