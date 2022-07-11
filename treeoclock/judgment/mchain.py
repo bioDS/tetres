@@ -17,7 +17,7 @@ from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, cal
 from treeoclock.judgment import _gelman_rubin_diag as grd
 from treeoclock.judgment import _cladesetcomparator as csc
 from treeoclock.clustree.spectral_clustree import _spectral_clustree
-from treeoclock.judgment._plotting import all_chains_spectral_clustree
+from treeoclock.judgment._plotting import all_chains_spectral_clustree, all_chains_added_summaries
 from treeoclock.visualize.tsne import _tsne_coords_from_pwd
 from treeoclock.summary.centroid import Centroid
 from treeoclock.summary.annotate_centroid import annotate_centroid
@@ -48,8 +48,9 @@ class coupled_MChains():
         if type(trees) is list:
             if len(trees) != self.m_MChains or len(log_files) != self.m_MChains:
                 raise ValueError("m_chains and number of trees do not match!")
+            self.tree_files = trees.copy()
+            self.log_files = log_files.copy()
             for i in range(self.m_MChains):
-                self.tree_files = trees.copy()
                 self.MChain_list.append(MChain(trees=trees[i], log_file=log_files[i],
                                                working_dir=working_dir, name=f"{self.name}_{i}"))
 
@@ -112,13 +113,13 @@ class coupled_MChains():
                         cur_row = np.concatenate((cur_row, self.pwd_matrix(i, j, rf=rf)),
                                                  axis=1) if cur_row.size else self.pwd_matrix(i, j, rf=rf)
                     elif i > j:
-                        cur_row = np.concatenate((cur_row, np.zeros(self.pwd_matrix(j, i, rf=rf).shape)),
-                                                 axis=1) if cur_row.size else np.zeros(self.pwd_matrix(j, i, rf=rf).shape)
+                        cur_row = np.concatenate((cur_row, np.zeros((len(self[i].trees), len(self[j].trees)))),
+                                                 axis=1) if cur_row.size else np.zeros((len(self[i].trees), len(self[j].trees)))
                     elif i == j:
                         cur_row = np.concatenate((cur_row, self.pwd_matrix(i, rf=rf)),
                                                  axis=1) if cur_row.size else self.pwd_matrix(i, rf=rf)
                     # print(cur_row.shape)
-                combined_matrix = np.concatenate((combined_matrix, cur_row)) if combined_matrix.size else cur_row
+                combined_matrix = np.concatenate((combined_matrix, cur_row), axis=0) if combined_matrix.size else cur_row
             np.save(file=f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy", arr=combined_matrix)
             return combined_matrix
         else:
@@ -167,8 +168,14 @@ class coupled_MChains():
         all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus, rf=rf, dim=dim)
 
     # todo wip
-    def plot_clustree_with_summaries(self, n_clus=2, beta=1, rf: bool = False, dim: int = 2):
-        all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus, rf=rf, dim=dim)
+    def plot_chains_with_summaries(self, rf: bool = False, dim: int = 2):
+        new_cmchain = coupled_MChains(self.m_MChains, self.tree_files, self.log_files, self.working_dir, name=f"{self.name}_cen")
+        new_cmchain.m_MChains += new_cmchain.m_MChains
+        for chain in self.MChain_list:
+            cur_chain = MChain(trees=TimeTreeSet(f"{chain.working_dir}/{chain.name}_cen.tree"), log_file=None,
+                               working_dir=self.working_dir, name=f"{chain.name}_cen")
+            new_cmchain.MChain_list.append(cur_chain)
+        all_chains_added_summaries(new_cmchain, rf=rf, dim=dim)
 
     def split_all_trees(self, n_clus, beta=1, burn_in=5):
         clustering = self.clustree_all(n_clus=n_clus, beta=beta)
@@ -308,7 +315,7 @@ class coupled_MChains():
 
 
 class MChain:
-    def __init__(self, working_dir, trees, log_file, summary=None, name: str = "MC"):
+    def __init__(self, working_dir, trees, log_file=None, summary=None, name: str = "MC"):
         if type(name) is str:
             self.name = name
         else:
@@ -350,7 +357,7 @@ class MChain:
         else:
             if type(log_file) is str:
                 raise FileNotFoundError(log_file)
-            else:
+            elif log_file is not None:
                 raise ValueError(log_file)
 
         if summary is not None:

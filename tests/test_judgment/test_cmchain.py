@@ -159,6 +159,13 @@ def test_compare_chain_summaries(ten_taxa_cMChain):
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_cen_distances.log"), "Compare chain summaries failed!"
 
 
+def test_plot_chains_with_summaries(ten_taxa_cMChain):
+    for rf in [True, False]:
+        ten_taxa_cMChain.plot_chains_with_summaries(rf=rf)
+        assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_cen_summaries{'_rf' if rf else ''}.png"), \
+            "Plot chains with summaries failed!"
+
+
 #todo temporary
 def test_cMChain_split_all_trees(ten_taxa_cMChain):
     ten_taxa_cMChain.split_all_trees(n_clus=3)

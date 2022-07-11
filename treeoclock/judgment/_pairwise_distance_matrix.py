@@ -52,6 +52,5 @@ def calc_pw_distances_two_sets(trees1, trees2, rf: bool = False):
         etrees2 = [t.etree for t in trees2]
         make_shared_array(distances, name='distances')  # create shared memory array from numpy array
         with Pool(None) as p:
-            p.starmap(_rf, [(etrees1[i], etrees2[j], i, j) for i, j in
-                            itertools.product(*(range(n1), range(n2)), repeat=2)])
+            p.starmap(_rf, [(etrees1[i], etrees2[j], i, j) for i in range(n1) for j in range(n2)])
         return get_shared_array('distances')

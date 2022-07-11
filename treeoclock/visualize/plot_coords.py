@@ -2,18 +2,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-
 # todo in the future a cluster parameter will be added
 # todo in the future likely a center parameter will be added to visualize summary trees
 # todo in the future maybe adding a dimension parameter ?
-def plot_coords(coords, filename=None, colors=None, colorbar=False):
+def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=False):
     # Normalizing the colors
     if colors is not None:
         internal_colors = [(c - np.min(colors)) / (np.max(colors) - np.min(colors)) for c in colors]
     else:
         internal_colors = [1 for _ in range(coords.shape[0])]
-    cmap = plt.cm.Spectral_r
-    internal_colors = [cmap(c) for c in colors]
+    cmap = plt.cm.tab10_r
+    internal_colors = [cmap(c) for c in internal_colors]
     
     # todo s is the size, so it would be possible to scale based on the colors
     #  or also another value
@@ -21,12 +20,18 @@ def plot_coords(coords, filename=None, colors=None, colorbar=False):
 
     if coords.shape[1] == 2:
         x, y = zip(*coords)
-        plt.scatter(x, y, c=internal_colors, s=s)
+        plt.scatter(x, y, c=internal_colors, s=s, alpha=0.2)
+        if centers is not None:
+            for i in range(1, centers + 1):
+                plt.scatter(x[-i], y[-i], c=internal_colors[-i], s=s[-i]*3, alpha=1)
     elif coords.shape[1] == 3:
         x, y, z = zip(*coords)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x, y, z, c=internal_colors, s=s)
+        ax.scatter(x, y, z, c=internal_colors, s=s, alpha=0.5)
+        if centers is not None:
+            for i in range(1, centers + 1):
+                plt.scatter(x[-i], y[-i], z[-i], c=internal_colors[-i], s=s[-i]*3, alpha=1)
     else:
         raise ValueError(f"Unsupported number of dimensions to plot {coords.shape[1]}!")
 
