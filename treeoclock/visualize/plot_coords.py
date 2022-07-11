@@ -44,6 +44,7 @@ def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=Fals
     else:
         plt.savefig(filename, dpi=400, format="png")
     plt.clf()
+    plt.close()
 
 
 def plot_density_over_coordinates(coords, density, filename, animate: bool = False):
