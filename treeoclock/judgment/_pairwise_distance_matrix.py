@@ -32,7 +32,12 @@ def calc_pw_distances(trees, rf: bool = False):
         # shared_array = get_shared_array('distances')  # get shared memory array as numpy array
         with Pool(None) as p:
             p.starmap(_rf, [(etrees[i], etrees[j], i, j) for i,j in itertools.combinations(range(n), 2)])
-        return get_shared_array('distances')
+        distances =  get_shared_array('distances')
+        try:
+            del globals()['distances']
+        except KeyError:
+            pass
+        return distances
 
 
 def calc_pw_distances_two_sets(trees1, trees2, rf: bool = False):
@@ -53,4 +58,9 @@ def calc_pw_distances_two_sets(trees1, trees2, rf: bool = False):
         make_shared_array(distances, name='distances')  # create shared memory array from numpy array
         with Pool(None) as p:
             p.starmap(_rf, [(etrees1[i], etrees2[j], i, j) for i in range(n1) for j in range(n2)])
-        return get_shared_array('distances')
+        distances =  get_shared_array('distances')
+        try:
+            del globals()['distances']
+        except KeyError:
+            pass
+        return distances
