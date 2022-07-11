@@ -119,6 +119,13 @@ def test_plot_clustree_all(ten_taxa_cMChain):
             "Plotting clustree all failed!"
 
 
+def test_plot_clustree_all(ten_taxa_cMChain):
+    for rf in [True, False]:
+        ten_taxa_cMChain.plot_clustree_all(rf=rf, n_clus=1)
+        assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_1clustering_all{'_rf' if rf else ''}.png"),\
+            "Plotting clustree all failed!"
+
+
 def test_tsne_all(ten_taxa_cMChain):
     for rf in [True, False]:
         ten_taxa_cMChain.tsne_all(rf=rf)
@@ -147,6 +154,8 @@ def test_compare_chain_summaries(ten_taxa_cMChain):
     except FileNotFoundError:
         pass
     ten_taxa_cMChain.compare_chain_summaries()
+
+    # todo make list of TRUEs with os.path.exists instead of this one path
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_cen_distances.log"), "Compare chain summaries failed!"
 
 

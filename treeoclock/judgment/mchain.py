@@ -12,7 +12,7 @@ from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
-
+from treeoclock.trees._converter import ctree_to_ete3
 from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
 from treeoclock.judgment import _gelman_rubin_diag as grd
 from treeoclock.judgment import _cladesetcomparator as csc
@@ -22,8 +22,12 @@ from treeoclock.visualize.tsne import _tsne_coords_from_pwd
 from treeoclock.summary.centroid import Centroid
 from treeoclock.summary.annotate_centroid import annotate_centroid
 
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import ListVector
+phytools = importr("phytools")
+phangorn = importr("phangorn")
 
-# todo testing required!
+
 class coupled_MChains():
     def __init__(self, m_MChains, trees, log_files, working_dir, name="cMC"):
         # todo currently still missing the summary parameter of MChain, but its not really used at this point
@@ -131,18 +135,21 @@ class coupled_MChains():
             return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy")
 
     def clustree_all(self, n_clus=2, beta=1, rf: bool = False):
-        if not os.path.exists(
-                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy"):
-            similarity = self.similarity_matrix_all(beta=beta, rf=rf)
-            similarity = similarity + similarity.transpose()
-            clustering = _spectral_clustree(similarity, n_clus=n_clus)
-            np.save(
-                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy",
-                arr=clustering)
-            return clustering
+        if n_clus is not 1:
+            if not os.path.exists(
+                    f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy"):
+                similarity = self.similarity_matrix_all(beta=beta, rf=rf)
+                similarity = similarity + similarity.transpose()
+                clustering = _spectral_clustree(similarity, n_clus=n_clus)
+                np.save(
+                    file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy",
+                    arr=clustering)
+                return clustering
+            else:
+                return np.load(
+                    f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy")
         else:
-            return np.load(
-                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy")
+            return np.ones(len(self[0].trees)*len(self))
 
     def tsne_all(self, rf: bool = False, dim: int = 2):
         try:
@@ -157,6 +164,10 @@ class coupled_MChains():
             return coords
 
     def plot_clustree_all(self, n_clus=2, beta=1, rf: bool = False, dim: int = 2):
+        all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus, rf=rf, dim=dim)
+
+    # todo wip
+    def plot_clustree_with_summaries(self, n_clus=2, beta=1, rf: bool = False, dim: int = 2):
         all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus, rf=rf, dim=dim)
 
     def split_all_trees(self, n_clus, beta=1, burn_in=5):
@@ -284,13 +295,17 @@ class coupled_MChains():
     def compare_chain_summaries(self):
         # todo maybe add the compare chronogram
         trees = []
+        rTrees = []
         for chain in self.MChain_list:
             trees.append(TimeTreeSet(f"{chain.working_dir}/{chain.name}_cen.tree"))
+            rTrees.append(phytools.as_multiPhylo(phytools.read_newick(text=ctree_to_ete3(trees[-1].trees[0].ctree).write(format=5))))
         with open(f"{self.working_dir}/data/{self.name}_cen_distances.log", "w+") as file:
             for i, j in itertools.combinations(range(self.m_MChains), 2):
                 file.write(f"{self.MChain_list[i].name} - {self.MChain_list[j].name} :\t")
                 file.write(f"{trees[i][0].fp_distance(trees[j][0])}")
                 file.write("\n")
+        # todo some workaroung for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
+
 
 class MChain:
     def __init__(self, working_dir, trees, log_file, summary=None, name: str = "MC"):

@@ -9,11 +9,11 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 def plot_coords(coords, filename=None, colors=None, colorbar=False):
     # Normalizing the colors
     if colors is not None:
-        colors = [(c - np.min(colors)) / (np.max(colors) - np.min(colors)) for c in colors]
+        internal_colors = [(c - np.min(colors)) / (np.max(colors) - np.min(colors)) for c in colors]
     else:
-        colors = [1 for _ in range(coords.shape[0])]
+        internal_colors = [1 for _ in range(coords.shape[0])]
     cmap = plt.cm.Spectral_r
-    colors = [cmap(c) for c in colors]
+    internal_colors = [cmap(c) for c in colors]
     
     # todo s is the size, so it would be possible to scale based on the colors
     #  or also another value
@@ -21,12 +21,12 @@ def plot_coords(coords, filename=None, colors=None, colorbar=False):
 
     if coords.shape[1] == 2:
         x, y = zip(*coords)
-        plt.scatter(x, y, c=colors, s=s)
+        plt.scatter(x, y, c=internal_colors, s=s)
     elif coords.shape[1] == 3:
         x, y, z = zip(*coords)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x, y, z, c=colors, s=s)
+        ax.scatter(x, y, z, c=internal_colors, s=s)
     else:
         raise ValueError(f"Unsupported number of dimensions to plot {coords.shape[1]}!")
 
