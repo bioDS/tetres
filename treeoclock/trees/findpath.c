@@ -451,12 +451,12 @@ void pairwise_distance(Tree_List *input_trees, long n, long dm[][n])
         }
 }
 
-void pairwise_distance_two_sets(Tree_List *tree_set_one, Tree_List *tree_set_two, long n, long dm[][n])
+void pairwise_distance_two_sets(Tree_List *tree_set_one, Tree_List *tree_set_two, long n1, long n2, long dm[n1][n2])
 {
     #pragma omp parallel
-        for(int i=0; i < n; i++)
+        for(int i=0; i < n1; i++)
         {
-            for (int j=0; j < n; j++)
+            for (int j=0; j < n2; j++)
             {
                 dm[i][j] = findpath_distance(&tree_set_one->trees[i], &tree_set_two->trees[j]);
             }
