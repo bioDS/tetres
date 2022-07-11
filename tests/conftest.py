@@ -3,8 +3,6 @@ import pytest
 from pathlib import Path
 from testfixtures import TempDirectory
 from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.judgment.mchain import MChain, coupled_MChains
-
 
 @pytest.fixture()
 def dir():
@@ -179,23 +177,3 @@ def seventeen_taxa_nni_neighbours_newick():
         "((12:13,(17:8,16:8):5):1,(9:12,(11:11,10:11):1):2):2);"
     ]
 
-
-@pytest.fixture
-def thirty_taxa_MChain():
-    return MChain(
-        trees=f"30Taxa.trees",
-        log_file=f"30Taxa_beast2.log",
-        summary=f"30Taxa_centroid.tree",
-        working_dir=f"{Path(__file__).parent.absolute()}/data",
-        name="30TestFix"
-    )
-
-
-@pytest.fixture
-def ten_taxa_cMChain():
-    return coupled_MChains(m_MChains=3,
-                    trees=["chain0.trees", "chain0_1.trees", "chain0_2.trees"],
-                    log_files=["chain0.log", "chain0_1.log", "chain0_2.log"],
-                    working_dir=f"{Path(__file__).parent.absolute()}/data/cMChain",
-                    name="10TaxaFix"
-                    )
