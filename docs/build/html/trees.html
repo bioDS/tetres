@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Working with time trees &#8212; treeoclock 0.0.1 documentation</title>
+    <title>Working with time trees &#8212; treeoclock 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to treeoclock’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Working with time trees</a></li> 
       </ul>
     </div>  
@@ -47,53 +47,50 @@
           <div class="body" role="main">
             
   <div class="section" id="working-with-time-trees">
-<h1><a class="toc-backref" href="#id1">Working with time trees</a><a class="headerlink" href="#working-with-time-trees" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id3">Working with time trees</a><a class="headerlink" href="#working-with-time-trees" title="Permalink to this headline">¶</a></h1>
 <div class="contents topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#working-with-time-trees" id="id1">Working with time trees</a></p>
+<li><p><a class="reference internal" href="#working-with-time-trees" id="id3">Working with time trees</a></p>
 <ul>
-<li><p><a class="reference internal" href="#the-timetree-class" id="id2">The TimeTree class</a></p>
+<li><p><a class="reference internal" href="#the-timetree-class" id="id4">The TimeTree class</a></p>
 <ul>
-<li><p><a class="reference internal" href="#timetree-attributes" id="id3">TimeTree attributes</a></p></li>
-<li><p><a class="reference internal" href="#ete3-functionalities" id="id4">ete3 functionalities</a></p></li>
+<li><p><a class="reference internal" href="#timetree-attributes" id="id5">TimeTree attributes</a></p></li>
+<li><p><a class="reference internal" href="#ete3-functionalities" id="id6">ete3 functionalities</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#the-timetreeset-class" id="id5">The TimeTreeSet class</a></p>
+<li><p><a class="reference internal" href="#the-timetreeset-class" id="id7">The TimeTreeSet class</a></p>
 <ul>
-<li><p><a class="reference internal" href="#reading-trees" id="id6">Reading Trees</a></p></li>
-<li><p><a class="reference internal" href="#writing-trees" id="id7">Writing trees</a></p></li>
+<li><p><a class="reference internal" href="#reading-trees" id="id8">Reading Trees</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#random-trees" id="id8">Random trees</a></p></li>
-<li><p><a class="reference internal" href="#combining-multiple-timetreesets" id="id9">Combining multiple TimeTreeSets</a></p></li>
-<li><p><a class="reference internal" href="#general-functions" id="id10">General Functions</a></p>
+<li><p><a class="reference internal" href="#general-functions" id="id9">General Functions</a></p>
 <ul>
-<li><p><a class="reference internal" href="#working-with-findpath-path-and-c-memory" id="id11">Working with findpath_path and c memory</a></p></li>
+<li><p><a class="reference internal" href="#working-with-findpath-path-and-c-memory" id="id10">Working with findpath_path and c memory</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#classes-for-the-c-library" id="id12">Classes for the c library</a></p>
+<li><p><a class="reference internal" href="#classes-for-the-c-library" id="id11">Classes for the c library</a></p>
 <ul>
-<li><p><a class="reference internal" href="#node" id="id13">NODE</a></p></li>
-<li><p><a class="reference internal" href="#tree" id="id14">TREE</a></p></li>
-<li><p><a class="reference internal" href="#treelist" id="id15">TREELIST</a></p></li>
+<li><p><a class="reference internal" href="#node" id="id12">NODE</a></p></li>
+<li><p><a class="reference internal" href="#tree" id="id13">TREE</a></p></li>
+<li><p><a class="reference internal" href="#treelist" id="id14">TREELIST</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#class-converter-functions" id="id16">Class converter functions</a></p></li>
+<li><p><a class="reference internal" href="#class-converter-functions" id="id15">Class converter functions</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="the-timetree-class">
-<h2><a class="toc-backref" href="#id2">The TimeTree class</a><a class="headerlink" href="#the-timetree-class" title="Permalink to this headline">¶</a></h2>
-<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> can be initialized with a given newick string using the <a class="reference external" href="http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#trees">ete3.Tree</a> constructor and its <a class="reference external" href="http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#reading-and-writing-newick-trees">format options</a>.
-Additionally, a <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> object (<a class="reference internal" href="#c-classes"><span class="std std-ref">Classes for the c library</span></a>) is generated and saved in the <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> and used for efficient distance computations.</p>
+<h2><a class="toc-backref" href="#id4">The TimeTree class</a><a class="headerlink" href="#the-timetree-class" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> can be initialized with a given newick string using the <a href="http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#trees" target="_blank">ete3.Tree</a> constructor and its format options.
+Additionally, a <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> object (<a class="reference internal" href="#c-classes"><span class="std std-ref">Classes for the c library</span></a>) is generated and saved in the <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> and used for efficient RNNI distance computations.</p>
 <div class="section" id="timetree-attributes">
-<h3><a class="toc-backref" href="#id3">TimeTree attributes</a><a class="headerlink" href="#timetree-attributes" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">TimeTree attributes</a><a class="headerlink" href="#timetree-attributes" title="Permalink to this headline">¶</a></h3>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 26%" />
-<col style="width: 74%" />
+<col style="width: 27%" />
+<col style="width: 73%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Method</p></th>
@@ -120,7 +117,7 @@ Additionally, a <code class="xref py py-class docutils literal notranslate"><spa
 <td><p>returns the <em>write()</em> function of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code> with the specified <em>format</em>, defaults to <em>format=5</em></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.copy()</span></code></p></td>
-<td><p>returns a deep copy of the current <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> (specifically used to generate a new <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code> object)</p></td>
+<td><p>returns a deep copy of the current <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.neighbours()</span></code></p></td>
 <td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code>’s containing all neighbours at distance <em>1</em></p></td>
@@ -130,6 +127,12 @@ Additionally, a <code class="xref py py-class docutils literal notranslate"><spa
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.nni_neighbours()</span></code></p></td>
 <td><p>returns a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code>’s containing only neighbours one <em>NNI move</em> away</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.nwk_to_cluster()</span></code></p></td>
+<td><p>computes the set of all clades present in the given <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTree.apply_new_taxa_map()</span></code></p></td>
+<td><p>applies a new taxa map (in form of a dictionary) to a <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -160,11 +163,15 @@ Additionally, a <code class="xref py py-class docutils literal notranslate"><spa
 <span class="n">tt</span><span class="o">.</span><span class="n">rank_neighbours</span><span class="p">()</span>  <span class="c1"># list of TimeTree obtained by doing all possible rank moves on tt</span>
 
 <span class="n">tt</span><span class="o">.</span><span class="n">nni_neighbours</span><span class="p">()</span>  <span class="c1"># list of TimeTree obtained by doing all possible NNI moves on tt</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">nwk_to_cluster</span><span class="p">()</span>  <span class="c1"># returns set of all clades in the tree</span>
+
+<span class="n">tt</span><span class="o">.</span><span class="n">apply_new_taxa_map</span><span class="p">(</span><span class="n">new_map</span><span class="p">,</span> <span class="n">old_map</span><span class="p">)</span>  <span class="c1"># Will apply the new taxa map to the tree</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="ete3-functionalities">
-<h3><a class="toc-backref" href="#id4">ete3 functionalities</a><a class="headerlink" href="#ete3-functionalities" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">ete3 functionalities</a><a class="headerlink" href="#ete3-functionalities" title="Permalink to this headline">¶</a></h3>
 <p>Via the <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code> object the respective function of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">ete3</span></code> package are available for a <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> object.
 For example drawing and saving a tree to a file:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTree</span>
@@ -199,12 +206,12 @@ For example drawing and saving a tree to a file:</p>
 </div>
 </div>
 <div class="section" id="the-timetreeset-class">
-<h2><a class="toc-backref" href="#id5">The TimeTreeSet class</a><a class="headerlink" href="#the-timetreeset-class" title="Permalink to this headline">¶</a></h2>
-<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTreeSet</span></code> is an iterable list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects, which can be initialized with a nexus file.</p>
+<h2><a class="toc-backref" href="#id7">The TimeTreeSet class</a><a class="headerlink" href="#the-timetreeset-class" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTreeSet</span></code> is an iterable list of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> objects, which is initialized with a nexus file (as returned by a BEAST2 analysis), hence it contains a taxa map.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 28%" />
-<col style="width: 72%" />
+<col style="width: 29%" />
+<col style="width: 71%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Method</p></th>
@@ -230,10 +237,19 @@ For example drawing and saving a tree to a file:</p>
 <tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.fp_path(i,</span> <span class="pre">j)</span></code></p></td>
 <td><p>returns a shortest path (<code class="xref py py-class docutils literal notranslate"><span class="pre">TREE_LIST</span></code>) between the trees at postition i and j</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.copy()</span></code></p></td>
+<td><p>returns a copy of the list of :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>TimeTree`s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.get_common_clades()</span></code></p></td>
+<td><p>returns and computes the set of shared clades among all trees in the set</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">TimeTreeSet.change_mapping(new_map)</span></code></p></td>
+<td><p>Will apply the given new taxa map to all trees in the set</p></td>
+</tr>
 </tbody>
 </table>
 <div class="section" id="reading-trees">
-<h3><a class="toc-backref" href="#id6">Reading Trees</a><a class="headerlink" href="#reading-trees" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">Reading Trees</a><a class="headerlink" href="#reading-trees" title="Permalink to this headline">¶</a></h3>
 <p>A TimeTreeSet object can be initialized with a path to a nexus file.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span><span class="p">,</span> <span class="n">free_tree_list</span>
 
@@ -258,22 +274,10 @@ For example drawing and saving a tree to a file:</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="writing-trees">
-<h3><a class="toc-backref" href="#id7">Writing trees</a><a class="headerlink" href="#writing-trees" title="Permalink to this headline">¶</a></h3>
-<p>Still WIP</p>
-</div>
-</div>
-<div class="section" id="random-trees">
-<h2><a class="toc-backref" href="#id8">Random trees</a><a class="headerlink" href="#random-trees" title="Permalink to this headline">¶</a></h2>
-<p>STILL WIP</p>
-</div>
-<div class="section" id="combining-multiple-timetreesets">
-<h2><a class="toc-backref" href="#id9">Combining multiple TimeTreeSets</a><a class="headerlink" href="#combining-multiple-timetreesets" title="Permalink to this headline">¶</a></h2>
-<p>Still WIP</p>
 </div>
 <div class="section" id="general-functions">
-<h2><a class="toc-backref" href="#id10">General Functions</a><a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h2>
-<p>A list of the direct functions and their arguments.</p>
+<h2><a class="toc-backref" href="#id9">General Functions</a><a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h2>
+<p>A list of the functions available within the module ‘treeoclock.time_trees’.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 30%" />
@@ -311,16 +315,16 @@ For example drawing and saving a tree to a file:</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Both functions <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_distance(t1,</span> <span class="pre">t2)</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_path(t1,</span> <span class="pre">t2)</span></code>
-can be called with t1 and t2 being either a <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code></p>
+can be called with t1 and t2 being either a <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code>, both have to be the same type!</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>When using <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_path(t1,</span> <span class="pre">t2)</span></code> the c code is allocating memory to the returned object.
-This memory needs to be freed with the <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.free_tree_list(tree_list)</span></code> function to avoid memory leaks</p>
+This memory needs to be freed with the <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.free_tree_list(tree_list)</span></code> function to avoid memory leaks, see more info below!</p>
 </div>
 <div class="section" id="working-with-findpath-path-and-c-memory">
-<h3><a class="toc-backref" href="#id11">Working with findpath_path and c memory</a><a class="headerlink" href="#working-with-findpath-path-and-c-memory" title="Permalink to this headline">¶</a></h3>
-<p>When using any of the <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_path(t1,</span> <span class="pre">t2)</span></code> implementation it is important to free the memory of the
+<h3><a class="toc-backref" href="#id10">Working with findpath_path and c memory</a><a class="headerlink" href="#working-with-findpath-path-and-c-memory" title="Permalink to this headline">¶</a></h3>
+<p>When using the <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_path(t1,</span> <span class="pre">t2)</span></code> implementation it is important to free the memory of the
 returned <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE_LIST</span></code> object. When calling the function the package will also throw a UserWarning indicating this.
 Below are some examples of how to use the findpath_path implementation and the underlying class <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE_LIST</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span><span class="p">,</span> <span class="n">free_tree_list</span>
@@ -335,12 +339,12 @@ Below are some examples of how to use the findpath_path implementation and the u
 <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
     <span class="c1"># Ignores the &#39;Free memory&#39; warning issued by findpath_path</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
-    <span class="c1"># All following calls do the same thing</span>
+    <span class="c1"># All following calls do the same thing, but the memory is not being freed</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">findpath_path</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">)</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">findpath_path</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">ctree</span><span class="p">,</span> <span class="n">t2</span><span class="o">.</span><span class="n">ctree</span><span class="p">)</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">findpath_path</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">etree</span><span class="p">,</span> <span class="n">t2</span><span class="o">.</span><span class="n">etree</span><span class="p">)</span>
 
-<span class="c1"># Use the c code to free the memory directly</span>
+<span class="c1"># Use the c code to free the memory</span>
 <span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">CDLL</span>
 <span class="kn">from</span> <span class="nn">treeoclock.trees._ctrees</span> <span class="kn">import</span> <span class="n">TREE_LIST</span>
 <span class="n">lib</span> <span class="o">=</span> <span class="n">CDLL</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.../treeoclock/trees/findpath.so&quot;</span><span class="p">)</span>
@@ -351,11 +355,11 @@ Below are some examples of how to use the findpath_path implementation and the u
 </div>
 </div>
 <div class="section" id="classes-for-the-c-library">
-<span id="c-classes"></span><h2><a class="toc-backref" href="#id12">Classes for the c library</a><a class="headerlink" href="#classes-for-the-c-library" title="Permalink to this headline">¶</a></h2>
+<span id="c-classes"></span><h2><a class="toc-backref" href="#id11">Classes for the c library</a><a class="headerlink" href="#classes-for-the-c-library" title="Permalink to this headline">¶</a></h2>
 <p>These classes are found in the <code class="file docutils literal notranslate"><span class="pre">_ctrees.py</span></code> module.
 The corresponding CDLL c library is generated from <code class="file docutils literal notranslate"><span class="pre">findpath.c</span></code>.</p>
 <div class="section" id="node">
-<h3><a class="toc-backref" href="#id13">NODE</a><a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">NODE</a><a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">parent</span></code>: index of the parent node (int, defaults to -1)</p></li>
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">children[2]</span></code>: index of the two children ([int], defaults to [-1, -1])</p></li>
@@ -367,7 +371,7 @@ The corresponding CDLL c library is generated from <code class="file docutils li
 </div>
 </div>
 <div class="section" id="tree">
-<h3><a class="toc-backref" href="#id14">TREE</a><a class="headerlink" href="#tree" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">TREE</a><a class="headerlink" href="#tree" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">num_leaves</span></code>: Number of leaves in the tree (int)</p></li>
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">tree</span></code>: Points to a <code class="xref py py-class docutils literal notranslate"><span class="pre">NODE</span></code> object (POINTER(<code class="xref py py-class docutils literal notranslate"><span class="pre">NODE</span></code>))</p></li>
@@ -379,7 +383,7 @@ The corresponding CDLL c library is generated from <code class="file docutils li
 </div>
 </div>
 <div class="section" id="treelist">
-<h3><a class="toc-backref" href="#id15">TREELIST</a><a class="headerlink" href="#treelist" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id14">TREELIST</a><a class="headerlink" href="#treelist" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">num_trees</span></code>: Number of trees in the list (int)</p></li>
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">trees</span></code>: List of trees (POINTER(<code class="xref py py-class docutils literal notranslate"><span class="pre">TREE</span></code>))</p></li>
@@ -387,8 +391,9 @@ The corresponding CDLL c library is generated from <code class="file docutils li
 </div>
 </div>
 <div class="section" id="class-converter-functions">
-<h2><a class="toc-backref" href="#id16">Class converter functions</a><a class="headerlink" href="#class-converter-functions" title="Permalink to this headline">¶</a></h2>
-<p>These are found in <code class="file docutils literal notranslate"><span class="pre">_converter.py</span></code>.</p>
+<h2><a class="toc-backref" href="#id15">Class converter functions</a><a class="headerlink" href="#class-converter-functions" title="Permalink to this headline">¶</a></h2>
+<p>These are found in <code class="file docutils literal notranslate"><span class="pre">_converter.py</span></code> and convert one tree type into the other.
+When converting a ctree to an ete3 Tree the branch lengths are discrete integers since the ctrees do not have a branch length annotation.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 37%" />
@@ -428,11 +433,8 @@ The corresponding CDLL c library is generated from <code class="file docutils li
 </li>
 <li><a class="reference internal" href="#the-timetreeset-class">The TimeTreeSet class</a><ul>
 <li><a class="reference internal" href="#reading-trees">Reading Trees</a></li>
-<li><a class="reference internal" href="#writing-trees">Writing trees</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#random-trees">Random trees</a></li>
-<li><a class="reference internal" href="#combining-multiple-timetreesets">Combining multiple TimeTreeSets</a></li>
 <li><a class="reference internal" href="#general-functions">General Functions</a><ul>
 <li><a class="reference internal" href="#working-with-findpath-path-and-c-memory">Working with findpath_path and c memory</a></li>
 </ul>
@@ -487,12 +489,12 @@ The corresponding CDLL c library is generated from <code class="file docutils li
         <li class="right" >
           <a href="index.html" title="Welcome to treeoclock’s documentation!"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Working with time trees</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2021, Lars Berling, Lena Collienne, Jordan Kettles.
+        &#169; Copyright 2022, Lars Berling.
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
     </div>
   </body>

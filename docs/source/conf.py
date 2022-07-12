@@ -18,11 +18,10 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'treeoclock'
-copyright = '2021, Lars Berling, Lena Collienne, Jordan Kettles'
-author = 'Lars Berling, Lena Collienne, Jordan Kettles'
+copyright = '2022, Lars Berling'
+author = 'Lars Berling'
 
-# The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = '1.0.0'
 
 
 # -- General configuration ---------------------------------------------------
