@@ -20,18 +20,18 @@ def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=Fals
 
     if coords.shape[1] == 2:
         x, y = zip(*coords)
-        plt.scatter(x, y, c=internal_colors, s=s, alpha=0.2)
+        plt.scatter(x, y, color=internal_colors, s=s, alpha=0.2)
         if centers is not None:
             for i in range(1, centers + 1):
-                plt.scatter(x[-i], y[-i], c=internal_colors[-i], s=s[-i]*3, alpha=1)
+                plt.scatter(x[-i], y[-i], color=internal_colors[-i], s=s[-i]*3, alpha=1)
     elif coords.shape[1] == 3:
         x, y, z = zip(*coords)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x, y, z, c=internal_colors, s=s, alpha=0.5)
+        ax.scatter(x, y, z, color=internal_colors, s=s, alpha=0.5)
         if centers is not None:
             for i in range(1, centers + 1):
-                plt.scatter(x[-i], y[-i], z[-i], c=internal_colors[-i], s=s[-i]*3, alpha=1)
+                plt.scatter(x[-i], y[-i], z[-i], color=internal_colors[-i], s=s[-i]*3, alpha=1)
     else:
         raise ValueError(f"Unsupported number of dimensions to plot {coords.shape[1]}!")
 
