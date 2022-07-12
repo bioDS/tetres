@@ -2,9 +2,9 @@ from setuptools import setup
 
 
 setup(name='treeoclock',
-      version='0.1.0',
+      version='1.0.0',
       description='A package for discrete time trees',
-      # url='http://github.com/storborg/funniest',
+      # url='http://github.com/storborg/funniest',  # todo
       author='Lars Berling',
       # author_email='flyingcircus@example.com',
       license='MIT',
