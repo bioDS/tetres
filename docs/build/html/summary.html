@@ -70,7 +70,8 @@
 <li><p><a class="reference internal" href="#tree-logfile" id="id16">Tree logfile</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#frechet-mean" id="id17">Frechet Mean</a></p></li>
+<li><p><a class="reference internal" href="#annotation-of-a-centroid" id="id17">Annotation of a centroid</a></p></li>
+<li><p><a class="reference internal" href="#frechet-mean" id="id18">Frechet Mean</a></p></li>
 </ul>
 </li>
 </ul>
@@ -212,8 +213,19 @@ Can be used for further analysis.</p>
 This results in much smaller log files.</p>
 </div>
 </div>
+<div class="section" id="annotation-of-a-centroid">
+<h2><a class="toc-backref" href="#id17">Annotation of a centroid</a><a class="headerlink" href="#annotation-of-a-centroid" title="Permalink to this headline">¶</a></h2>
+<p>To keep the discrete ranks of a centroid use this annotation method.
+Each rank get assigned the average height of that rank in the given tree set, guaranteed to keep the same ranked tree after the annotation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.summary.annotate_centroid</span> <span class="kn">import</span> <span class="n">annotate_centroid</span>
+<span class="n">cen</span><span class="p">,</span> <span class="n">sos</span> <span class="o">=</span> <span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">compute_centroid</span><span class="p">(</span><span class="n">my_tts</span><span class="p">)</span>  <span class="c1"># centroid of the TimeTreeSet my_tts</span>
+<span class="n">annotated_cen</span> <span class="o">=</span> <span class="n">annotate_centroid</span><span class="p">(</span><span class="n">cen</span><span class="p">,</span> <span class="n">my_tts</span><span class="p">)</span>  <span class="c1"># Annotation with the branch lengths from the TimeTreeSet my_tts</span>
+<span class="c1"># the annotated_cen is a TimeTree object for further use such as writing the newick to a file</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="frechet-mean">
-<h2><a class="toc-backref" href="#id17">Frechet Mean</a><a class="headerlink" href="#frechet-mean" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id18">Frechet Mean</a><a class="headerlink" href="#frechet-mean" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -246,6 +258,7 @@ This results in much smaller log files.</p>
 <li><a class="reference internal" href="#tree-logfile">Tree logfile</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#annotation-of-a-centroid">Annotation of a centroid</a></li>
 <li><a class="reference internal" href="#frechet-mean">Frechet Mean</a></li>
 </ul>
 </li>
