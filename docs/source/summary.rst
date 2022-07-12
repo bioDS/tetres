@@ -9,15 +9,15 @@ The Centroid class
 
 .. code-block:: python
 
-    class treeoclock.summary.Centroid(variation="greedy", n_cores=None,
-                                      select='random', start='last')
+    class treeoclock.summary.Centroid(variation="greedy_omp", n_cores=None, select='random', start='FM', subsample_size=200,
+                 tree_log_file="", max_iterations=None)
 
 
-This class is used to setup the Centroid and then run the algorithm on a set of trees.
+This is used to setup a Centroid object which then takes a :class:`TimeTreeSet` as input to compute the centroid summary tree.
 
 
-Centroid variations
--------------------
+Variation
+---------
 
 The variation parameter of a :class:`Centroid` has to be one in ["inc_sub", "greedy"] (TODO: Still WIP).
 
@@ -27,10 +27,12 @@ The variation parameter of a :class:`Centroid` has to be one in ["inc_sub", "gre
    Variation                                         Description
    ==========================================     =========================================================================================================================
     :ref:`var greedy`                               Computes a centroid via the greedy path and neighbourhood search. Only considering the tree with the most imporved SoS value in each iteration.
-    :ref:`var incsub`                               Starts with a subsample of trees from the set, computes the greedy centroid variant and adds more trees to the subsample until all trees are part of the sample.
-    :ref:`var itersub`                              Starts with a subsample of trees from the set, computes the greedy centroid variant and then resamples a new subset, using the previous centroid as the starting tree.
-    WIP                                             WIP
-    WIP                                             WIP
+    :ref:`var incsub`                               Starts with a subsample of trees from the set, computes the greedy_omp centroid variant and adds more trees to the subsample until all trees are part of the sample.
+    :ref:`var itersub`                              Starts with a subsample of trees from the set, computes the greedy_omp centroid variant and then resamples a new subset, using the previous centroid as the starting tree.
+    :ref:`var separate`                             Only computes rank move neighbours if the tree contains all common clades of the tree set
+    :ref:`var onlyone`                              Prefers either NNI or Rank moves and switches this if a local optimum is reached
+    :ref:`var update-with-one`                      Similar to the incsub variation, only one tree at a time is added to the subsample
+    :ref:`var online`                               Mimicks an online approach where samples arrive one after another and the centroid is computed after each sample starting from the previous centroid
    ==========================================     =========================================================================================================================
 
 .. _var greedy:
@@ -40,7 +42,8 @@ Greedy
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="greedy")
+    treeoclock.summary.Centroid(variation="greedy_omp")  # default, using multiple processes in c!
+    treeoclock.summary.Centroid(variation="greedy")  # pure python version
 
 
 .. _var incsub:
@@ -71,6 +74,55 @@ If it is an integer then it defines the number of iterations that will subsample
 .. code-block:: python
 
     treeoclock.summary.Centroid(variation="iter_sub", subsample_size=500, max_iterations=None)
+
+
+.. _var separate:
+
+Separate
+`````````
+
+Will only use one move, current implementation is for NNI moves only, needs to be switched in source code (_variations.py, line 147).
+
+.. code-block:: python
+
+    treeoclock.summary.Centroid(variation="separate")
+
+
+
+.. _var onlyone:
+
+Onlyone
+```````
+
+Will always do one move (starting with rank moves as of current implementation) and switch the move type whenever a local optimum is found.
+
+.. code-block:: python
+
+    treeoclock.summary.Centroid(variation="onlyone")
+
+
+.. _var update-with-one:
+
+update-with-one
+```````````````
+
+Similar to the inc-sub variation but only one new tree is added in each iteration.
+
+.. code-block:: python
+
+    treeoclock.summary.Centroid(variation="update_with_one")
+
+
+.. _var online:
+
+Online
+``````
+
+Mimicks an online approach where the trees arrive one by one in the given order.
+
+.. code-block:: python
+
+    treeoclock.summary.Centroid(variation="online")
 
 
 
@@ -107,12 +159,7 @@ many iterations.
 Computing the SoS
 -----------------
 
-The n_cores parameter is used for the SOS computation
-
-Mention the different SoS computation options
-Multithreading
-Multiprocessing
-Benefits and downsides of both, which is used
+The n_cores parameters defines the number of cores to use, if -1 all available cores are used (default).
 
 
 Tree logfile
@@ -123,49 +170,7 @@ This includes the actual centroid as the last tree.
 Can be used for further analysis.
 
 Note that for incsub for example the tree is logged after an iteration on the subsample.
-This results in much smaller log files as the "greedy part" of the iteration is not logged at all because it can lead to
-a tree which is not used in the end (Not necessarily an improvement)
-
-Centroid attributes
--------------------
-
-TODO not sure if this is necessary at all
-
-
-.. table::
-
-   ==========================================     =========================================================================================================================
-   Method                                         Description
-   ==========================================     =========================================================================================================================
-     :attr:`Centroid.variation`                    Accesses the variation parameter which has to be in the list of specified variations.
-     :attr:`Centroid.n_cores`                      Accesses the number of Threads that will be used to compute the SoS value, using ThreadPool.
-     :attr:`Centroid.select`                       Accesses the selection parameter, in case of multiple options choose a selected tree i.e. the first, last or a random tree.
-     :attr:`Centroid.start`                        Accesses the start parameter, specifying at which point to start the centroid computation.
-     :attr:`Centroid.compute_centroid(trees)`      Computes the centroid for a given set of trees, using the options that were selected via the other attributes of the :class:`Centroid`.
-   ==========================================     =========================================================================================================================
-
-
-Examples of how to set and use the attributes of a :class:`Centroid`:
-
-.. code-block:: python
-
-    from treeoclock.trees.time_trees import TimeTreeSet
-    from treeoclock.summary.centroid import Centroid
-
-
-    # Initializing an empty Centroid class
-    mycen = Centroid()
-
-    mycen.variation = "inc_sub"  # Changing the variation
-
-    mycen.n_cores = 4  # Setting the number of Threads to use
-
-    mycen.select = "first"  # Selection parameter set to the first tree found
-
-    mycen.start = 6  # Starting the algorithm from the sixth tree in the set (Error if non-existant)
-
-    # Computing the centroid for an empty TimeTreeSet
-    cen_tree, sos = mycen.compute_centroid(TimeTreeSet())
+This results in much smaller log files.
 
 
 

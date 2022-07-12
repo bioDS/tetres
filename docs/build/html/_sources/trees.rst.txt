@@ -160,7 +160,7 @@ A TimeTreeSet object can be initialized with a path to a nexus file.
 General Functions
 =================
 
-A list of the functions available within the module 'treeoclock.time_trees'.
+A list of the functions available from the module 'treeoclock.trees.time_trees'.
 
 =============================================    =====================================================================================
    Function                                       Description
