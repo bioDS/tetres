@@ -7,8 +7,12 @@ Working with time trees
 The TimeTree class
 ==================
 
-A :class:`TimeTree` can be initialized with a given newick string using the `ete3.Tree <http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#trees>`_ constructor and its `format options <http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#reading-and-writing-newick-trees>`_.
-Additionally, a :class:`TREE` object (:ref:`c classes`) is generated and saved in the :class:`TimeTree` and used for efficient distance computations.
+A :class:`TimeTree` can be initialized with a given newick string using the |etree| constructor and its format options.
+Additionally, a :class:`TREE` object (:ref:`c classes`) is generated and saved in the :class:`TimeTree` and used for efficient RNNI distance computations.
+
+.. |etree| raw:: html
+
+   <a href="http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#trees" target="_blank">ete3.Tree</a>
 
 TimeTree attributes
 -------------------
@@ -24,10 +28,12 @@ TimeTree attributes
      :attr:`TimeTree.fp_distance(t)`            returns the findpath distance to another :class:`TimeTree` *t*
      :attr:`TimeTree.fp_path(t)`                returns a :class:`TREE_LIST` object, allocated memory needs to be freed!
      :attr:`TimeTree.get_newick(format)`        returns the *write()* function of the :class:`ete3.Tree` with the specified *format*, defaults to *format=5*
-     :attr:`TimeTree.copy()`                    returns a deep copy of the current :class:`TimeTree` (specifically used to generate a new :class:`TREE` object)
+     :attr:`TimeTree.copy()`                    returns a deep copy of the current :class:`TimeTree`
      :attr:`TimeTree.neighbours()`              returns a list of :class:`TimeTree`'s containing all neighbours at distance *1*
      :attr:`TimeTree.rank_neighbours()`         returns a list of :class:`TimeTree`'s containing only neighbours one *rank move* away
      :attr:`TimeTree.nni_neighbours()`          returns a list of :class:`TimeTree`'s containing only neighbours one *NNI move* away
+     :attr:`TimeTree.nwk_to_cluster()`          computes the set of all clades present in the given :class:`TimeTree`
+     :attr:`TimeTree.apply_new_taxa_map()`      applies a new taxa map (in form of a dictionary) to a :class:`TimeTree`
    ========================================     ========================================================================================================
 
 This is an example of how to access the different attributes of a TimeTree object:
@@ -60,6 +66,11 @@ This is an example of how to access the different attributes of a TimeTree objec
     tt.rank_neighbours()  # list of TimeTree obtained by doing all possible rank moves on tt
 
     tt.nni_neighbours()  # list of TimeTree obtained by doing all possible NNI moves on tt
+
+    tt.nwk_to_cluster()  # returns set of all clades in the tree
+
+    tt.apply_new_taxa_map(new_map, old_map)  # Will apply the new taxa map to the tree
+
 
 ete3 functionalities
 --------------------
@@ -101,18 +112,21 @@ See the :mod:`ete3` `documentation <http://etetoolkit.org/docs/latest/tutorial/t
 The TimeTreeSet class
 =====================
 
-A :class:`TimeTreeSet` is an iterable list of :class:`TimeTree` objects, which can be initialized with a nexus file.
+A :class:`TimeTreeSet` is an iterable list of :class:`TimeTree` objects, which is initialized with a nexus file (as returned by a BEAST2 analysis), hence it contains a taxa map.
 
-========================================     ========================================================================================================
+===========================================   ========================================================================================================
    Method                                       Description
-========================================     ========================================================================================================
-:attr:`TimeTreeSet.map`                      a dictionary conataining the taxa to integer translation from the nexus file
-:attr:`TimeTreeSet.trees`                    a list of :class:`TimeTree` objects
-:attr:`TimeTreeSet[i]`                       returns the :class:`TimeTree` at :attr:`TimeTreeSet.trees[i]`
-:attr:`len(TimeTreeSet)`                     returns the number of trees in the list :attr:`TimeTreeSet.trees`
-:attr:`TimeTreeSet.fp_distance(i, j)`        returns the distances between the trees at postition i and j
-:attr:`TimeTreeSet.fp_path(i, j)`            returns a shortest path (:class:`TREE_LIST`) between the trees at postition i and j
-========================================     ========================================================================================================
+===========================================   ========================================================================================================
+:attr:`TimeTreeSet.map`                         a dictionary conataining the taxa to integer translation from the nexus file
+:attr:`TimeTreeSet.trees`                       a list of :class:`TimeTree` objects
+:attr:`TimeTreeSet[i]`                          returns the :class:`TimeTree` at :attr:`TimeTreeSet.trees[i]`
+:attr:`len(TimeTreeSet)`                        returns the number of trees in the list :attr:`TimeTreeSet.trees`
+:attr:`TimeTreeSet.fp_distance(i, j)`           returns the distances between the trees at postition i and j
+:attr:`TimeTreeSet.fp_path(i, j)`               returns a shortest path (:class:`TREE_LIST`) between the trees at postition i and j
+:attr:`TimeTreeSet.copy()`                      returns a copy of the list of :class:`TimeTree`s
+:attr:`TimeTreeSet.get_common_clades()`         returns and computes the set of shared clades among all trees in the set
+:attr:`TimeTreeSet.change_mapping(new_map)`     Will apply the given new taxa map to all trees in the set
+===========================================   ========================================================================================================
 
 Reading Trees
 -------------
@@ -143,25 +157,10 @@ A TimeTreeSet object can be initialized with a path to a nexus file.
     free_tree_list(path)  # Allocated memory needs to be freed after usage
 
 
-Writing trees
--------------
-Still WIP
-
-Random trees
-============
-
-STILL WIP
-
-
-Combining multiple TimeTreeSets
-===============================
-
-Still WIP
-
 General Functions
 =================
 
-A list of the direct functions and their arguments.
+A list of the functions available within the module 'treeoclock.time_trees'.
 
 =============================================    =====================================================================================
    Function                                       Description
@@ -177,15 +176,15 @@ A list of the direct functions and their arguments.
 
 .. note::
     Both functions :attr:`time_trees.findpath_distance(t1, t2)` and :attr:`time_trees.findpath_path(t1, t2)`
-    can be called with t1 and t2 being either a :class:`TREE`, :class:`TimeTree` or :class:`ete3.Tree`
+    can be called with t1 and t2 being either a :class:`TREE`, :class:`TimeTree` or :class:`ete3.Tree`, both have to be the same type!
 .. note::
     When using :attr:`time_trees.findpath_path(t1, t2)` the c code is allocating memory to the returned object.
-    This memory needs to be freed with the :attr:`time_trees.free_tree_list(tree_list)` function to avoid memory leaks
+    This memory needs to be freed with the :attr:`time_trees.free_tree_list(tree_list)` function to avoid memory leaks, see more info below!
 
 Working with findpath_path and c memory
 ---------------------------------------
 
-When using any of the :attr:`time_trees.findpath_path(t1, t2)` implementation it is important to free the memory of the
+When using the :attr:`time_trees.findpath_path(t1, t2)` implementation it is important to free the memory of the
 returned :class:`TREE_LIST` object. When calling the function the package will also throw a UserWarning indicating this.
 Below are some examples of how to use the findpath_path implementation and the underlying class :class:`TREE_LIST`.
 
@@ -203,18 +202,17 @@ Below are some examples of how to use the findpath_path implementation and the u
     with warnings.catch_warnings():
         # Ignores the 'Free memory' warning issued by findpath_path
         warnings.simplefilter("ignore")
-        # All following calls do the same thing
+        # All following calls do the same thing, but the memory is not being freed
         path = findpath_path(t1, t2)
         path = findpath_path(t1.ctree, t2.ctree)
         path = findpath_path(t1.etree, t2.etree)
 
-    # Use the c code to free the memory directly
+    # Use the c code to free the memory
     from ctypes import CDLL
     from treeoclock.trees._ctrees import TREE_LIST
     lib = CDLL(f".../treeoclock/trees/findpath.so")
     lib.free_treelist.argtypes = [TREE_LIST]
     lib.free_treelist(path)
-
 
 
 .. _c classes:
@@ -254,7 +252,8 @@ TREELIST
 Class converter functions
 =========================
 
-These are found in :file:`_converter.py`.
+These are found in :file:`_converter.py` and convert one tree type into the other.
+When converting a ctree to an ete3 Tree the branch lengths are discrete integers since the ctrees do not have a branch length annotation.
 
 ===========================================     ================================================================
    Function                                       Description
