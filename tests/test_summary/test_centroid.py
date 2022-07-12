@@ -1,6 +1,7 @@
 import pytest
 import warnings
 import random
+import os
 
 from pathlib import Path
 
@@ -207,6 +208,8 @@ def test_centroid_treelogfile_wrong_path(twelve_taxa_tts):
 
 def test_centroid_treelogfile_warning(twelve_taxa_tts):
     my_cen = Centroid(tree_log_file=f'{Path(__file__).parent.parent.absolute()}/data/logfile_12.trees')
+    if not os.path.exists(f'{Path(__file__).parent.parent.absolute()}/data/logfile_12.trees'):
+        open(f'{Path(__file__).parent.parent.absolute()}/data/logfile_12.trees', "x")
     with pytest.warns(UserWarning):
         my_cen.compute_centroid(twelve_taxa_tts)
 
