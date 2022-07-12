@@ -3,6 +3,7 @@ import os
 import re
 import warnings
 import ete3
+import numpy as np
 
 from ctypes import POINTER, CDLL, c_long, c_int
 from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
@@ -152,7 +153,7 @@ class TimeTreeSet:
         self.common_clades = set()
 
     def __getitem__(self, index):
-        if isinstance(index, int):
+        if isinstance(index, (int, np.integer)):
             if index >= len(self.trees):
                 raise IndexError("Index out of range!")
             return self.trees[index]
@@ -162,7 +163,7 @@ class TimeTreeSet:
             ret.trees = self.trees[index]
             return ret
         else:
-            raise TypeError("Given Type for getitem not implemented!")
+            raise TypeError(f"Given Type for getitem not implemented! {type(index)}")
 
     def __len__(self):
         return len(self.trees)
