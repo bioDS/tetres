@@ -173,6 +173,19 @@ Note that for incsub for example the tree is logged after an iteration on the su
 This results in much smaller log files.
 
 
+Annotation of a centroid
+========================
+
+To keep the discrete ranks of a centroid use this annotation method.
+Each rank get assigned the average height of that rank in the given tree set, guaranteed to keep the same ranked tree after the annotation.
+
+.. code-block:: python
+
+    from treeoclock.summary.annotate_centroid import annotate_centroid
+    cen, sos = Centroid(variation="greedy").compute_centroid(my_tts)  # centroid of the TimeTreeSet my_tts
+    annotated_cen = annotate_centroid(cen, my_tts)  # Annotation with the branch lengths from the TimeTreeSet my_tts
+    # the annotated_cen is a TimeTree object for further use such as writing the newick to a file
+
 
 Frechet Mean
 ============
