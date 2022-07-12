@@ -6,7 +6,7 @@ __pycache__
 *.py.pclprof
 *.nex
 *.tree
-.DS_Store
+*.DS_Store
 .idea/
 
 # Compiled python modules.
