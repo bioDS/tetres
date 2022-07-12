@@ -190,8 +190,12 @@ Each rank get assigned the average height of that rank in the given tree set, gu
 Frechet Mean
 ============
 
+A version of Sturms algorithm adapted to the RNNI tree space, based on computing shortest paths with the findpath algorithm.
 
 
+.. code-block:: python
 
-
-
+    from treeoclock.summary.frechet_mean import frechet_mean, frechet_mean_sort
+    fm = frechet_mean(my_tts)  # random selection of trees
+    fm_sort = frechet_mean_sort(my_tts)  # trees are sorted from highest to lowest Sum of squared distances
+    # The idea is that tres with low sum of squared distances are used in the end of the algorithm to refine the tree
