@@ -2,10 +2,10 @@ from setuptools import setup
 
 
 setup(name='treeoclock',
-      version='0.0.1',
-      description='A package for time trees',
+      version='0.1.0',
+      description='A package for discrete time trees',
       # url='http://github.com/storborg/funniest',
-      author='Lars Berling, Lena Collienne, Jordan Kettles',
+      author='Lars Berling',
       # author_email='flyingcircus@example.com',
       license='MIT',
       packages=['treeoclock'],
