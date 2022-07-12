@@ -423,7 +423,8 @@ def test_timetreeset_getitem_wrongtype(twelve_taxa_tts):
 
 def test_write_time_tree(twelve_taxa_tts):
     file_name = f"{Path(__file__).parent.parent.absolute()}/data/12Taxa_0.trees"
-    os.remove(file_name)
+    if os.path.exists(file_name):
+        os.remove(file_name)
     twelve_taxa_tts[0].write_nexus(taxa_map=twelve_taxa_tts.map, file_name=file_name, name="treeat0")
     assert TimeTreeSet(file_name)[0].fp_distance(twelve_taxa_tts[0]) == 0, "write_nexus failed!"
 
