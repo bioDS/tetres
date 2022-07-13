@@ -275,10 +275,6 @@ def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100):
     axis[0, 0].axhline(y=1.01, linestyle="--", color="red")
     axis[0, 0].axhline(y=0.99, linestyle="--", color="red")
 
-    # todo think about how to incorporate the ess values into the cutoff values more properly?
-    #  this should only affect the end cutoff and the start stays the same,
-    #  i.e. a criterion to add more trees to the sample
-
     ess_method = "arviz"
     df = _ess_df(cmchain=cmchain, chain_indeces=[i, j], ess_method=ess_method, start=cutoff_start[tp], end=cutoff_end[tp])
     sns.stripplot(data=df, x="Key", y="Value", hue="Chain", ax=axis[0, 1])
