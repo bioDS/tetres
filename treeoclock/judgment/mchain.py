@@ -136,7 +136,7 @@ class coupled_MChains():
             return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy")
 
     def clustree_all(self, n_clus=2, beta=1, rf: bool = False):
-        if n_clus is not 1:
+        if n_clus != 1:
             if not os.path.exists(
                     f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy"):
                 similarity = self.similarity_matrix_all(beta=beta, rf=rf)
@@ -153,16 +153,18 @@ class coupled_MChains():
             return np.ones(len(self[0].trees)*len(self))
 
     def tsne_all(self, rf: bool = False, dim: int = 2):
-        try:
-            return np.load(
+        # try:
+        if os.path.exists(f"{self.working_dir}/data/{self.name}_{dim}D_tSNE_all{'_rf' if rf else ''}.npy"):
+            coords = np.load(
                 f"{self.working_dir}/data/{self.name}_{dim}D_tSNE_all{'_rf' if rf else ''}.npy")
-        except FileNotFoundError:
+        # except FileNotFoundError:
+        else:
             coords, kl_divergence = _tsne_coords_from_pwd(pwd_matrix=self.pwd_matrix_all(rf=rf), dim=dim)
             np.save(
                 file=f"{self.working_dir}/data/{self.name}_{dim}D_tSNE_all{'_rf' if rf else ''}.npy",
                 arr=coords)
             # todo writing the kl divergence somewhere
-            return coords
+        return coords
 
     def plot_clustree_all(self, n_clus=2, beta=1, rf: bool = False, dim: int = 2):
         all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus, rf=rf, dim=dim)
