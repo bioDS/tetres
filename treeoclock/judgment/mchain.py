@@ -288,18 +288,37 @@ class coupled_MChains():
     def ess_stripplot(self, ess_method="tracerer"):
         ess.ess_stripplot(self, ess_method)
 
-    def cen_for_each_chain(self):
-        cen = Centroid(variation="greedy_omp")
-        for chain in self.MChain_list:
-            cen_tree, sos = cen.compute_centroid(chain.trees)
-            cen_tree = annotate_centroid(cen_tree, chain.trees)
-            try:
-                file = open(f"{chain.working_dir}/data/{chain.name}_cen_sos.log", "x")
-                file.write(f"Sum of squared RNNI distances: {sos}\n")
-                file.close()
-            except FileExistsError:
-                raise FileExistsError("Previous Centroid sos log exists, manual deltion required!")
-            cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
+    def cen_for_each_chain(self, repeat=5):
+        for _ in range(repeat):
+            for chain in self.MChain_list:
+                cen = Centroid(variation="inc_sub")
+                cen_tree, sos = cen.compute_centroid(chain.trees)
+                cen_tree = annotate_centroid(cen_tree, chain.trees)
+                try:
+                    file = open(f"{chain.working_dir}/data/{chain.name}_cen_sos.log", "r")
+                    cur_sos = int(file.readline())
+                    file.close()
+                except FileNotFoundError:
+                    # Setting cur_sos so that the folowing if will be Treu
+                    cur_sos = sos +1
+                if sos < cur_sos:
+                    print("found better centroid!")
+                    # Removing the old sos file if exists
+                    try:
+                        os.remove(f"{chain.working_dir}/data/{chain.name}_cen_sos.log")
+                    except FileNotFoundError:
+                        pass
+                    # Writing the better sos value to the file
+                    file = open(f"{chain.working_dir}/data/{chain.name}_cen_sos.log", "x")
+                    file.write(f"{sos}")
+                    file.close()
+                    # deleting the old centroid tree file
+                    try:
+                        os.remove(f"{chain.working_dir}/{chain.name}_cen.tree")
+                    except FileNotFoundError:
+                        pass
+                    # writing the better centroid tree to the file
+                    cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
 
     def compare_chain_summaries(self):
         # todo maybe add the compare chronogram

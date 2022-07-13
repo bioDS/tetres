@@ -146,15 +146,6 @@ def test_tsne_all(ten_taxa_cMChain):
 
 
 def test_cen_for_each_chain(ten_taxa_cMChain):
-    for chain in ten_taxa_cMChain:
-        try:
-            os.remove(f"{chain.working_dir}/data/{chain.name}_cen_sos.log")
-        except FileNotFoundError:
-            pass
-        try:
-            os.remove(f"{chain.working_dir}/{chain.name}_cen.tree")
-        except FileNotFoundError:
-            pass
     ten_taxa_cMChain.cen_for_each_chain()
     for chain in ten_taxa_cMChain:
         assert os.path.exists(f"{chain.working_dir}/{chain.name}_cen.tree"), "Failed to write centroid file!"
