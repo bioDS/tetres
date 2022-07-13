@@ -18,3 +18,4 @@ __pycache__
 
 # Logfile for testing
 /tests/data/logfile_12.trees
+/._.DS_Store
