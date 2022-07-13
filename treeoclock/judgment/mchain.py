@@ -384,6 +384,10 @@ class MChain:
                                      f"The given summary tree and tree set do not fit! "
                                      f"\n(Construction of class MChain failed!)")
 
+    def __len__(self):
+        # returns number of tree samples at this point!
+        return len(self.trees)
+
     def pwd_matrix(self, csv: bool = False, index="", name="", rf=False):
         # todo this should work natively with the name of coupled mchains now, without all these parameters?
         if not os.path.exists(

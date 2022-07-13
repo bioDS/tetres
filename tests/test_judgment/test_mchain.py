@@ -339,9 +339,17 @@ def test_MChain_get_trace_plot_wrong_key(thirty_taxa_MChain):
 def test_MChain_pseudo_ess(thirty_taxa_MChain):
     state = random.getstate()  # get the random seed state
     random.seed(10)  # Fixing the seed to get the same result
-    p_ess = thirty_taxa_MChain.get_pseudo_ess()
+    p_ess = thirty_taxa_MChain.get_pseudo_ess(sample_range=len(thirty_taxa_MChain))
     random.setstate(state)  # reset the random seed to previous state
-    assert int(p_ess) == 921, "Get Pseudo ESS for MChain failed!"
+    assert int(p_ess) == 839, "Get Pseudo ESS for MChain failed!"
+
+
+def test_MChain_pseudo_ess_few_samples(thirty_taxa_MChain):
+    state = random.getstate()  # get the random seed state
+    random.seed(10)  # Fixing the seed to get the same result
+    p_ess = thirty_taxa_MChain.get_pseudo_ess(sample_range=25)
+    random.setstate(state)  # reset the random seed to previous state
+    assert int(p_ess) == 843, "Get Pseudo ESS for MChain failed!"
 
 
 def test_MChain_compute_new_tree_distance_log_arviz(thirty_taxa_MChain):

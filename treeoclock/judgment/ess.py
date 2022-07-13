@@ -29,10 +29,11 @@ def arviz_ess(data_list, **kwargs):
 
 def pseudo_ess(ess_method, tree_set, chain_length, sampling_interval, dist="rnni", sample_range=10):
     ess = []
-    samples = random.sample(range(len(tree_set)), sample_range)
+    # samples = random.sample(range(len(tree_set)), sample_range)
+    samples = np.linspace(0, len(tree_set)-1, num=sample_range, dtype=int)
 
-    for cur_focal_fix_nbr in samples:
-        cur_focal_fix = tree_set[cur_focal_fix_nbr]
+    for s in samples:
+        cur_focal_fix = tree_set[s]
         if dist == "rf":
             cur_distance_list = [cur_focal_fix.etree.robinson_foulds(t.etree)[0] for t in tree_set]
         elif dist == "rnni":
