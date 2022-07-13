@@ -83,6 +83,18 @@ def test_cMChain_gress(ten_taxa_cMChain):
         "Gelman Rubin Trace Plot with ess failed!"
 
 
+def test_cMChain_gress_with_ess(ten_taxa_cMChain):
+    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1, ess=200)
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_gress_200_arviz.png"), \
+        "Gelman Rubin Trace Plot with ess failed!"
+
+
+def test_cMChain_gress_with_ess(ten_taxa_cMChain):
+    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1, ess=500)
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_gress_500_arviz.png"), \
+        "Gelman Rubin Trace Plot with ess failed!"
+
+
 def test_cMChain_cladesetcomparator(ten_taxa_cMChain):
     ten_taxa_cMChain.cladesetcomparator(beast_applauncher="/home/lars/.local/share/beast/bin/applauncher")
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/cc.png"), "Cladeset comparator failed!"

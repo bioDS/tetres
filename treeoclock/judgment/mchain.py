@@ -263,10 +263,10 @@ class coupled_MChains():
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_trace_plot(self, i, j)
 
-    def gelman_rubin_trace_ess_plot(self, i, j):
+    def gelman_rubin_trace_ess_plot(self, i, j, ess=0, pess_range=100):
         if len(self) < 2:
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
-        return grd.gr_trace_ess(self, i, j)
+        return grd.gr_trace_ess(self, i=i, j=j, ess=ess, pess_range=pess_range)
 
     def __getitem__(self, index):
         if isinstance(index, int):

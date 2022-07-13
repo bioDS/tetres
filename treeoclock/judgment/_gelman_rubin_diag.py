@@ -118,7 +118,7 @@ def gelman_rubin_distance_diagnostic_from_matrices(pwts1, pwts2, pwts1ts2,
     return pd.DataFrame(data=psrf_like, columns=["Treeset", "PSRF_like"])
 
 
-def gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from, threshold_percentage):
+def gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from, threshold_percentage, ess=0, pess_range=100):
     dmi = cmchain.pwd_matrix(i)
     dmj = cmchain.pwd_matrix(j)
     dmij = cmchain.pwd_matrix(i, j)
@@ -167,8 +167,11 @@ def gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from, threshold_percent
             consecutive += 1
             for k in cutoff_end.keys():
                 if cutoff_end[k] == -1 and consecutive >= int(k * cur_sample):
-                    cutoff_end[k] = cur_sample
-                    cutoff_start[k] = int((cur_sample - consecutive))  # * (1 - sample_from))
+                    if (cmchain[i].get_pseudo_ess(lower_i=int((cur_sample - consecutive)), upper_i=cur_sample, sample_range=pess_range) >= ess) \
+                            and \
+                            (cmchain[j].get_pseudo_ess(lower_i=int((cur_sample - consecutive)), upper_i=cur_sample, sample_range=pess_range) >= ess):
+                        cutoff_end[k] = cur_sample
+                        cutoff_start[k] = int((cur_sample - consecutive))  # * (1 - sample_from))
         else:
             consecutive = 0
 
@@ -242,13 +245,14 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     gc.collect()
 
 
-def gr_trace_ess(cmchain, i, j):
+def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100):
     # the idea is to set the parameters both to 0.5 which seems to be a good choice in the other evaluations
     tp = 0.5
     sf = 0.5
 
     df, cutoff_start, cutoff_end = gelman_rubin_trace_with_cutoff(cmchain, i, j, sample_from=sf,
-                                                                  threshold_percentage=[tp])
+                                                                  threshold_percentage=[tp],
+                                                                  ess=ess, pess_range=pess_range)
 
     figure, axis = plt.subplots(ncols=2, nrows=1,
                                 constrained_layout=True, squeeze=False)
@@ -286,7 +290,7 @@ def gr_trace_ess(cmchain, i, j):
     axis[0, 1].axhline(y=cutoff_end[tp] - cutoff_start[tp], linestyle="--", color="red")
     axis[0, 1].axhline(y=0.75*(cutoff_end[tp] - cutoff_start[tp]), linestyle="dotted", color="orange")
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_gress_{ess_method}.png",
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_gress{'' if ess == 0 else f'_{ess}'}_{ess_method}.png",
                 format="png", bbox_inches="tight", dpi=400)
     plt.clf()
     plt.close("all")
