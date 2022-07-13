@@ -21,6 +21,7 @@ from treeoclock.judgment._plotting import all_chains_spectral_clustree, all_chai
 from treeoclock.visualize.tsne import _tsne_coords_from_pwd
 from treeoclock.summary.centroid import Centroid
 from treeoclock.summary.annotate_centroid import annotate_centroid
+from treeoclock.judgment._compare_cutoff_sets import compare_cutoff_treesets
 
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import ListVector
@@ -332,7 +333,24 @@ class coupled_MChains():
                 file.write(f"{self.MChain_list[i].name} - {self.MChain_list[j].name} :\t")
                 file.write(f"{trees[i][0].fp_distance(trees[j][0])}")
                 file.write("\n")
-        # todo some workaroung for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
+        # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
+
+    def compare_cutoff_treesets(self, i, j, ess=0):
+        ess_method = 'arviz'  # chosen because no thinning or chain length parameter needed for ess computation
+
+        # todo checks for i and j in range and proper indexing etc. ...
+
+        # reading the computed cutoff points for i, j
+        try:
+            with open(f"{self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}", "r") as file:
+                start = int(file.readline())
+                end = int(file.readline())
+        except FileNotFoundError:
+            raise FileNotFoundError("Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first!")
+        if start == -1 or end == -1:
+            # return as no cutoff points exist for this pair of chains, hence no comparison necessary
+            return 0
+        compare_cutoff_treesets(self, i, j, start, end)
 
 
 class MChain:
