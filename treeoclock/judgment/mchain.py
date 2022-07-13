@@ -463,10 +463,7 @@ class MChain:
                                   col_key=f"Geweke_focal_{focal_tree}_{kind}{'_norm' if norm else ''}")
         return new_log_list
 
-    # todo ideally this should be accessible with the get_ess() funciton and ess_key="pseudo"
     def get_pseudo_ess(self, ess_method="arviz", **kwargs):
-        # todo all the testing for upper_i and lower_i but ideally this will be part of the other funciton so this is temporary
-        # todo should return the same as RWTY package but also possibly computed with the RNNI distance measure
         if type(ess_method) is str:
             if not hasattr(ess, f"{ess_method}_ess"):
                 raise ValueError(f"The given ESS method {ess_method} does not exist!")
