@@ -275,7 +275,16 @@ def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100):
     axis[0, 0].axhline(y=1.01, linestyle="--", color="red")
     axis[0, 0].axhline(y=0.99, linestyle="--", color="red")
 
-    ess_method = "arviz"
+    ess_method = "arviz"  # using arviz because it does not need thinning or chain lenght parameter!!!
+
+    # Write the cutoff boundaries to a file, if it already exists skip this part
+    try:
+        with open(f"{cmchain.working_dir}/data/{cmchain.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}", "x") as f:
+            f.write(f"{cutoff_start[tp]}\n{cutoff_end[tp]}")
+    except FileExistsError:
+        pass
+
+
     df = _ess_df(cmchain=cmchain, chain_indeces=[i, j], ess_method=ess_method, start=cutoff_start[tp], end=cutoff_end[tp])
     sns.stripplot(data=df, x="Key", y="Value", hue="Chain", ax=axis[0, 1])
     for label in axis[0, 1].get_xticklabels():
