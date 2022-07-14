@@ -1,6 +1,5 @@
-from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
 import gc
+import os
 import random
 import numpy as np
 import seaborn as sns
@@ -245,7 +244,7 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     gc.collect()
 
 
-def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100):
+def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100, _overwrite=False):
     # the idea is to set the parameters both to 0.5 which seems to be a good choice in the other evaluations
     tp = 0.5
     sf = 0.5
@@ -278,6 +277,11 @@ def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100):
     ess_method = "arviz"  # using arviz because it does not need thinning or chain lenght parameter!!!
 
     # Write the cutoff boundaries to a file, if it already exists skip this part
+    if _overwrite:
+        try:
+            os.remove(f"{cmchain.working_dir}/data/{cmchain.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+        except FileNotFoundError:
+            pass
     try:
         with open(f"{cmchain.working_dir}/data/{cmchain.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}", "x") as f:
             f.write(f"{cutoff_start[tp]}\n{cutoff_end[tp]}")

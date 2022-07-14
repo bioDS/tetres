@@ -78,19 +78,19 @@ def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
 
 
 def test_cMChain_gress(ten_taxa_cMChain):
-    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1)
+    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1, _overwrite=True)
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_gress_arviz.png"), \
         "Gelman Rubin Trace Plot with ess failed!"
 
 
-def test_cMChain_gress_with_ess(ten_taxa_cMChain):
-    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1, ess=200)
+def test_cMChain_gress_with_ess_200(ten_taxa_cMChain):
+    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1, ess=200, _overwrite=True)
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_gress_200_arviz.png"), \
         "Gelman Rubin Trace Plot with ess failed!"
 
 
-def test_cMChain_gress_with_ess(ten_taxa_cMChain):
-    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1, ess=500)
+def test_cMChain_gress_with_ess_500(ten_taxa_cMChain):
+    ten_taxa_cMChain.gelman_rubin_trace_ess_plot(i=0, j=1, ess=500, _overwrite=True)
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_gress_500_arviz.png"), \
         "Gelman Rubin Trace Plot with ess failed!"
 
@@ -167,6 +167,12 @@ def test_plot_chains_with_summaries(ten_taxa_cMChain):
         ten_taxa_cMChain.plot_chains_with_summaries(rf=rf)
         assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_cen_summaries{'_rf' if rf else ''}.png"), \
             "Plot chains with summaries failed!"
+
+
+def test_compare_cutoff_treesets(ten_taxa_cMChain):
+    for ess in [0, 200, 500]:
+        ten_taxa_cMChain.compare_cutoff_treesets(i=0, j=1, ess=ess, beast_applauncher="/home/lars/.local/share/beast/bin/applauncher", _overwrite=True)
+    assert True
 
 
 #todo temporary

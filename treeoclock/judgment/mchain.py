@@ -320,10 +320,10 @@ class coupled_MChains():
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_trace_plot(self, i, j)
 
-    def gelman_rubin_trace_ess_plot(self, i, j, ess=0, pess_range=100):
+    def gelman_rubin_trace_ess_plot(self, i, j, ess=0, pess_range=100, _overwrite=False):
         if len(self) < 2:
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
-        return grd.gr_trace_ess(self, i=i, j=j, ess=ess, pess_range=pess_range)
+        return grd.gr_trace_ess(self, i=i, j=j, ess=ess, pess_range=pess_range, _overwrite=_overwrite)
 
     def __getitem__(self, index):
         if isinstance(index, int):
@@ -402,7 +402,7 @@ class coupled_MChains():
                 start = int(file.readline())
                 end = int(file.readline())
         except FileNotFoundError:
-            raise FileNotFoundError("Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first!")
+            raise FileNotFoundError(f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
         if start == -1 or end == -1:
             # return as no cutoff points exist for this pair of chains, hence no comparison necessary
             return 0
@@ -815,6 +815,9 @@ def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_a
 
     cutoff_chain.cladesetcomparator(beast_applauncher)
 
-    # todo we want centroid
-    #  other ess value comparison
-    #  what else for comparison
+    cutoff_chain.cen_for_each_chain()
+    cutoff_chain.compare_chain_summaries()
+
+    cutoff_chain.ess_stripplot(ess_method="tracerer")  # todo the current title of this plot is not quite correct but does the job
+
+    # todo other comparisons?
