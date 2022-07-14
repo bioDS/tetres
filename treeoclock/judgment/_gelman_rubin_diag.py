@@ -222,7 +222,7 @@ def gelman_rubin_trace_plot(cmchain, i, j):
                 #                     va="top", rotation=-45, color="green")
 
                 axis[row, col].text(x=cutoff_end[threshold_percentage[row]]-(0.5*(cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]])) + 0.1, y=-.05,
-                                    s=f'{cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]]}',
+                                    s=f'{cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]] + 1}',
                                     transform=axis[row, col].get_xaxis_transform(),
                                     fontsize=8, zorder=20, ha="center",
                                     va="top", color="black")
@@ -268,7 +268,7 @@ def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100):
 
         axis[0, 0].text(x=cutoff_end[tp] - (
                     0.5 * (cutoff_end[tp] - cutoff_start[tp])) + 0.1, y=.05,
-                            s=f'{cutoff_end[tp] - cutoff_start[tp]}',
+                            s=f'{cutoff_end[tp] - cutoff_start[tp] + 1}',
                             fontsize=8, zorder=20, ha="center",
                             transform=axis[0, 0].get_xaxis_transform(),
                             va="top", color="black")
