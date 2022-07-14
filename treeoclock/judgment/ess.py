@@ -62,7 +62,7 @@ def ess_stripplot(cmchain, ess_method):
     plt.tight_layout()
     # plt.show()
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/ess_{ess_method}_comparison.png", dpi=400)
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{ess_method}_ess_comparison.png", dpi=400)
     plt.clf()
     plt.close()
 
