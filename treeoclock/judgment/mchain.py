@@ -21,7 +21,6 @@ from treeoclock.judgment._plotting import all_chains_spectral_clustree, all_chai
 from treeoclock.visualize.tsne import _tsne_coords_from_pwd
 from treeoclock.summary.centroid import Centroid
 from treeoclock.summary.annotate_centroid import annotate_centroid
-from treeoclock.judgment._compare_cutoff_sets import compare_cutoff_treesets
 
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import ListVector
@@ -254,6 +253,63 @@ class coupled_MChains():
             cur_file.close()
         return 0
 
+    def _extract_cutoff(self, i, start, end, ess, ess_method, compare_to, _overwrite=False):
+
+        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.trees"
+        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log"
+
+        if _overwrite:
+            try:
+                os.remove(tree_file)
+            except FileNotFoundError:
+                pass
+            try:
+                os.remove(log_file)
+            except FileNotFoundError:
+                pass
+
+        try:
+            with open(log_file, "x") as f:
+                f.write("\t".join(v for v in list(self[i].log_data.keys())))
+                f.write("\n")
+        except FileExistsError:
+            return 0  # assuming this was already done hence skipping this function
+
+        try:
+            with open(tree_file, "x") as f:
+                f.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self[i].trees[i].ctree.num_leaves};\n\t\tTaxlabels\n")
+                for taxa in range(1, self[i].trees[0].ctree.num_leaves + 1):
+                    f.write(f"\t\t\t{self[i].trees.map[taxa]}\n")
+                f.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
+                for taxa in range(1, self[i].trees[0].ctree.num_leaves):
+                    f.write(f"\t\t\t{taxa} {self[i].trees.map[taxa]},\n")
+                f.write(
+                    f"\t\t\t{self[i].trees[0].ctree.num_leaves} {self[i].trees.map[self[i].trees[0].ctree.num_leaves]}\n")
+                f.write(";\n")
+        except FileExistsError:
+            return 0  # assuming it was already done, therefore end function
+
+        sample = 1
+        chain_treefile = f"{self.working_dir}/{self.tree_files[i]}"
+        for index in range(start, end+1):
+            re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
+            offset = 10 + (2 * self[i].trees[0].ctree.num_leaves)
+
+            line = index + 1 + offset
+            cur_tree = linecache.getline(chain_treefile, line)
+            cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
+            with open(tree_file, "a") as tf:
+                tf.write(f"tree STATE_{sample} = {cur_tree}\n")
+
+            cur_values = [v for v in self[i].log_data.iloc[index]]
+            cur_values[0] = sample
+            with open(log_file, "a") as lf:
+                lf.write("\t".join([str(v) for v in cur_values]))
+                lf.write("\n")
+            sample += 1
+        with open(tree_file, "a") as tf:
+            tf.write("End;")
+
     def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
         if len(self) < 2:
             raise ValueError("Gelman Rubin only possible with multiple Chains!")
@@ -335,7 +391,7 @@ class coupled_MChains():
                 file.write("\n")
         # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
 
-    def compare_cutoff_treesets(self, i, j, ess=0):
+    def compare_cutoff_treesets(self, i, j, ess=0, _overwrite=False):
         ess_method = 'arviz'  # chosen because no thinning or chain length parameter needed for ess computation
 
         # todo checks for i and j in range and proper indexing etc. ...
@@ -350,7 +406,7 @@ class coupled_MChains():
         if start == -1 or end == -1:
             # return as no cutoff points exist for this pair of chains, hence no comparison necessary
             return 0
-        compare_cutoff_treesets(self, i, j, start, end)
+        _compare_cutoff_treesets(self, i, j, start, end, ess, ess_method, _overwrite=_overwrite)
 
 
 class MChain:
@@ -730,3 +786,24 @@ class MChain:
             sys.exit("currently not implemented feature!")
 
         self.log_data.dropna().to_csv(out_file, sep="\t", index=False)
+
+
+def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, _overwrite=False):
+
+    try:
+        os.mkdir(f"{cmchain.working_dir}/cutoff_files")
+    except FileExistsError:
+        pass
+
+    # extracting tree and logfile entries for the range [start, end]
+    cmchain._extract_cutoff(i, start, end, ess, ess_method, _overwrite=_overwrite, compare_to=j)
+    cmchain._extract_cutoff(j, start, end, ess, ess_method, _overwrite=_overwrite, compare_to=i)
+
+    # todo combine the treesets of i and j
+
+    # cutoff_chain = coupled_MChains()  # todo create the chain object with all of the 5 diffferent sets of trees for further analysis
+
+    # todo we want centroid
+    #  cladesetcomparator
+    #  other ess value comparison
+    # what else?
