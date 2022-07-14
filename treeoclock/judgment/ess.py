@@ -58,7 +58,7 @@ def ess_stripplot(cmchain, ess_method):
         label.set_rotation(90)
     plt.xlabel("")
     plt.ylabel("ESS")
-    plt.suptitle(f"Number of samples: {len(cmchain[0].trees)}, burn-in={burnin*100}%")
+    plt.suptitle(f"Number of samples: {len(cmchain[-1].trees)}, burn-in={burnin*100}%")
     plt.tight_layout()
     # plt.show()
 
@@ -70,17 +70,17 @@ def ess_stripplot(cmchain, ess_method):
 def _ess_df(cmchain, chain_indeces, ess_method, start=-1, end=-1):
     if start == -1:
         start = 0
-    if end == -1:
-        end = len(cmchain[0].trees) - 1
     df = []
     for chain in chain_indeces:
+        if end == -1:
+            end_internal = len(cmchain[chain].trees) - 1
         for k in cmchain[chain].log_data.keys():
             if k != "Sample":
-                df.append([k, cmchain[chain].get_ess(ess_key=k, ess_method=ess_method, lower_i=start, upper_i=end), cmchain[chain].name])
+                df.append([k, cmchain[chain].get_ess(ess_key=k, ess_method=ess_method, lower_i=start, upper_i=end_internal), cmchain[chain].name])
         df.append(
-            ["Pseudo_ESS_RNNI", cmchain[chain].get_pseudo_ess(ess_method=ess_method, sample_range=100, lower_i=start, upper_i=end), cmchain[chain].name])
+            ["Pseudo_ESS_RNNI", cmchain[chain].get_pseudo_ess(ess_method=ess_method, sample_range=100, lower_i=start, upper_i=end_internal), cmchain[chain].name])
         df.append(
-            ["Pseudo_ESS_RF", cmchain[chain].get_pseudo_ess(ess_method=ess_method, dist="rf", sample_range=100, lower_i=start, upper_i=end), cmchain[chain].name])
+            ["Pseudo_ESS_RF", cmchain[chain].get_pseudo_ess(ess_method=ess_method, dist="rf", sample_range=100, lower_i=start, upper_i=end_internal), cmchain[chain].name])
 
     return pd.DataFrame(df, columns=["Key", "Value", "Chain"])
 
