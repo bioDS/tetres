@@ -71,6 +71,7 @@ def _ess_df(cmchain, chain_indeces, ess_method, start=-1, end=-1):
     if start == -1:
         start = 0
     df = []
+    end_internal = end
     for chain in chain_indeces:
         if end == -1:
             end_internal = len(cmchain[chain].trees) - 1
