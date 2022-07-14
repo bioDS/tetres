@@ -97,11 +97,11 @@ def plot_loglik_along_path(mchain):
     return 0
 
 
-def plot_log_neighbours(mchain):
+def plot_log_neighbours(mchain, rf=False):
 
     df = []
     for log_key in ["posterior", "likelihood"]:
-        distances = mchain.pwd_matrix()
+        distances = mchain.pwd_matrix(rf=rf)
         log_values = mchain.log_data[log_key]
 
         if distances.shape[0] < log_values.shape[0] and (mchain.tree_sampling_interval % mchain.log_sampling_interval == 0):
@@ -146,7 +146,7 @@ def plot_log_neighbours(mchain):
     plt.tick_params(labelsize=20)
     plt.tight_layout()
 
-    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot.png", dpi=400, bbox_inches="tight")
+    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}.png", dpi=400, bbox_inches="tight")
     # plt.show()
     plt.clf()
     plt.close()
