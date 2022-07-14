@@ -28,7 +28,7 @@ def _cladesetcomp(cmchain, beast_applauncher, burnin=10):
 
     for img in img_list:
         new_image.paste(img[0], (img[2]*w, img[1]*h))
-    new_image.save('plots/cc.png')
+    new_image.save(f'plots/{cmchain.name}_clade_comp.png')
 
     with open('data/clade_comp.txt', 'w+') as outfile:
         for i, j in itertools.combinations(range(cmchain.m_MChains), 2):
