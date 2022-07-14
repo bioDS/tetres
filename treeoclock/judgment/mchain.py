@@ -391,7 +391,7 @@ class coupled_MChains():
                 file.write("\n")
         # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
 
-    def compare_cutoff_treesets(self, i, j, ess=0, _overwrite=False):
+    def compare_cutoff_treesets(self, i, j, beast_applauncher, ess=0, _overwrite=False):
         ess_method = 'arviz'  # chosen because no thinning or chain length parameter needed for ess computation
 
         # todo checks for i and j in range and proper indexing etc. ...
@@ -406,7 +406,7 @@ class coupled_MChains():
         if start == -1 or end == -1:
             # return as no cutoff points exist for this pair of chains, hence no comparison necessary
             return 0
-        _compare_cutoff_treesets(self, i, j, start, end, ess, ess_method, _overwrite=_overwrite)
+        _compare_cutoff_treesets(self, i, j, start, end, ess, ess_method, beast_applauncher, _overwrite=_overwrite)
 
 
 class MChain:
@@ -788,7 +788,7 @@ class MChain:
         self.log_data.dropna().to_csv(out_file, sep="\t", index=False)
 
 
-def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, _overwrite=False):
+def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_applauncher, _overwrite=False):
 
     try:
         os.mkdir(f"{cmchain.working_dir}/cutoff_files")
@@ -799,11 +799,22 @@ def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, _overwr
     cmchain._extract_cutoff(i, start, end, ess, ess_method, _overwrite=_overwrite, compare_to=j)
     cmchain._extract_cutoff(j, start, end, ess, ess_method, _overwrite=_overwrite, compare_to=i)
 
-    # todo combine the treesets of i and j
+    # todo do we want to compare it to some big combined set from all chains or the two or what?
 
-    # cutoff_chain = coupled_MChains()  # todo create the chain object with all of the 5 diffferent sets of trees for further analysis
+    cutoff_chain = coupled_MChains(m_MChains=4,
+                                   trees=[cmchain.tree_files[i],
+                                          cmchain.tree_files[j],
+                                          f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.trees",
+                                          f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.trees"],
+                                   log_files=[cmchain.log_files[i],
+                                              cmchain.log_files[j],
+                                              f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log",
+                                              f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log"],
+                                   working_dir=cmchain.working_dir,
+                                   name=f"Cutoff_{i}_{j}")
+
+    cutoff_chain.cladesetcomparator(beast_applauncher)
 
     # todo we want centroid
-    #  cladesetcomparator
     #  other ess value comparison
-    # what else?
+    #  what else for comparison
