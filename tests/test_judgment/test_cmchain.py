@@ -172,7 +172,27 @@ def test_plot_chains_with_summaries(ten_taxa_cMChain):
 def test_compare_cutoff_treesets(ten_taxa_cMChain):
     for ess in [0, 200, 500]:
         ten_taxa_cMChain.compare_cutoff_treesets(i=0, j=1, ess=ess, beast_applauncher="/home/lars/.local/share/beast/bin/applauncher", _overwrite=True)
-    assert True
+    assert True  # todo better test assertion for this one
+
+
+def test_compare_cutoff_ess_choices(ten_taxa_cMChain):
+    try:
+        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_0_1_[0]_cutoff_full_comparison.png")
+    except FileNotFoundError:
+        pass
+    ten_taxa_cMChain.compare_cutoff_ess_choices(i=0, j=1)
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_0_1_[0]_cutoff_full_comparison.png"), \
+        "Compare Cutoff ESS choices plot failed!"
+
+
+def test_compare_cutoff_ess_choices_all(ten_taxa_cMChain):
+    try:
+        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_0_1_[0, 200, 500]_cutoff_full_comparison.png")
+    except FileNotFoundError:
+        pass
+    ten_taxa_cMChain.compare_cutoff_ess_choices(i=0, j=1, ess_l=[0, 200, 500])
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_0_1_[0, 200, 500]_cutoff_full_comparison.png"), \
+        "Compare Cutoff ESS all choices plot failed!"
 
 
 #todo temporary

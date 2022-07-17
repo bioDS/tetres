@@ -1,6 +1,8 @@
 import sys
 import os
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 import linecache
@@ -21,6 +23,7 @@ from treeoclock.judgment._plotting import all_chains_spectral_clustree, all_chai
 from treeoclock.visualize.tsne import _tsne_coords_from_pwd
 from treeoclock.summary.centroid import Centroid
 from treeoclock.summary.annotate_centroid import annotate_centroid
+from treeoclock.judgment.ess import _ess_df
 
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import ListVector
@@ -407,6 +410,103 @@ class coupled_MChains():
             # return as no cutoff points exist for this pair of chains, hence no comparison necessary
             return 0
         _compare_cutoff_treesets(self, i, j, start, end, ess, ess_method, beast_applauncher, _overwrite=_overwrite)
+
+    def compare_cutoff_ess_choices(self, i, j, ess_l=None):
+        if ess_l is None:
+            ess_l = [0]
+        ess_method = 'arviz'
+
+        ess_data = []
+        cen_dist_data = []
+
+        # adding the values for the full chains
+        cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz")
+        # appending the ess values 1:posterior, 4:tree-height, 7:PsuedoESS RNNI, 8:PseudoESS RF
+        for index in [0, 4, 7, 8]:
+            ess_data.append(list(cur_ess_df.iloc[index]))
+            ess_data[-1][-1] = f"Full chains"
+            ess_data.append(list(cur_ess_df.iloc[index + 9]))  # offset by 9 to get the value for chain j also
+            ess_data[-1][-1] = f"Full chains"
+
+        for ess in ess_l:
+            # read all the different data
+            cur_name = f"Cutoff_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}"
+            try:
+                with open(
+                        f"{self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}",
+                        "r") as file:
+                    start = int(file.readline())
+                    end = int(file.readline())
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+            if start == -1 or end == -1:
+                raise Warning(f"No cutoff selected! {self.name}-{i}-{j}")
+                # raise ValueError("Currently WIP!!!")
+
+            # calculating all values for the cutof chain
+            cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz", start=start, end=end)  # ess dataframe for the cutoff chains
+            # appending the ess values 1:posterior, 4:tree-height, 7:PsuedoESS RNNI, 8:PseudoESS RF
+            for index in [0, 4, 7, 8]:
+                ess_data.append(list(cur_ess_df.iloc[index]))
+                ess_data[-1][-1] = f"{ess}"  # renaming
+                ess_data.append(list(cur_ess_df.iloc[index+9]))  # offset by 9 to get the value for chain j also
+                ess_data[-1][-1] = f"{ess}"  # renaming
+
+            try:
+                for line in [2, 3, 4, 5]:  # only read the line which are distance(cutoff, full_chain)
+                    cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", line )
+                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Full"])
+                # reading the distance of centroids for the full chains
+                # todo maybe add the distances between the two chains centroids from the other distance log file?
+                cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 1)
+                cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"Full chains", "Full"])
+                # reading the distances of centroid between the two cutoff parts
+                cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 6)
+                cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Cut"])
+            except FileNotFoundError:
+                raise FileNotFoundError(f"Could not find the cen distances log file! "
+                                        f"{self.working_dir}/data/{cur_name}_cen_distances.log")
+
+        ess_data = pd.DataFrame(ess_data, columns=["Key", "Value", "ESS-addon"])
+        cen_dist_data = pd.DataFrame(cen_dist_data, columns=["Value", "ESS-addon", "Sets"])
+
+        fig, ax = plt.subplots(1, 2)
+        sns.stripplot(x="Key", y="Value", hue="ESS-addon", data=ess_data, dodge=True, alpha=0.25, ax=ax[0])  # all values
+        sns.pointplot(x="Key", y="Value", hue="ESS-addon", data=ess_data, join=False, 
+                      ci=None, scale=0.75, ax=ax[0], dodge=.8 - .8 / 3, palette="dark") # plotting a mean dot
+
+        # Improve the legend
+        handles, labels = ax[0].get_legend_handles_labels()
+        ax[0].legend(handles[len(ess_l)+1:], labels[len(ess_l)+1:], title="ESS-addon", loc='lower left', bbox_to_anchor=(0,1.02,1,0.2),
+          fancybox=True, shadow=True, ncol=len(ess_l)+1, mode="expand", borderaxespad=0, columnspacing=1, handletextpad=0)
+        # Turn the x labels
+        for label in ax[0].get_xticklabels():
+            label.set_rotation(90)
+
+        sns.stripplot(y="Value", x="ESS-addon", hue="Sets", data=cen_dist_data,
+                      dodge=True, alpha=0.25, ax=ax[1])  # all values
+        sns.pointplot(y="Value", x="ESS-addon", hue="Sets", data=cen_dist_data, join=False,
+                      ci=None, scale=0.75, ax=ax[1], dodge=.8 - .8 / 3, palette="dark") # plotting a mean dot
+
+        # Improve the legend
+        handles, labels = ax[1].get_legend_handles_labels()
+        ax[1].legend(handles[3:], labels[3:], title="Sets", loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.2),
+          fancybox=True, shadow=True, ncol=3, mode="expand", borderaxespad=0, columnspacing=1, handletextpad=0)
+        # Turn the x labels
+        for label in ax[1].get_xticklabels():
+            label.set_rotation(90)
+
+        ax[0].set_xlabel("")
+        ax[1].set_xlabel("")
+
+        ax[0].set_ylabel("ESS")
+        ax[1].set_ylabel("RNNI distance")
+
+        plt.tight_layout()
+        plt.savefig(f"{self.working_dir}/plots/{self.name}_{i}_{j}_{ess_l}_cutoff_full_comparison.png", format="png", bbox_inches="tight", dpi=800)
+        plt.clf()
+        plt.close("all")
 
 
 class MChain:
