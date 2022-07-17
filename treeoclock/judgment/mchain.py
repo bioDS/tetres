@@ -7,6 +7,7 @@ import numpy as np
 import itertools
 import linecache
 import re
+import warnings
 
 from treeoclock.judgment import ess, _plots
 from treeoclock.judgment import _geweke_diag as gwd
@@ -441,16 +442,17 @@ class coupled_MChains():
                 raise FileNotFoundError(
                     f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
             if start == -1 or end == -1:
-                raise Warning(f"No cutoff selected! {self.name}-{i}-{j}")
+                warnings.warn(f"No cutoff selected! {self.name}-{i}-{j}")
                 # raise ValueError("Currently WIP!!!")
 
             # calculating all values for the cutof chain
             cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz", start=start, end=end)  # ess dataframe for the cutoff chains
-            # appending the ess values 1:posterior, 4:tree-height, 7:PsuedoESS RNNI, 8:PseudoESS RF
-            for index in [0, 4, 7, 8]:
-                ess_data.append(list(cur_ess_df.iloc[index]))
+            # appending the ess values
+            for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
+                cur_values = cur_ess_df[cur_ess_df["Key"] == index]
+                ess_data.append(list(cur_values.iloc[0]))
                 ess_data[-1][-1] = f"{ess}"  # renaming
-                ess_data.append(list(cur_ess_df.iloc[index+9]))  # offset by 9 to get the value for chain j also
+                ess_data.append(list(cur_values.iloc[1]))
                 ess_data[-1][-1] = f"{ess}"  # renaming
 
             try:
