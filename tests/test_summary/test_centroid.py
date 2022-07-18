@@ -70,6 +70,11 @@ def test_centroid_greedy_12data(twelve_taxa_tts):
     assert sos == 288830, "Greedy_omp: Wrong SoS value for twelve taxa dataset!"
 
 
+def test_centroid_greedy_20data(twenty_taxa_tts):
+    cen, sos = Centroid(variation="greedy_omp", start=10).compute_centroid(twenty_taxa_tts)
+    assert sos == 392626, "Greedy_omp: Wrong SoS value for twelve taxa dataset!"
+
+
 # Tests for inc_sub
 def test_centroid_inc_sub(five_taxa_tts):
     cen, sos = Centroid(variation="inc_sub").compute_centroid(five_taxa_tts)
