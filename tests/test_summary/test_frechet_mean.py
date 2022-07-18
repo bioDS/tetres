@@ -20,6 +20,15 @@ def test_frechet_mean_data(twelve_taxa_tts):
     assert sos == 448947, "Frechet Mean failed on data set!"
 
 
+def test_frechet_mean_data(twenty_taxa_tts):
+    state = random.getstate()  # get the random seed state
+    random.seed(10)  # Fixing the seed to get the same result
+    fm = frechet_mean(twenty_taxa_tts)
+    sos = compute_sos_mt(fm, twenty_taxa_tts)
+    random.setstate(state)  # reset the random seed to previous state
+    assert sos == 687695, "Frechet Mean failed on data set!"
+
+
 def test_frechet_mean_sort(twelve_taxa_tts):
     fm = frechet_mean_sort(twelve_taxa_tts)
     sos = compute_sos_mt(fm, twelve_taxa_tts)
