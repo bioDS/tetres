@@ -442,34 +442,47 @@ class coupled_MChains():
             except FileNotFoundError:
                 raise FileNotFoundError(
                     f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+            no_cutoff = False
             if start == -1 or end == -1:
                 warnings.warn(f"No cutoff selected! {self.name}-{i}-{j}")
+                no_cutoff = True
                 # raise ValueError("Currently WIP!!!")
 
-            # calculating all values for the cutof chain
-            cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz", start=start, end=end)  # ess dataframe for the cutoff chains
-            # appending the ess values
-            for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
-                cur_values = cur_ess_df[cur_ess_df["Key"] == index]
-                ess_data.append(list(cur_values.iloc[0]))
-                ess_data[-1][-1] = f"{ess}"  # renaming
-                ess_data.append(list(cur_values.iloc[1]))
-                ess_data[-1][-1] = f"{ess}"  # renaming
+            if no_cutoff:
+                for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
+                    ess_data.append([index, None, f"{ess}"])
+            else:
+                # calculating all values for the cutof chain
+                cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz", start=start, end=end)  # ess dataframe for the cutoff chains
+                # appending the ess values
+                for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
+                    cur_values = cur_ess_df[cur_ess_df["Key"] == index]
+                    ess_data.append(list(cur_values.iloc[0]))
+                    ess_data[-1][-1] = f"{ess}"  # renaming
+                    ess_data.append(list(cur_values.iloc[1]))
+                    ess_data[-1][-1] = f"{ess}"  # renaming
 
-            try:
+
+            # if not os.path.exists(f"{self.working_dir}/data/{cur_name}_cen_distances.log"):
+            #     raise FileNotFoundError(f"Could not find the cen distances log file! "
+            #                             f"{self.working_dir}/data/{cur_name}_cen_distances.log")
+            if no_cutoff:
+                cen_dist_data.append([None, f"{ess}", "Cut-Full"])
+                cen_dist_data.append([None, f"{ess}", "Cut-Cut"])
+                cen_dist_data.append([None, f"Full chains", "Full"])
+            else:
                 for line in [2, 3, 4, 5]:  # only read the line which are distance(cutoff, full_chain)
                     cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", line )
                     cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Full"])  # todo buggy
+                    # reading the distances of centroid between the two cutoff parts
+                    cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 6)
+                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Cut"])
                 # reading the distance of centroids for the full chains
                 # todo maybe add the distances between the two chains centroids from the other distance log file?
                 cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 1)
                 cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"Full chains", "Full"])
-                # reading the distances of centroid between the two cutoff parts
-                cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 6)
-                cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Cut"])
-            except FileNotFoundError:
-                raise FileNotFoundError(f"Could not find the cen distances log file! "
-                                        f"{self.working_dir}/data/{cur_name}_cen_distances.log")
+
+
 
         ess_data = pd.DataFrame(ess_data, columns=["Key", "Value", "ESS-addon"])
         cen_dist_data = pd.DataFrame(cen_dist_data, columns=["Value", "ESS-addon", "Sets"])
