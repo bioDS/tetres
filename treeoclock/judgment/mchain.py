@@ -423,10 +423,11 @@ class coupled_MChains():
         # adding the values for the full chains
         cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz")
         # appending the ess values 1:posterior, 4:tree-height, 7:PsuedoESS RNNI, 8:PseudoESS RF
-        for index in [0, 4, 7, 8]:
-            ess_data.append(list(cur_ess_df.iloc[index]))
+        for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
+            cur_values = cur_ess_df[cur_ess_df["Key"] == index]
+            ess_data.append(list(cur_values.iloc[0]))
             ess_data[-1][-1] = f"Full chains"
-            ess_data.append(list(cur_ess_df.iloc[index + 9]))  # offset by 9 to get the value for chain j also
+            ess_data.append(list(cur_values.iloc[1]))
             ess_data[-1][-1] = f"Full chains"
 
         for ess in ess_l:
@@ -458,7 +459,7 @@ class coupled_MChains():
             try:
                 for line in [2, 3, 4, 5]:  # only read the line which are distance(cutoff, full_chain)
                     cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", line )
-                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Full"])
+                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Full"])  # todo buggy
                 # reading the distance of centroids for the full chains
                 # todo maybe add the distances between the two chains centroids from the other distance log file?
                 cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 1)
