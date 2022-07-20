@@ -226,7 +226,7 @@ def get_mapping_dict(file: str) -> dict:
     """
 
     begin_map = re.compile('\t?translate\n', re.I)
-    end = re.compile('\t?;\n?')
+    end = re.compile('\t*?;\n?')
 
     mapping = {}
 
@@ -237,7 +237,6 @@ def get_mapping_dict(file: str) -> dict:
                 if end.match(line):
                     break
                 split = line.split()
-
                 mapping[int(split[0])] = split[1][:-1] if split[1][-1] == "," else split[1]
 
             if begin_map.match(line):
