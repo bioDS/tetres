@@ -240,8 +240,14 @@ class coupled_MChains():
 
                     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
 
-                    offset = 10 + (2 * self[0].trees[0].ctree.num_leaves)
+                    # offset = 10 + (2 * self[0].trees[0].ctree.num_leaves)  # this approach does not work when there is a random empty line inserted, should be all the same file format but all are different ...
                     file = f"{self.working_dir}/{self.tree_files[chain]}"
+                    offset = 0
+                    for line in open(file):
+                        if re_tree.match(line):
+                            break
+                        offset += 1
+
                     line = index + 1 + offset
                     cur_tree = linecache.getline(file, line)
                     cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
