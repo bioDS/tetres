@@ -702,7 +702,7 @@ class MChain:
         if "lower_i" in kwargs or "upper_i" in kwargs:
             if type(lower_i) is not int or type(upper_i) is not int:
                 raise ValueError("Wrong type for upper or lower index!")
-            if upper_i > self.log_data.shape[0]:
+            if upper_i > len(self.trees):
                 raise IndexError(f"{upper_i} out of range!")
             if lower_i > upper_i or lower_i < 0 or upper_i < 0:
                 raise ValueError("Something went wrong with the given upper and lower index!")
