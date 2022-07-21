@@ -564,7 +564,7 @@ class MChain:
         # Reading the log_file
         if log_file is None:
             # if no logfile set chain length and tree sampling interval
-            self.chain_length = len(self.trees)
+            self.chain_length = len(self.trees) - 1
             self.tree_sampling_interval = 1
         if os.path.exists(f"{self.working_dir}/{log_file}"):
             self.log_data = pd.read_csv(f"{self.working_dir}/{log_file}", header=0, sep=r"\s+", comment="#")

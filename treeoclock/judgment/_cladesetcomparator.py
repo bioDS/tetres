@@ -22,7 +22,7 @@ def _cladesetcomp(cmchain, beast_applauncher, burnin=10):
                                burnin=burnin)
         img_list.append([Image.open(f"plots/temp/{i}_{j}_cc.png"), i, j])
 
-    print(len(img_list))
+    # print(len(img_list))
     w, h = img_list[0][0].size
     new_image = Image.new('RGB', (w * cmchain.m_MChains, h * cmchain.m_MChains),  color=(135, 135, 135))
 
