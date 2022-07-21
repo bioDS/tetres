@@ -38,8 +38,8 @@ class coupled_MChains():
         self.m_MChains = m_MChains
         self.name = name
 
-        if type(trees) != type(log_files):
-            raise ValueError("trees and logfiles should be given with the same data type!")
+        # if type(trees) != type(log_files):
+        #     raise ValueError("trees and logfiles should be given with the same data type!")
 
         if not os.path.isdir(working_dir):
             raise FileNotFoundError(f"Given Working directory does not exist! |{working_dir}|")
@@ -562,6 +562,10 @@ class MChain:
             raise ValueError(trees)
 
         # Reading the log_file
+        if log_file is None:
+            # if no logfile set chain length and tree sampling interval
+            self.chain_length = len(self.trees)
+            self.tree_sampling_interval = 1
         if os.path.exists(f"{self.working_dir}/{log_file}"):
             self.log_data = pd.read_csv(f"{self.working_dir}/{log_file}", header=0, sep=r"\s+", comment="#")
             self.chain_length = int(list(self.log_data["Sample"])[-1])
