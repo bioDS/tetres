@@ -4,6 +4,7 @@ from pathlib import Path
 from testfixtures import TempDirectory
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.judgment.mchain import MChain, coupled_MChains
+import pandas as pd
 
 
 @pytest.fixture()
@@ -199,3 +200,9 @@ def ten_taxa_cMChain():
                     working_dir=f"{Path(__file__).parent.absolute()}/data/cMChain",
                     name="10TaxaFix"
                     )
+
+
+@pytest.fixture
+def thirty_taxa_log_data():
+    return pd.read_csv(f"{Path(__file__).parent.absolute()}/data/30Taxa_beast2.log", header=0, sep=r"\s+", comment="#")
+

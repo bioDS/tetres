@@ -16,6 +16,13 @@ def test_tracerer_ess(thirty_taxa_log_data):
                             list(thirty_taxa_log_data["Sample"])[1])) == 1476.6549659664809, "Tracerer ESS failed"
 
 
+def test_tracerer_ess_chain_length(thirty_taxa_log_data):
+    assert tracerer_ess(data_list=thirty_taxa_log_data["posterior"],
+    chain_length = 500,
+    sampling_interval = int(
+        list(thirty_taxa_log_data["Sample"])[1])) == 1476.6549659664809, "Tracerer ESS failed"
+
+
 def test_arviz_ess(thirty_taxa_log_data):
     assert arviz_ess(data_list=thirty_taxa_log_data["posterior"],
                      chain_length=int(list(thirty_taxa_log_data["Sample"])[-1]),
