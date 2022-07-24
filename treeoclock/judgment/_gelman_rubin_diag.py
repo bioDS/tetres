@@ -244,7 +244,7 @@ def gelman_rubin_trace_plot(cmchain, i, j):
     gc.collect()
 
 
-def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100, _overwrite=False):
+def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100, _overwrite=False, ess_method = "tracerer"):
     # the idea is to set the parameters both to 0.5 which seems to be a good choice in the other evaluations
     tp = 0.5
     sf = 0.5
@@ -273,8 +273,6 @@ def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100, _overwrite=False):
                             va="top", color="black")
     axis[0, 0].axhline(y=1.01, linestyle="--", color="red")
     axis[0, 0].axhline(y=0.99, linestyle="--", color="red")
-
-    ess_method = "arviz"  # using arviz because it does not need thinning or chain lenght parameter!!!
 
     # Write the cutoff boundaries to a file, if it already exists skip this part
     if _overwrite:
