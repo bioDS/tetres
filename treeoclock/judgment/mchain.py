@@ -402,7 +402,7 @@ class coupled_MChains():
         # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
 
     def compare_cutoff_treesets(self, i, j, beast_applauncher, ess=0, _overwrite=False):
-        ess_method = 'arviz'  # chosen because no thinning or chain length parameter needed for ess computation
+        ess_method = 'tracerer'  # chosen because no thinning or chain length parameter needed for ess computation
 
         # todo checks for i and j in range and proper indexing etc. ...
 
@@ -421,13 +421,13 @@ class coupled_MChains():
     def compare_cutoff_ess_choices(self, i, j, ess_l=None):
         if ess_l is None:
             ess_l = [0]
-        ess_method = 'arviz'
+        ess_method = 'tracerer'
 
         ess_data = []
         cen_dist_data = []
 
         # adding the values for the full chains
-        cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz")
+        cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="tracerer")
         # appending the ess values 1:posterior, 4:tree-height, 7:PsuedoESS RNNI, 8:PseudoESS RF
         for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
             cur_values = cur_ess_df[cur_ess_df["Key"] == index]
@@ -459,7 +459,7 @@ class coupled_MChains():
                     ess_data.append([index, None, f"{ess}"])
             else:
                 # calculating all values for the cutof chain
-                cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz", start=start, end=end)  # ess dataframe for the cutoff chains
+                cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method=ess_method, start=start, end=end)  # ess dataframe for the cutoff chains
                 # appending the ess values
                 for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
                     cur_values = cur_ess_df[cur_ess_df["Key"] == index]
@@ -633,7 +633,7 @@ class MChain:
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
 
-    def get_ess(self, ess_key="posterior", ess_method="arviz", **kwargs):
+    def get_ess(self, ess_key="posterior", ess_method="tracerer", **kwargs):
         if type(ess_method) is str:
             if not hasattr(ess, f"{ess_method}_ess"):
                 raise ValueError(f"The given ESS method {ess_method} does not exist!")
@@ -686,7 +686,7 @@ class MChain:
                                   col_key=f"Geweke_focal_{focal_tree}_{kind}{'_norm' if norm else ''}")
         return new_log_list
 
-    def get_pseudo_ess(self, ess_method="arviz", **kwargs):
+    def get_pseudo_ess(self, ess_method="tracerer", **kwargs):
         if type(ess_method) is str:
             if not hasattr(ess, f"{ess_method}_ess"):
                 raise ValueError(f"The given ESS method {ess_method} does not exist!")
@@ -826,7 +826,7 @@ class MChain:
         #     raise KeyError(f"Given Value {value_key} does not exist!")
         self.log_data[new_key] = self.log_data[col] / self.log_data[normcol]
 
-    def get_ess_trace_plot(self, ess_key="all", ess_method="arviz", kind="cummulative"):
+    def get_ess_trace_plot(self, ess_key="all", ess_method="tracerer", kind="cummulative"):
         # todo add kind window ?
         #  add a interval size for the plot
         # todo all the checks for the variables given
@@ -937,11 +937,12 @@ def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_a
                                               f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log",
                                               f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log"],
                                    working_dir=cmchain.working_dir,
-                                   name=f"Cutoff{cmchain.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+                                   name=f"Cutoff_{cmchain.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}")
 
     cutoff_chain.cladesetcomparator(beast_applauncher)
     cutoff_chain.cen_for_each_chain()
     cutoff_chain.compare_chain_summaries()
+    cutoff_chain.gelman_rubin_like_diagnostic_plot()
 
     #### todo
     cutoff_chain.ess_stripplot(ess_method="tracerer")
