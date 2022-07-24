@@ -428,8 +428,9 @@ class coupled_MChains():
 
         # adding the values for the full chains
         cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="tracerer")
-        # appending the ess values 1:posterior, 4:tree-height, 7:PsuedoESS RNNI, 8:PseudoESS RF
-        for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
+        # appending the ess values based on names, these seem to not be standardized which is a pain ... !!!
+        index_list = ['likelihood', 'prior', 'Tree.height', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']  # todo make this a parameter!
+        for index in index_list:  # todo these names are not standardized apparently!!!!
             cur_values = cur_ess_df[cur_ess_df["Key"] == index]
             ess_data.append(list(cur_values.iloc[0]))
             ess_data[-1][-1] = f"Full chains"
@@ -455,13 +456,13 @@ class coupled_MChains():
                 # raise ValueError("Currently WIP!!!")
 
             if no_cutoff:
-                for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
+                for index in index_list:
                     ess_data.append([index, None, f"{ess}"])
             else:
                 # calculating all values for the cutof chain
                 cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method=ess_method, start=start, end=end)  # ess dataframe for the cutoff chains
                 # appending the ess values
-                for index in ['posterior', 'TreeHeight', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']:
+                for index in index_list:
                     cur_values = cur_ess_df[cur_ess_df["Key"] == index]
                     ess_data.append(list(cur_values.iloc[0]))
                     ess_data[-1][-1] = f"{ess}"  # renaming
@@ -942,7 +943,7 @@ def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_a
     cutoff_chain.cladesetcomparator(beast_applauncher)
     cutoff_chain.cen_for_each_chain()
     cutoff_chain.compare_chain_summaries()
-    cutoff_chain.gelman_rubin_like_diagnostic_plot()
+    # cutoff_chain.gelman_rubin_like_diagnostic_plot() # todo this with different sized treesets so it works for this?
 
     #### todo
     cutoff_chain.ess_stripplot(ess_method="tracerer")
