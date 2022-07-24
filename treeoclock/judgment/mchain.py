@@ -937,7 +937,7 @@ def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_a
                                               f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log",
                                               f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log"],
                                    working_dir=cmchain.working_dir,
-                                   name=f"Cutoff_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+                                   name=f"Cutoff{cmchain.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}")
 
     cutoff_chain.cladesetcomparator(beast_applauncher)
     cutoff_chain.cen_for_each_chain()
