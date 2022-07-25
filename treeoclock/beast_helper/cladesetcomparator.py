@@ -1,7 +1,7 @@
 import os
 
 
-def run_cladesetcomparator(tree_file1, tree_file2, out_file_png, beast_applauncher, burnin=10):
+def run_cladesetcomparator(tree_file1, tree_file2, out_file_png, beast_applauncher, burnin=10, textpath=''):
     if not os.path.exists(beast_applauncher):
         raise ValueError("Path to beast-applauncher does not exist!")
 
@@ -11,4 +11,4 @@ def run_cladesetcomparator(tree_file1, tree_file2, out_file_png, beast_applaunch
         f"-tree2 {tree_file2} "
         f"-png {out_file_png} "
         f"-burnin {burnin} "
-        f"> {out_file_png}.txt")
+        f"> {textpath if textpath != '' else out_file_png}.txt")
