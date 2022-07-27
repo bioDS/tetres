@@ -439,7 +439,7 @@ class coupled_MChains():
 
         for ess in ess_l:
             # read all the different data
-            cur_name = f"Cutoff_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}"
+            cur_name = f"Cutoff_{self.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}"
             try:
                 with open(
                         f"{self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}",
@@ -480,7 +480,8 @@ class coupled_MChains():
             else:
                 for line in [2, 3, 4, 5]:  # only read the line which are distance(cutoff, full_chain)
                     cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", line )
-                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Full"])  # todo buggy
+                    # print(cur_l.rstrip("\n").split('\t'))
+                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Full"])  # todo buggy: why though?
                     # reading the distances of centroid between the two cutoff parts
                     cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 6)
                     cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Cut"])
@@ -687,7 +688,7 @@ class MChain:
                                   col_key=f"Geweke_focal_{focal_tree}_{kind}{'_norm' if norm else ''}")
         return new_log_list
 
-    def get_pseudo_ess(self, ess_method="tracerer", **kwargs):
+    def get_pseudo_ess(self, ess_method="arviz", **kwargs):
         if type(ess_method) is str:
             if not hasattr(ess, f"{ess_method}_ess"):
                 raise ValueError(f"The given ESS method {ess_method} does not exist!")
