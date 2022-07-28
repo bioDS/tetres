@@ -198,6 +198,19 @@ class TimeTreeSet:
         # change the self.map in the end!
         self.map = new_map
 
+    def get_clade_rank_dictionary(self):
+        ret_dict = {}
+        for t in self.trees:
+            cc = t.get_clades()
+            dl = [(t.etree.get_common_ancestor(list(c)).name, c) for c in cc]
+            dl.sort(key=lambda a: a[0])
+            for i, e in enumerate(dl):
+                rank = len(self[0])-2-i  # rank of the current clade
+                if e[1] in ret_dict:
+                    ret_dict[e[1]].append(rank)
+                else:
+                    ret_dict[e[1]] = [rank]
+        return ret_dict
 
 def read_nexus(file: str) -> list:
     # re_tree returns nwk string without the root height and no ; in the end
