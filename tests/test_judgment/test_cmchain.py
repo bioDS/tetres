@@ -195,6 +195,20 @@ def test_compare_cutoff_ess_choices_all(ten_taxa_cMChain):
         "Compare Cutoff ESS all choices plot failed!"
 
 
+def test_clade_set_comparison(ten_taxa_cMChain):
+    try:
+        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_discrete_cc_0_1.png")
+    except FileNotFoundError:
+        pass
+    ten_taxa_cMChain.clade_set_comparison(i=0, j=1)
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_discrete_cc_0_1.png"), "Discrete clade set comparator failed!"
+
+
+def test_clade_set_comparison_noplot(ten_taxa_cMChain):
+    v = ten_taxa_cMChain.clade_set_comparison(i=0, j=1, plot=False)
+    assert v == 99.93756243756243, "Discrete clade set comparison without plot failed!"
+
+
 #todo temporary
 def test_cMChain_split_all_trees(ten_taxa_cMChain):
     ten_taxa_cMChain.split_all_trees(n_clus=3)

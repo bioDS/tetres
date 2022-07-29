@@ -532,6 +532,89 @@ class coupled_MChains():
         plt.clf()
         plt.close("all")
 
+    def clade_set_comparison(self, i, j, plot=True):
+
+        # todo all test for i and j being proper ideces!
+
+        i_clade_dict = self[i].trees.get_clade_rank_dictionary()
+        j_clade_dict = self[j].trees.get_clade_rank_dictionary()
+
+        joint_keys = i_clade_dict.keys() & j_clade_dict.keys()  # overlap of keys
+        all_keys = i_clade_dict.keys() | j_clade_dict.keys()  # combined set of keys
+
+        df = []
+        line_coords = []
+
+        count_outsides = 0
+        for k in all_keys:
+            # compute the percentage within the diagonals
+
+            if k in joint_keys:
+                x = np.mean(i_clade_dict[k])
+                y = np.mean(j_clade_dict[k])
+                s = np.mean([len(i_clade_dict[k]) / len(self[i].trees), len(j_clade_dict[k]) / len(self[j].trees)]) * 50
+                df.append([x, y, "Joint", s])
+                if x-y > 1:
+                    count_outsides += len(i_clade_dict[k])
+                    count_outsides += len(j_clade_dict[k])
+
+                x_var = np.std(i_clade_dict[k])
+                y_var = np.std(j_clade_dict[k])
+                line_coords.append([[x - (x_var / 2), x + (x_var / 2)], [y, y]])
+                line_coords.append([[x, x], [y - (y_var / 2), y + (y_var / 2)]])
+            else:
+                if k in i_clade_dict:
+                    x = np.mean(i_clade_dict[k])
+                    y = -0.1
+                    s = len(i_clade_dict[k])/len(self[i].trees)
+
+                    count_outsides += len(i_clade_dict[k])
+
+                    x_var = np.std(i_clade_dict[k])
+                    line_coords.append([[x-(x_var/2), x+(x_var/2)], [y, y]])
+                else:
+                    y = np.mean(j_clade_dict[k])
+                    x = -0.1
+                    s = len(j_clade_dict[k]) / len(self[j].trees)
+
+                    count_outsides += len(j_clade_dict[k])
+
+                    y_var = np.std(j_clade_dict[k])
+                    line_coords.append([[x, x], [y-(y_var/2), y+(y_var/2)]])
+
+                df.append([x, y, "Unique", s*50])
+
+        df = pd.DataFrame(df, columns=["X", "Y", "Type", "Size"])
+
+        divisor = np.sum([len(v) for v in i_clade_dict.values()]) + np.sum([len(v) for v in j_clade_dict.values()])
+        percentage_agreement_clades = (1 - (count_outsides / divisor)) * 100
+
+        if plot:
+            fig, ax = plt.subplots()
+
+            sns.scatterplot(data=df, x="X", y="Y", s=df["Size"], ax=ax, zorder=25)
+            plt.grid()  # todo maybe this is not needed
+
+            # adding std confidence interval lines
+            for lc in line_coords:
+                ax.plot(lc[0], lc[1], color="red", linewidth=.3, zorder=1)
+
+            # adding 1 rank deviation diagonals
+            ax.plot([0, len(self[i].trees[0])-2-1], [1, len(self[i].trees[0])-2], color="grey", linewidth=.5, linestyle="--", zorder=20)
+            ax.plot([1, len(self[i].trees[0])-2], [0, len(self[i].trees[0])-2-1], color="grey", linewidth=.5, linestyle="--", zorder=20)
+
+            # todo measure the distribution of the clades ranks, if not every rank is taken then that is not good
+            #  how close is the distribution to uniform, i.e. one clade per rank?
+            # todo idea overlay a centroid to this plot and see what it decides the clades are!?
+
+            plt.suptitle(f"{percentage_agreement_clades}")
+
+            # todo make plot labels
+
+            plt.savefig(f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}.png", dpi=300, bbox_inches="tight")
+
+        return percentage_agreement_clades
+
 
 class MChain:
     def __init__(self, working_dir, trees, log_file=None, summary=None, name: str = "MC"):
