@@ -402,7 +402,7 @@ class coupled_MChains():
         # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
 
     def compare_cutoff_treesets(self, i, j, beast_applauncher, ess=0, _overwrite=False):
-        ess_method = 'tracerer'  # chosen because no thinning or chain length parameter needed for ess computation
+        ess_method = 'arviz'  # chosen because no thinning or chain length parameter needed for ess computation
 
         # todo checks for i and j in range and proper indexing etc. ...
 
@@ -612,7 +612,8 @@ class coupled_MChains():
             # todo make plot labels
 
             plt.savefig(f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}.png", dpi=300, bbox_inches="tight")
-
+            plt.clf()
+            plt.close("all")
         return percentage_agreement_clades
 
 
@@ -1027,6 +1028,8 @@ def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_a
     cutoff_chain.cladesetcomparator(beast_applauncher)
     cutoff_chain.cen_for_each_chain()
     cutoff_chain.compare_chain_summaries()
+    cutoff_chain.clade_set_comparison(i=0, j=2)
+    cutoff_chain.clade_set_comparison(i=1, j=3)
     # cutoff_chain.gelman_rubin_like_diagnostic_plot() # todo this with different sized treesets so it works for this?
 
     #### todo
