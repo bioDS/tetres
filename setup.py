@@ -1,5 +1,4 @@
-from setuptools import setup
-
+from setuptools import setup, find_packages
 
 setup(name='treeoclock',
       version='1.0.0',
@@ -8,7 +7,7 @@ setup(name='treeoclock',
       author='Lars Berling',
       # author_email='flyingcircus@example.com',
       license='MIT',
-      packages=['treeoclock'],
+      packages=find_packages(),
       install_requires=['ete3',
                         'pandas',
                         'seaborn'
