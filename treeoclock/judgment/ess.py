@@ -115,3 +115,56 @@ def _multi_dim_ess():
     print(az.ess(dataset))
 
     return 0
+
+
+def ess_autocorr(x, max_lag=2000, trunc=0.05):
+    """
+    Effective Sample Size calculated using autocorrelation.
+    
+    Effective Sample Size (ESS) calculated using the autocorrelation method.
+    The ESS is defined as: `n / tau`, where `tau = 1 + 2 sum_{k=1}^{\infty} tho_k(theta)`.
+    An estimate of `tau` is used where the infinite sum is truncated at lag `k` where:
+    `rho_k < 0.05` (see e.g., van Dyk and Park (2011) or Kass et al. (1988))
+    
+    Parameters:
+        x (list): a list of numeric values
+        max_lag (int): maximum calculated lag of the autocorrelation function
+        trunc (double): stop calculating the autocorrelation at this value
+    Returns:
+        ess (double): estimate of the Effective Sample Size
+    """
+    n = len(x)
+    max_lag = min(n - 1, max_lag)
+    return n / (1 + 2 * sum(autocorr_t(x, max_lag, trunc)))
+
+
+
+def autocorr_t(x, max_lag=2000, trunc=0.05):
+    """
+    Calculate lag-k autocorrelation.
+    
+    Calculate the lag-k autocorrelation ussing the gamma function (see Duerre et al. 2014)
+    
+    The correlation coefficient `rho_k` for the lag `k` is calculated using the gamma function:
+    `tho_k = gamma(k) / gamma(0)`, where `gamma(k) = sum_{j=1}^{n-k} (x_j - m) (x_{j+1}) - m)`.
+    Note that instead of the mean for the partial series, a sample mean is used.
+    
+    Parameters:
+        x (list): a list of umeric values
+        max_lag (int): maximum calculated lag of the autocorrelation function
+        trunc (double): stop calculating the atucorrelation function at this value
+    Returns:
+        cor (list): truncated autocorrelation series
+    """
+    n = len(x)
+    m = sum(x)/n
+    gamma_0 = sum([ (y - m)**2 for y in x ])
+    def gamma(k):
+        return sum([ (x[i] - m) * (x[i+k] - m) for i in range(0,n-k) ])
+    cor = list()
+    for i in range(max_lag):
+        c = gamma(i) / gamma_0
+        cor.append(c)
+        if(c < trunc):
+            break
+    return cor
