@@ -265,6 +265,11 @@ class coupled_MChains():
 
     def _extract_cutoff(self, i, start, end, ess, ess_method, compare_to, _overwrite=False):
 
+        try:
+            os.mkdir(f"{self.working_dir}/cutoff_files")
+        except FileExistsError:
+            pass
+
         tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.trees"
         log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log"
 
@@ -1009,11 +1014,6 @@ class MChain:
 
 
 def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_applauncher, _overwrite=False):
-
-    try:
-        os.mkdir(f"{cmchain.working_dir}/cutoff_files")
-    except FileExistsError:
-        pass
 
     # extracting tree and logfile entries for the range [start, end]
     cmchain._extract_cutoff(i, start, end, ess, ess_method, _overwrite=_overwrite, compare_to=j)
