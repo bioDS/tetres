@@ -283,12 +283,14 @@ class coupled_MChains():
             except FileNotFoundError:
                 pass
 
-        try:
-            with open(log_file, "x") as f:
-                f.write("\t".join(v for v in list(self[i].log_data.keys())))
-                f.write("\n")
-        except FileExistsError:
-            return 0  # assuming this was already done hence skipping this function
+        if self.log_files[i] is not None:
+            print(self[i].log_data)
+            try:
+                with open(log_file, "x") as f:
+                    f.write("\t".join(v for v in list(self[i].log_data.keys())))
+                    f.write("\n")
+            except FileExistsError:
+                return 0  # assuming this was already done hence skipping this function
 
         try:
             with open(tree_file, "x") as f:
@@ -316,11 +318,12 @@ class coupled_MChains():
             with open(tree_file, "a") as tf:
                 tf.write(f"tree STATE_{sample} = {cur_tree}\n")
 
-            cur_values = [v for v in self[i].log_data.iloc[index]]
-            cur_values[0] = sample
-            with open(log_file, "a") as lf:
-                lf.write("\t".join([str(v) for v in cur_values]))
-                lf.write("\n")
+            if self.log_files[i] is not None:
+                cur_values = [v for v in self[i].log_data.iloc[index]]
+                cur_values[0] = sample
+                with open(log_file, "a") as lf:
+                    lf.write("\t".join([str(v) for v in cur_values]))
+                    lf.write("\n")
             sample += 1
         with open(tree_file, "a") as tf:
             tf.write("End;")
@@ -539,7 +542,10 @@ class coupled_MChains():
 
     def clade_set_comparison(self, i, j, plot=True):
 
+        # todo burnin?
+
         # todo all test for i and j being proper ideces!
+        # todo make this a function that can be run on just two sets of trees
 
         i_clade_dict = self[i].trees.get_clade_rank_dictionary()
         j_clade_dict = self[j].trees.get_clade_rank_dictionary()
@@ -611,6 +617,7 @@ class coupled_MChains():
                 p.ax_joint.plot(lc[0], lc[1], color="red", linewidth=.3, zorder=1)
 
             # adding 1 rank deviation diagonals
+            # todo this is currently wrong, needs to be 0.5 away from the diagonal and not 1 on both sides because the maximal distance is 1 not 2
             p.ax_joint.plot([0, len(self[i].trees[0])-2-1], [1, len(self[i].trees[0])-2], color="grey", linewidth=.5, linestyle="--", zorder=20)
             p.ax_joint.plot([1, len(self[i].trees[0])-2], [0, len(self[i].trees[0])-2-1], color="grey", linewidth=.5, linestyle="--", zorder=20)
 
