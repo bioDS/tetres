@@ -284,7 +284,6 @@ class coupled_MChains():
                 pass
 
         if self.log_files[i] is not None:
-            print(self[i].log_data)
             try:
                 with open(log_file, "x") as f:
                     f.write("\t".join(v for v in list(self[i].log_data.keys())))
