@@ -11,7 +11,7 @@ import warnings
 
 from treeoclock.judgment import ess, _plots
 from treeoclock.judgment import _geweke_diag as gwd
-from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
+from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
 from treeoclock import enums
@@ -332,12 +332,12 @@ class coupled_MChains():
             raise ValueError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_distance_diagnostic_plot(self, samples=samples)
 
-    def gelman_rubin_trace_plot(self, i, j):
+    def gelman_rubin_parameter_choice_plot(self, i, j):
         if len(self) < 2:
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
-        return grd.gelman_rubin_trace_plot(self, i, j)
+        return grd.gelman_rubin_parameter_choice_plot(self, i, j)
 
-    def gelman_rubin_trace_ess_plot(self, i, j, ess=0, pess_range=100, _overwrite=False, ess_method="tracerer", plot=True):
+    def gelman_rubin_trace_ess_plot(self, i, j, ess=0, pess_range=100, _overwrite=False, ess_method="arviz", plot=True):
         if len(self) < 2:
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gr_trace_ess(self, i=i, j=j, ess=ess, pess_range=pess_range, _overwrite=_overwrite, ess_method=ess_method, plot=plot)
@@ -662,7 +662,7 @@ class MChain:
         if type(trees) is TimeTreeSet:
             self.trees = trees
         elif type(trees) is str:
-            self.trees = TimeTreeSet(f"{self.working_dir}/{trees}")
+            self.trees = TimeTreeSet(f"{self.working_dir}/{trees}")  # todo use os.path.join
         else:
             raise ValueError(trees)
 
