@@ -22,7 +22,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
 
     # todo not sure what to do exactly in this case?
     if in_var == 0:
-        return np.sqrt(bt_var/(e-s))
+        return np.sqrt(bt_var/(e-s)+1)
     return np.sqrt(bt_var/in_var)
 
 
