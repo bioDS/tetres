@@ -26,7 +26,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100):
+def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, ess_method="arviz"):
     # this function will return the cut.start and cut.end values calculated for the given full chain
     dm_i = cmchain.pwd_matrix(i)
     dm_j = cmchain.pwd_matrix(j)
@@ -58,9 +58,9 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_thresho
             if cur_sample - (cur_sample-consecutive) >= ess_threshold:
                 if cutoff_end == -1 and consecutive >= int(threshold_percentage * cur_sample):
                         # todo change to calculate the pseudo ess with the already existing distance matrix
-                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range, ess_method=ess_method) >= ess_threshold) \
                                 and \
-                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range, ess_method=ess_method) >= ess_threshold):
                             cutoff_end = cur_sample
                             cutoff_start = cur_sample - consecutive
                             return cutoff_start, cutoff_end

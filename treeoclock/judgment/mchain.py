@@ -327,20 +327,37 @@ class coupled_MChains():
         with open(tree_file, "a") as tf:
             tf.write("End;")
 
-    def gelman_rubin_like_diagnostic_plot(self, samples: int = 100):
+    def gelman_rubin_all_chains_density_plot(self, samples: int = 100):
         if len(self) < 2:
             raise ValueError("Gelman Rubin only possible with multiple Chains!")
-        return grd.gelman_rubin_distance_diagnostic_plot(self, samples=samples)
+        return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
 
     def gelman_rubin_parameter_choice_plot(self, i, j):
         if len(self) < 2:
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_parameter_choice_plot(self, i, j)
 
-    def gelman_rubin_trace_ess_plot(self, i, j, ess=0, pess_range=100, _overwrite=False, ess_method="arviz", plot=True):
-        if len(self) < 2:
-            raise TypeError("Gelman Rubin only possible with multiple Chains!")
-        return grd.gr_trace_ess(self, i=i, j=j, ess=ess, pess_range=pess_range, _overwrite=_overwrite, ess_method=ess_method, plot=plot)
+    def gelman_rubin_cut(self, i, j, smoothing=0.5, threshold_percentage=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, ess_method="arviz"):
+        cut_start, cut_end = grd.gelman_rubin_cut(self, i=i, j=j,
+                                                  smoothing=smoothing,
+                                                  threshold_percentage=threshold_percentage,
+                                                  ess_threshold=ess_threshold,
+                                                  pseudo_ess_range=pseudo_ess_range,
+                                                  ess_method=ess_method)
+        # Write the cutoff boundaries to a file, if it already exists skip this part
+        if _overwrite:
+            try:
+                os.remove(
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}")
+            except FileNotFoundError:
+                pass
+        try:
+            with open(
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
+                    "x") as f:
+                f.write(f"{cut_start}\n{cut_end}")
+        except FileExistsError:
+            pass
 
     def __getitem__(self, index):
         if isinstance(index, int):
@@ -408,14 +425,16 @@ class coupled_MChains():
                 file.write("\n")
         # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
 
-    def compare_cutoff_treesets(self, i, j, beast_applauncher, ess=0, _overwrite=False):
+    def compare_cutoff_treesets(self, i, j, beast_applauncher, ess_threshold=0, _overwrite=False, smoothing=0.5, threshold_percentage=0.5):
         ess_method = 'arviz'  # chosen because no thinning or chain length parameter needed for ess computation
 
         # todo checks for i and j in range and proper indexing etc. ...
 
         # reading the computed cutoff points for i, j
         try:
-            with open(f"{self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}", "r") as file:
+            with open(
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
+                    "r") as file:
                 start = int(file.readline())
                 end = int(file.readline())
         except FileNotFoundError:
@@ -423,18 +442,18 @@ class coupled_MChains():
         if start == -1 or end == -1:
             # return as no cutoff points exist for this pair of chains, hence no comparison necessary
             return 0
-        _compare_cutoff_treesets(self, i, j, start, end, ess, ess_method, beast_applauncher, _overwrite=_overwrite)
+        _compare_cutoff_treesets(self, i, j, start, end, ess_threshold, ess_method, beast_applauncher, _overwrite=_overwrite)
 
-    def compare_cutoff_ess_choices(self, i, j, ess_l=None):
+    def compare_cutoff_ess_choices(self, i, j, ess_l=None, smoothing=0.5, threshold_percentage=0.5):
         if ess_l is None:
             ess_l = [0]
-        ess_method = 'tracerer'
+        ess_method = 'arviz'
 
         ess_data = []
         cen_dist_data = []
 
         # adding the values for the full chains
-        cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="tracerer")
+        cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz")
         # appending the ess values based on names, these seem to not be standardized which is a pain ... !!!
         index_list = ['likelihood', 'prior', 'Tree.height', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']  # todo make this a parameter!
         for index in index_list:  # todo these names are not standardized apparently!!!!
@@ -444,18 +463,18 @@ class coupled_MChains():
             ess_data.append(list(cur_values.iloc[1]))
             ess_data[-1][-1] = f"Full chains"
 
-        for ess in ess_l:
+        for ess_threshold in ess_l:
             # read all the different data
-            cur_name = f"Cutoff_{self.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}"
+            cur_name = f"Cutoff_{self.name}_{i}_{j}{'' if ess == 0 else f'_{ess_threshold}'}_{ess_method}"
             try:
                 with open(
-                        f"{self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}",
+                        f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
                         "r") as file:
                     start = int(file.readline())
                     end = int(file.readline())
             except FileNotFoundError:
                 raise FileNotFoundError(
-                    f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+                    f"Needs precomputed cutoff points, run the gelman_rubin_cut() function first!")
             no_cutoff = False
             if start == -1 or end == -1:
                 warnings.warn(f"No cutoff selected! {self.name}-{i}-{j}")
