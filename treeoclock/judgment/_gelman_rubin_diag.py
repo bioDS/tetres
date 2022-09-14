@@ -26,7 +26,53 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
+def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100):
+    # this function will return the cut.start and cut.end values calculated for the given full chain
+    dm_i = cmchain.pwd_matrix(i)
+    dm_j = cmchain.pwd_matrix(j)
+    dm_ij = cmchain.pwd_matrix(i, j)
+    dm_ji = np.transpose(dm_ij)
+
+    if dm_i.shape != dm_j.shape:
+        raise ValueError("Treesets have different sizes!")
+
+    cutoff_start = -1
+    cutoff_end = -1
+    consecutive = 0
+
+    for cur_sample in range(dm_i.shape[0]):
+        slide_start = int(cur_sample * (1 - smoothing))  # smoothing is impacting the current sliding window start
+
+        psrf_like_i = []
+        psrf_like_j = []
+
+        for x in range(slide_start, cur_sample + 1):
+            psrf_like_i.append(_psrf_like_value(dm_i, dm_ij, x, slide_start, cur_sample))
+            psrf_like_j.append(_psrf_like_value(dm_j, dm_ji, x, slide_start, cur_sample))
+
+        psrf_like_i = np.median(psrf_like_i)
+        psrf_like_j = np.median(psrf_like_j)
+
+        if 0.99 < psrf_like_i < 1.01 and 0.99 < psrf_like_j < 1.01:
+            consecutive += 1
+            if cur_sample - (cur_sample-consecutive) >= ess_threshold:
+                if cutoff_end == -1 and consecutive >= int(threshold_percentage * cur_sample):
+                        # todo change to calculate the pseudo ess with the already existing distance matrix
+                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                                and \
+                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                            cutoff_end = cur_sample
+                            cutoff_start = cur_sample - consecutive
+                            return cutoff_start, cutoff_end
+        else:
+            consecutive = 0
+    # No cutoff found
+    return -1, -1
+
+
 def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100):
+    # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
+
     dm_i = cmchain.pwd_matrix(i)
     dm_j = cmchain.pwd_matrix(j)
     dm_ij = cmchain.pwd_matrix(i, j)
@@ -122,77 +168,35 @@ def gelman_rubin_parameter_choice_plot(cmchain, i, j):
     gc.collect()
 
 
-# Todo WIP from here
+def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100):
+    # this could be a gelman_rubin_like postprocessing tool
+
+    # todo consider burnin as a parameter
+    nt1 = pwts1.shape[0]
+    nt2 = pwts2.shape[0]
+    if not nt1 == nt2:
+        raise ValueError("Matrices (Tree sets) should have the same size!")
+    psrf_like = []
+
+    if samples != "all":
+        for _ in range(samples):
+            random_sample = random.randint(0, nt1 - 1)
+            r = _psrf_like_value(pwts1, pwts1ts2, random_sample, 0, nt1)
+            psrf_like.append(["TS1", r])
+            r = _psrf_like_value(pwts2, np.transpose(pwts1ts2), random_sample, 0, nt1)
+            psrf_like.append(["TS2", r])
+    elif samples == "all":
+        for cur_sample in range(nt1):
+            r = _psrf_like_value(pwts1, pwts1ts2, cur_sample, 0, nt1)
+            psrf_like.append(["TS1", r])
+            r = _psrf_like_value(pwts2, np.transpose(pwts1ts2), cur_sample, 0, nt1)
+            psrf_like.append(["TS2", r])
+    else:
+        raise ValueError(f"Unrecognizes samples {samples} given!")
+    return pd.DataFrame(data=psrf_like, columns=["Treeset", "PSRF_like"])
 
 
-def gr_trace_ess(cmchain, i, j, ess=0, pess_range=100, _overwrite=False, ess_method = "tracerer", plot=True):
-    # the idea is to set the parameters both to 0.5 which seems to be a good choice in the other evaluations
-    tp = 0.5
-    sf = 0.5
-
-    # todo this should use the standard approach for the gelman rubin diagnostic since only one threshold percentage is chosen!
-    df, cutoff_start, cutoff_end = gelman_rubin_threshold_list(cmchain, i, j, sample_from=sf,
-                                                                  threshold_percentage=[tp],
-                                                                  ess=ess, pess_range=pess_range)
-
-    # Write the cutoff boundaries to a file, if it already exists skip this part
-    if _overwrite:
-        try:
-            os.remove(
-                f"{cmchain.working_dir}/data/{cmchain.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
-        except FileNotFoundError:
-            pass
-    try:
-        with open(
-                f"{cmchain.working_dir}/data/{cmchain.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}",
-                "x") as f:
-            f.write(f"{cutoff_start[tp]}\n{cutoff_end[tp]}")
-    except FileExistsError:
-        pass
-
-    if plot:
-        figure, axis = plt.subplots(ncols=2, nrows=1,
-                                    constrained_layout=True, squeeze=False)
-
-        sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, legend=False, ax=axis[0, 0])
-
-        axis[0, 0].set_xticks = set(df["Sample"])
-        axis[0, 0].set_ylim([0.9, 1.1])
-
-        if cutoff_end[tp] != -1 and cutoff_start[tp] != -1:
-            axis[0, 0].axvline(x=cutoff_end[tp], color="red")
-            axis[0, 0].axvline(x=cutoff_start[tp], color="green")
-
-            axis[0, 0].text(x=cutoff_end[tp] - (
-                        0.5 * (cutoff_end[tp] - cutoff_start[tp])) + 0.1, y=.05,
-                                s=f'{cutoff_end[tp] - cutoff_start[tp] + 1}',
-                                fontsize=8, zorder=20, ha="center",
-                                transform=axis[0, 0].get_xaxis_transform(),
-                                va="top", color="black")
-        axis[0, 0].axhline(y=1.01, linestyle="--", color="red")
-        axis[0, 0].axhline(y=0.99, linestyle="--", color="red")
-
-
-
-
-        df = _ess_df(cmchain=cmchain, chain_indeces=[i, j], ess_method=ess_method, start=cutoff_start[tp], end=cutoff_end[tp])
-        sns.stripplot(data=df, x="Key", y="Value", hue="Chain", ax=axis[0, 1])
-        for label in axis[0, 1].get_xticklabels():
-            label.set_rotation(90)
-        axis[0, 1].set_xlabel("")
-        axis[0, 1].set_ylabel("ESS")
-
-        axis[0, 1].axhline(y=cutoff_end[tp] - cutoff_start[tp], linestyle="--", color="red")
-        axis[0, 1].axhline(y=0.75*(cutoff_end[tp] - cutoff_start[tp]), linestyle="dotted", color="orange")
-
-        plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_gress{'' if ess == 0 else f'_{ess}'}_{ess_method}.png",
-                    format="png", bbox_inches="tight", dpi=400)
-        plt.clf()
-        plt.close("all")
-        gc.collect()
-
-
-def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
+def gelman_rubin_all_chains_density_plot(cMChain, samples: int = 100):
     figure, axis = plt.subplots(nrows=cMChain.m_MChains, ncols=cMChain.m_MChains, constrained_layout=True,
                                 figsize=[9, 7])
 
@@ -202,7 +206,7 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
 
     for i in range(cMChain.m_MChains - 1):
         for j in range(i + 1, cMChain.m_MChains):
-            cur_psrf_like = gelman_rubin_distance_diagnostic_from_matrices(cMChain.pwd_matrix(i),
+            cur_psrf_like = gelman_rubin_full_chain_subsample(cMChain.pwd_matrix(i),
                                                                            cMChain.pwd_matrix(j),
                                                                            cMChain.pwd_matrix(i, j),
                                                                            samples=samples)
@@ -262,41 +266,8 @@ def gelman_rubin_distance_diagnostic_plot(cMChain, samples: int = 100):
 
     # plt.show()
     plt.savefig(
-        fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_plot{'' if samples == 100 else f'_{samples}'}.png",
+        fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_density_full_chain_{'all' if samples == 'all' else f'subsampling_{samples}'}.png",
         format="png", bbox_inches="tight", dpi=800)
     plt.clf()
     plt.close("all")
     gc.collect()
-
-
-def gelman_rubin_distance_diagnostic_from_matrices(pwts1, pwts2, pwts1ts2,
-                                                   samples: int = 100):
-    nt1 = pwts1.shape[0]
-    nt2 = pwts2.shape[0]
-    psrf_like = []
-
-    if samples != "all":
-        for _ in range(samples):
-            ts1_sample = random.randint(0, nt1 - 1)
-            in_sample_var = np.sum(pwts1[ts1_sample, :]) + np.sum(pwts1[:, ts1_sample])
-            between_sample_var = np.sum(pwts1ts2[ts1_sample, :])
-            psrf_like.append(["TS1", np.sqrt((between_sample_var / nt2) / (in_sample_var / nt1))])
-
-            ts2_sample = random.randint(0, nt2 - 1)
-            in_sample_var = np.sum(pwts2[ts2_sample, :]) + np.sum(pwts2[:, ts2_sample])
-            between_sample_var = np.sum(pwts1ts2[:, ts2_sample])
-            psrf_like.append(["TS2", np.sqrt((between_sample_var / nt1) / (in_sample_var / nt2))])
-
-    elif samples == "all":
-        for cur_sample in range(nt1):
-            in_sample_var = np.sum(pwts1[cur_sample, :]) + np.sum(pwts1[:, cur_sample])
-            between_sample_var = np.sum(pwts1ts2[cur_sample, :])
-            psrf_like.append(["TS1", np.sqrt((between_sample_var / nt2) / (in_sample_var / nt1))])
-        for cur_sample in range(nt2):
-            in_sample_var = np.sum(pwts2[cur_sample, :]) + np.sum(pwts2[:, cur_sample])
-            between_sample_var = np.sum(pwts1ts2[:, cur_sample])
-            psrf_like.append(["TS2", np.sqrt((between_sample_var / nt1) / (in_sample_var / nt2))])
-    else:
-        raise ValueError(f"Unrecognizes samples {samples} given!")
-    return pd.DataFrame(data=psrf_like, columns=["Treeset", "PSRF_like"])
-
