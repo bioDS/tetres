@@ -137,7 +137,8 @@ def autocorr_ess(data_list, max_lag=2000, trunc=0.05):
     """
     n = len(data_list)
     max_lag = min(n - 1, max_lag)
-    return n / (-1 + 2 * sum(_autocorr_t(data_list, max_lag, trunc)))
+    # return the ESS or the number of samples if ESS overestimates the value
+    return min(n / (-1 + 2 * sum(_autocorr_t(data_list, max_lag, trunc))), n)
 
 
 def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
