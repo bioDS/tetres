@@ -28,6 +28,8 @@ def arviz_ess(data_list, **kwargs):
 
 
 def pseudo_ess(ess_method, tree_set, chain_length, sampling_interval, dist="rnni", sample_range=10):
+    # todo use the pairwise distance matrix if avaialble?! For this i will need to add upper and lower i boundaries for this function and then calculate with that!
+    #  also the parameter of rf needs to be given to the pwd_matrix funciton!
     ess = []
     # samples = random.sample(range(len(tree_set)), sample_range)
     samples = np.linspace(0, len(tree_set)-1, num=sample_range, dtype=int)
@@ -117,7 +119,7 @@ def _multi_dim_ess():
     return 0
 
 
-def ess_autocorr(x, max_lag=2000, trunc=0.05):
+def autocorr_ess(data_list, max_lag=2000, trunc=0.05):
     """
     Effective Sample Size calculated using autocorrelation.
     
@@ -133,13 +135,12 @@ def ess_autocorr(x, max_lag=2000, trunc=0.05):
     Returns:
         ess (double): estimate of the Effective Sample Size
     """
-    n = len(x)
+    n = len(data_list)
     max_lag = min(n - 1, max_lag)
-    return n / (1 + 2 * sum(autocorr_t(x, max_lag, trunc)))
+    return n / (-1 + 2 * sum(_autocorr_t(data_list, max_lag, trunc)))
 
 
-
-def autocorr_t(x, max_lag=2000, trunc=0.05):
+def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
     """
     Calculate lag-k autocorrelation.
     
@@ -150,17 +151,17 @@ def autocorr_t(x, max_lag=2000, trunc=0.05):
     Note that instead of the mean for the partial series, a sample mean is used.
     
     Parameters:
-        x (list): a list of umeric values
+        x (list): a list of numeric values
         max_lag (int): maximum calculated lag of the autocorrelation function
         trunc (double): stop calculating the atucorrelation function at this value
     Returns:
         cor (list): truncated autocorrelation series
     """
-    n = len(x)
-    m = sum(x)/n
-    gamma_0 = sum([ (y - m)**2 for y in x ])
+    n = len(data_list)
+    m = sum(data_list)/n
+    gamma_0 = sum([(y - m)**2 for y in data_list])
     def gamma(k):
-        return sum([ (x[i] - m) * (x[i+k] - m) for i in range(0,n-k) ])
+        return sum([ (data_list[i] - m) * (data_list[i+k] - m) for i in range(0,n-k) ])
     cor = list()
     for i in range(max_lag):
         c = gamma(i) / gamma_0
