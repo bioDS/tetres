@@ -1,11 +1,12 @@
 import gc
-import os
 import random
 import numpy as np
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
-from treeoclock.judgment.ess import _ess_df
+
+global _gr_boundary
+_gr_boundary = 0.05
 
 
 def _psrf_like_value(dm_in, dm_bt, k, s, e):
@@ -20,14 +21,15 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     in_var = np.nansum(dm_in[k, s:(e+1)]**2) + np.nansum(dm_in[s:(e+1), k]**2)
     bt_var = np.nansum(dm_bt[k, s:(e+1)]**2)
 
-    # todo not sure what to do exactly in this case?
     if in_var == 0:
-        return np.sqrt(bt_var/(e-s)+1)
+        return np.sqrt(bt_var)
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, ess_method="arviz"):
+def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, ess_method="arviz", smoothing_average="median"):
     # this function will return the cut.start and cut.end values calculated for the given full chain
+    global _gr_boundary
+
     dm_i = cmchain.pwd_matrix(i)
     dm_j = cmchain.pwd_matrix(j)
     dm_ij = cmchain.pwd_matrix(i, j)
@@ -36,7 +38,6 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_thresho
     if dm_i.shape != dm_j.shape:
         raise ValueError("Treesets have different sizes!")
 
-    cutoff_start = -1
     cutoff_end = -1
     consecutive = 0
 
@@ -49,11 +50,16 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_thresho
         for x in range(slide_start, cur_sample + 1):
             psrf_like_i.append(_psrf_like_value(dm_i, dm_ij, x, slide_start, cur_sample))
             psrf_like_j.append(_psrf_like_value(dm_j, dm_ji, x, slide_start, cur_sample))
+        if smoothing_average == "median":
+            psrf_like_i = np.median(psrf_like_i)
+            psrf_like_j = np.median(psrf_like_j)
+        elif smoothing_average == "mean":
+            psrf_like_i = np.mean(psrf_like_i)
+            psrf_like_j = np.mean(psrf_like_j)
+        else:
+            raise ValueError(f"Unrecognized parameter {smoothing_average} smoothing_average!")
 
-        psrf_like_i = np.median(psrf_like_i)
-        psrf_like_j = np.median(psrf_like_j)
-
-        if 0.99 < psrf_like_i < 1.01 and 0.99 < psrf_like_j < 1.01:
+        if 1-_gr_boundary < psrf_like_i < 1+_gr_boundary and 1-_gr_boundary < psrf_like_j < 1+_gr_boundary:
             consecutive += 1
             if cur_sample - (cur_sample-consecutive) >= ess_threshold:
                 if cutoff_end == -1 and consecutive >= int(threshold_percentage * cur_sample):
@@ -70,8 +76,9 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_thresho
     return -1, -1
 
 
-def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100):
+def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, smoothing_average="median"):
     # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
+    global _gr_boundary
 
     dm_i = cmchain.pwd_matrix(i)
     dm_j = cmchain.pwd_matrix(j)
@@ -96,11 +103,17 @@ def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, 
         for x in range(slide_start, cur_sample+1):
             psrf_like_i.append(_psrf_like_value(dm_i, dm_ij, x, slide_start, cur_sample))
             psrf_like_j.append(_psrf_like_value(dm_j, dm_ji, x, slide_start, cur_sample))
-            
-        df.append([cur_sample, np.median(psrf_like_i), f"chain_{i}"])
-        df.append([cur_sample, np.median(psrf_like_j), f"chain_{j}"])
 
-        if 0.99 < df[-1][1] < 1.01 and 0.99 < df[-2][1] < 1.01:
+        if smoothing_average == "median":
+            df.append([cur_sample, np.median(psrf_like_i), f"chain_{i}"])
+            df.append([cur_sample, np.median(psrf_like_j), f"chain_{j}"])
+        elif smoothing_average == "mean":
+            df.append([cur_sample, np.mean(psrf_like_i), f"chain_{i}"])
+            df.append([cur_sample, np.mean(psrf_like_j), f"chain_{j}"])
+        else:
+            raise ValueError(f"Smoothing_function = {smoothing_average} not recognized!")
+
+        if 1-_gr_boundary < df[-1][1] < 1+_gr_boundary and 1-_gr_boundary < df[-2][1] < 1+_gr_boundary:
             consecutive += 1
             if cur_sample - (cur_sample-consecutive) >= ess_threshold:
                 for threshold in cutoff_end.keys():
@@ -119,13 +132,13 @@ def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, 
 
 def gelman_rubin_parameter_choice_plot(cmchain, i, j):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
-
     # TODO WIP for clean up and rename!
     ess_threshold = 200
+    smoothing_function = "mean"  # TODO
 
     sample_from = [0.1, 0.5, 0.6, 0.75, 1, 0.25, 0.9]
     sample_from = np.sort(sample_from)
-    threshold_percentage = [0, 0.1, 0.25, 0.5, 0.75, 1.0]
+    threshold_percentage = [0, 0.1, 0.25, 0.5, 0.75, 1.0, 0.4, 0.6]
     threshold_percentage = np.sort(threshold_percentage)
 
     figure, axis = plt.subplots(ncols=len(sample_from), nrows=len(threshold_percentage),
@@ -136,7 +149,8 @@ def gelman_rubin_parameter_choice_plot(cmchain, i, j):
     for col in range(len(sample_from)):
         df, cutoff_start, cutoff_end = gelman_rubin_threshold_list(cmchain, i, j, smoothing=sample_from[col],
                                                                                 threshold_percentage=threshold_percentage,
-                                                                                ess_threshold=ess_threshold)
+                                                                                ess_threshold=ess_threshold,
+                                                                                smoothing_average=smoothing_function)
         for row in range(len(threshold_percentage)):
             axis[row, col].set_ylim([0.9, 1.1])
             sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
@@ -161,7 +175,7 @@ def gelman_rubin_parameter_choice_plot(cmchain, i, j):
     figure.supylabel("Threshold Time (fraction of iterations)", color="green")
     figure.supxlabel("Sample from last x-fraction of trees", color="blue")
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices_ess-{ess_threshold}.png",
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices_ess-{ess_threshold}_{smoothing_function}.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
     plt.close("all")
