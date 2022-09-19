@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
-import xarray as xr
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 
 def ess_stripplot(cmchain):
+    # todo why/where do i need this?
     burnin = 0
 
     df = _ess_df(cmchain, chain_indeces=range(cmchain.m_MChains))
@@ -113,7 +113,4 @@ def pseudo_ess(tree_set, dist="rnni", sample_range=10):
         else:
             raise ValueError(f"Unkown distance given {dist}!")
         ess.append(autocorr_ess(data_list=cur_distance_list))
-    # todo this can be changed to median or mean, look at JC paper min is best and median also good
-    #  however mean seems to be not a good choice,
-    #  in the test case min is the only one not overestimating the ESS
-    return np.median(ess)  # median seems to be better!
+    return np.median(ess)
