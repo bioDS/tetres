@@ -30,6 +30,11 @@ def test_cMChain_gelman_rubin_plot_single_chain():
         coupled_chains.gelman_rubin_like_diagnostic_plot()
 
 
+def test_cMChain_get_ess_start_end(ten_taxa_cMChain):
+    ess = ten_taxa_cMChain[0].get_ess(ess_key="posterior", lower_i=10, upper_i=110)
+    assert int(ess) == 66, "Get ESS with start end failed"
+
+
 def test_cMChain_pwd_matrix(ten_taxa_cMChain):
     errors = []
     dm0 = ten_taxa_cMChain.pwd_matrix(0)
@@ -69,12 +74,6 @@ def test_cMChain_pwdm_errors(ten_taxa_cMChain):
 def test_cMChain_cladesetcomparator(ten_taxa_cMChain):
     ten_taxa_cMChain.cladesetcomparator(beast_applauncher="/home/lars/.local/share/beast/bin/applauncher")
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/cc.png"), "Cladeset comparator failed!"
-
-
-def test_cMChain_ess_stripplot(ten_taxa_cMChain):
-    for method in ["tracerer", "coda", "arviz"]:
-        ten_taxa_cMChain.ess_stripplot(ess_method=method)
-        assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/ess_{method}_comparison.png"), "ESS stripplot failed!"
 
 
 def test_pwd_matrix_all(ten_taxa_cMChain):

@@ -9,25 +9,20 @@ import linecache
 import re
 import warnings
 
-from treeoclock.judgment import ess, _plots
 from treeoclock.judgment import _geweke_diag as gwd
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean
-from treeoclock import enums
 from treeoclock.trees._converter import ctree_to_ete3
 from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
 from treeoclock.judgment import _gelman_rubin_diag as grd
 from treeoclock.judgment import _cladesetcomparator as csc
 from treeoclock.clustree.spectral_clustree import _spectral_clustree
-from treeoclock.judgment._plotting import all_chains_spectral_clustree, all_chains_added_summaries
-from treeoclock.visualize.tsne import _tsne_coords_from_pwd
 from treeoclock.summary.centroid import Centroid
 from treeoclock.summary.annotate_centroid import annotate_centroid
-from treeoclock.judgment.ess import _ess_df
+from treeoclock.judgment.ess import autocorr_ess, pseudo_ess
 
 from rpy2.robjects.packages import importr
-from rpy2.robjects.vectors import ListVector
 phytools = importr("phytools")
 phangorn = importr("phangorn")
 
@@ -129,149 +124,15 @@ class coupled_MChains():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def similarity_matrix_all(self, beta=1, rf: bool = False):
-        if not os.path.exists(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy"):
-            matrix = self.pwd_matrix_all(rf=rf)
-            similarity = np.exp(-beta * matrix / matrix.std())
-            np.save(file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy",
-                    arr=similarity)
-            return similarity
-        else:
-            return np.load(f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity_all{'_rf' if rf else ''}.npy")
-
-    def clustree_all(self, n_clus=2, beta=1, rf: bool = False):
-        if n_clus != 1:
-            if not os.path.exists(
-                    f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy"):
-                similarity = self.similarity_matrix_all(beta=beta, rf=rf)
-                similarity = similarity + similarity.transpose()
-                clustering = _spectral_clustree(similarity, n_clus=n_clus)
-                np.save(
-                    file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy",
-                    arr=clustering)
-                return clustering
-            else:
-                return np.load(
-                    f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering_all{'_rf' if rf else ''}.npy")
-        else:
-            return np.ones(len(self[0].trees)*len(self))
-
-    def tsne_all(self, rf: bool = False, dim: int = 2):
-        # try:
-        if os.path.exists(f"{self.working_dir}/data/{self.name}_{dim}D_tSNE_all{'_rf' if rf else ''}.npy"):
-            coords = np.load(
-                f"{self.working_dir}/data/{self.name}_{dim}D_tSNE_all{'_rf' if rf else ''}.npy")
-        # except FileNotFoundError:
-        else:
-            coords, kl_divergence = _tsne_coords_from_pwd(pwd_matrix=self.pwd_matrix_all(rf=rf), dim=dim)
-            np.save(
-                file=f"{self.working_dir}/data/{self.name}_{dim}D_tSNE_all{'_rf' if rf else ''}.npy",
-                arr=coords)
-            # todo writing the kl divergence somewhere
-        return coords
-
-    def plot_clustree_all(self, n_clus=2, beta=1, rf: bool = False, dim: int = 2):
-        all_chains_spectral_clustree(self, beta=beta, n_clus=n_clus, rf=rf, dim=dim)
-
-    # todo wip
-    def plot_chains_with_summaries(self, rf: bool = False, dim: int = 2):
-        new_cmchain = coupled_MChains(self.m_MChains, self.tree_files, self.log_files, self.working_dir, name=f"{self.name}_cen")
-        new_cmchain.m_MChains += new_cmchain.m_MChains
-        for chain in self.MChain_list:
-            cur_chain = MChain(trees=TimeTreeSet(f"{chain.working_dir}/{chain.name}_cen.tree"), log_file=None,
-                               working_dir=self.working_dir, name=f"{chain.name}_cen")
-            new_cmchain.MChain_list.append(cur_chain)
-        all_chains_added_summaries(new_cmchain, rf=rf, dim=dim)
-
-    def split_all_trees(self, n_clus, beta=1, burn_in=5):
-        clustering = self.clustree_all(n_clus=n_clus, beta=beta)
-        try:
-            os.mkdir(f"{self.working_dir}/{n_clus}_cluster")  # todo maybe name the cluster based on rf also!
-        except FileExistsError:
-            # raise FileExistsError("Cluster directory already exists! No overwriting implemented!")
-            pass
-
-        # todo this split needs to be based on the runs as well, i.e. not global but for each chain the split needs to happen!
-
-        sample_dict = {}
-        for c in range(n_clus):
-            try:
-                f = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.log", "x")
-                f.write("\t".join(v for v in list(self[0].log_data.keys())))
-                f.write("\n")
-                f.close()
-                sample_dict[c] = 0
-            except FileExistsError:
-                raise FileExistsError("Log files from clustering already exist, manual deletion for recomputation "
-                                      "required!")
-            # tree files are initialized with the map and properties of chain at postion 0
-            try:
-                f = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.trees", "x")
-                f.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self[0].trees[0].ctree.num_leaves};\n\t\tTaxlabels\n")
-                for taxa in range(1, self[0].trees[0].ctree.num_leaves+1):
-                    f.write(f"\t\t\t{self[0].trees.map[taxa]}\n")
-                f.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
-                for taxa in range(1, self[0].trees[0].ctree.num_leaves):
-                    f.write(f"\t\t\t{taxa} {self[0].trees.map[taxa]},\n")
-                f.write(f"\t\t\t{self[0].trees[0].ctree.num_leaves} {self[0].trees.map[self[0].trees[0].ctree.num_leaves]}\n")
-                f.write(";\n")
-                f.close()
-
-            except FileExistsError:
-                raise FileExistsError("Tree files from clustering already exist, manual deletion for recomputation "
-                                      "required!")
-
-        for chain in range(self.m_MChains):
-            if chain != 0:
-                if self[chain].trees.map != self[0].trees.map:
-                    raise ValueError("Problem of unequal maps between the tree sets!")
-            for index, row in self[chain].log_data.iterrows():
-                if index > int((self[chain].log_data.shape[0] / 100) * burn_in):
-                    # writing the log file
-                    cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.log", "a")
-                    cur_value_list = row.values
-                    cur_value_list[0] = sample_dict[clustering[index]]
-                    cur_file.write("\t".join([str(v) for v in cur_value_list]))
-                    cur_file.write("\n")
-                    cur_file.close()
-
-                    # writing the tree file
-                    cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{clustering[index]}.trees", "a")
-
-                    re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
-
-                    # offset = 10 + (2 * self[0].trees[0].ctree.num_leaves)  # this approach does not work when there is a random empty line inserted, should be all the same file format but all are different ...
-                    file = f"{self.working_dir}/{self.tree_files[chain]}"
-                    offset = 0
-                    for line in open(file):
-                        if re_tree.match(line):
-                            break
-                        offset += 1
-
-                    line = index + 1 + offset
-                    cur_tree = linecache.getline(file, line)
-                    cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
-
-                    cur_file.write(f"tree STATE_{sample_dict[clustering[index]]} = {cur_tree}\n")
-
-                    cur_file.close()
-                    # increasing the sample for the respective clustering
-                    sample_dict[clustering[index]] += 1
-        for c in range(n_clus):
-            cur_file = open(f"{self.working_dir}/{n_clus}_cluster/clus_{c}.trees", "a")
-            cur_file.write("End;")
-            cur_file.close()
-        return 0
-
-    def _extract_cutoff(self, i, start, end, ess, ess_method, compare_to, _overwrite=False):
-
+    def _extract_cutoff(self, i, start, end, ess, compare_to, _overwrite=False):
+        # todo should be its own script, also rename all the parameters given
         try:
             os.mkdir(f"{self.working_dir}/cutoff_files")
         except FileExistsError:
             pass
 
-        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.trees"
-        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log"
+        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}.trees"
+        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_{ess}'}.log"
 
         if _overwrite:
             try:
@@ -337,23 +198,26 @@ class coupled_MChains():
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_parameter_choice_plot(self, i, j)
 
-    def gelman_rubin_cut(self, i, j, smoothing=0.5, threshold_percentage=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, ess_method="arviz"):
+    def gelman_rubin_cut(self, i, j, smoothing=0.5, threshold_percentage=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="median"):
+
+        # todo move exceptions, computation not needed if file exists, speeding up computation
+
         cut_start, cut_end = grd.gelman_rubin_cut(self, i=i, j=j,
                                                   smoothing=smoothing,
                                                   threshold_percentage=threshold_percentage,
                                                   ess_threshold=ess_threshold,
                                                   pseudo_ess_range=pseudo_ess_range,
-                                                  ess_method=ess_method)
+                                                  smoothing_average=smoothing_average)
         # Write the cutoff boundaries to a file, if it already exists skip this part
         if _overwrite:
             try:
                 os.remove(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}")
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}_{smoothing_average}")
             except FileNotFoundError:
                 pass
         try:
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}_{smoothing_average}",
                     "x") as f:
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
@@ -375,9 +239,6 @@ class coupled_MChains():
             raise ValueError("Missing tree_files list!")
         csc._cladesetcomp(self, beast_applauncher, burnin=burnin)
         # todo add the compare chronogram on the lower diag of the plot?
-
-    def ess_stripplot(self, ess_method="tracerer"):
-        ess.ess_stripplot(self, ess_method)
 
     def cen_for_each_chain(self, repeat=5):
         for _ in range(repeat):
@@ -426,139 +287,24 @@ class coupled_MChains():
         # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
 
     def compare_cutoff_treesets(self, i, j, beast_applauncher, ess_threshold=0, _overwrite=False, smoothing=0.5, threshold_percentage=0.5):
-        ess_method = 'arviz'  # chosen because no thinning or chain length parameter needed for ess computation
-
         # todo checks for i and j in range and proper indexing etc. ...
 
         # reading the computed cutoff points for i, j
         try:
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
                     "r") as file:
                 start = int(file.readline())
                 end = int(file.readline())
         except FileNotFoundError:
-            raise FileNotFoundError(f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+            raise FileNotFoundError(f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess_threshold == 0 else f'_{ess_threshold}'}")
         if start == -1 or end == -1:
             # return as no cutoff points exist for this pair of chains, hence no comparison necessary
             return 0
-        _compare_cutoff_treesets(self, i, j, start, end, ess_threshold, ess_method, beast_applauncher, _overwrite=_overwrite)
-
-    def compare_cutoff_ess_choices(self, i, j, ess_l=None, smoothing=0.5, threshold_percentage=0.5):
-        if ess_l is None:
-            ess_l = [0]
-        ess_method = 'arviz'
-
-        ess_data = []
-        cen_dist_data = []
-
-        # adding the values for the full chains
-        cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method="arviz")
-        # appending the ess values based on names, these seem to not be standardized which is a pain ... !!!
-        index_list = ['likelihood', 'prior', 'Tree.height', 'Pseudo_ESS_RNNI', 'Pseudo_ESS_RF']  # todo make this a parameter!
-        for index in index_list:  # todo these names are not standardized apparently!!!!
-            cur_values = cur_ess_df[cur_ess_df["Key"] == index]
-            ess_data.append(list(cur_values.iloc[0]))
-            ess_data[-1][-1] = f"Full chains"
-            ess_data.append(list(cur_values.iloc[1]))
-            ess_data[-1][-1] = f"Full chains"
-
-        for ess_threshold in ess_l:
-            # read all the different data
-            cur_name = f"Cutoff_{self.name}_{i}_{j}{'' if ess == 0 else f'_{ess_threshold}'}_{ess_method}"
-            try:
-                with open(
-                        f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst_{ess_method}'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
-                        "r") as file:
-                    start = int(file.readline())
-                    end = int(file.readline())
-            except FileNotFoundError:
-                raise FileNotFoundError(
-                    f"Needs precomputed cutoff points, run the gelman_rubin_cut() function first!")
-            no_cutoff = False
-            if start == -1 or end == -1:
-                warnings.warn(f"No cutoff selected! {self.name}-{i}-{j}")
-                no_cutoff = True
-                # raise ValueError("Currently WIP!!!")
-
-            if no_cutoff:
-                for index in index_list:
-                    ess_data.append([index, None, f"{ess}"])
-            else:
-                # calculating all values for the cutof chain
-                cur_ess_df = _ess_df(self, chain_indeces=[i, j], ess_method=ess_method, start=start, end=end)  # ess dataframe for the cutoff chains
-                # appending the ess values
-                for index in index_list:
-                    cur_values = cur_ess_df[cur_ess_df["Key"] == index]
-                    ess_data.append(list(cur_values.iloc[0]))
-                    ess_data[-1][-1] = f"{ess}"  # renaming
-                    ess_data.append(list(cur_values.iloc[1]))
-                    ess_data[-1][-1] = f"{ess}"  # renaming
-
-
-            # if not os.path.exists(f"{self.working_dir}/data/{cur_name}_cen_distances.log"):
-            #     raise FileNotFoundError(f"Could not find the cen distances log file! "
-            #                             f"{self.working_dir}/data/{cur_name}_cen_distances.log")
-            if no_cutoff:
-                cen_dist_data.append([None, f"{ess}", "Cut-Full"])
-                cen_dist_data.append([None, f"{ess}", "Cut-Cut"])
-                cen_dist_data.append([None, f"Full chains", "Full"])
-            else:
-                for line in [2, 3, 4, 5]:  # only read the line which are distance(cutoff, full_chain)
-                    cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", line )
-                    # print(cur_l.rstrip("\n").split('\t'))
-                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Full"])  # todo buggy: why though?
-                    # reading the distances of centroid between the two cutoff parts
-                    cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 6)
-                    cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"{ess}", "Cut-Cut"])
-                # reading the distance of centroids for the full chains
-                # todo maybe add the distances between the two chains centroids from the other distance log file?
-                cur_l = linecache.getline(f"{self.working_dir}/data/{cur_name}_cen_distances.log", 1)
-                cen_dist_data.append([int(cur_l.rstrip("\n").split('\t')[1]), f"Full chains", "Full"])
-
-
-
-        ess_data = pd.DataFrame(ess_data, columns=["Key", "Value", "ESS-addon"])
-        cen_dist_data = pd.DataFrame(cen_dist_data, columns=["Value", "ESS-addon", "Sets"])
-
-        fig, ax = plt.subplots(1, 2)
-        sns.stripplot(x="Key", y="Value", hue="ESS-addon", data=ess_data, dodge=True, alpha=0.25, ax=ax[0])  # all values
-        sns.pointplot(x="Key", y="Value", hue="ESS-addon", data=ess_data, join=False, 
-                      ci=None, scale=0.75, ax=ax[0], dodge=.8 - .8 / 3, palette="dark") # plotting a mean dot
-
-        # Improve the legend
-        handles, labels = ax[0].get_legend_handles_labels()
-        ax[0].legend(handles[len(ess_l)+1:], labels[len(ess_l)+1:], title="ESS-addon", loc='lower left', bbox_to_anchor=(0,1.02,1,0.2),
-          fancybox=True, shadow=True, ncol=len(ess_l)+1, mode="expand", borderaxespad=0, columnspacing=1, handletextpad=0)
-        # Turn the x labels
-        for label in ax[0].get_xticklabels():
-            label.set_rotation(90)
-
-        sns.stripplot(y="Value", x="ESS-addon", hue="Sets", data=cen_dist_data,
-                      dodge=True, alpha=0.25, ax=ax[1])  # all values
-        sns.pointplot(y="Value", x="ESS-addon", hue="Sets", data=cen_dist_data, join=False,
-                      ci=None, scale=0.75, ax=ax[1], dodge=.8 - .8 / 3, palette="dark") # plotting a mean dot
-
-        # Improve the legend
-        handles, labels = ax[1].get_legend_handles_labels()
-        ax[1].legend(handles[3:], labels[3:], title="Sets", loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.2),
-          fancybox=True, shadow=True, ncol=3, mode="expand", borderaxespad=0, columnspacing=1, handletextpad=0)
-        # Turn the x labels
-        for label in ax[1].get_xticklabels():
-            label.set_rotation(90)
-
-        ax[0].set_xlabel("")
-        ax[1].set_xlabel("")
-
-        ax[0].set_ylabel("ESS")
-        ax[1].set_ylabel("RNNI distance")
-
-        plt.tight_layout()
-        plt.savefig(f"{self.working_dir}/plots/{self.name}_{i}_{j}_{ess_l}_cutoff_full_comparison.png", format="png", bbox_inches="tight", dpi=800)
-        plt.clf()
-        plt.close("all")
+        _compare_cutoff_treesets(self, i, j, start, end, ess_threshold, beast_applauncher, _overwrite=_overwrite)
 
     def clade_set_comparison(self, i, j, plot=True):
+        # todo put this in its own script!
 
         # todo burnin?
 
@@ -757,12 +503,7 @@ class MChain:
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
 
-    def get_ess(self, ess_key="posterior", ess_method="tracerer", **kwargs):
-        if type(ess_method) is str:
-            if not hasattr(ess, f"{ess_method}_ess"):
-                raise ValueError(f"The given ESS method {ess_method} does not exist!")
-        else:
-            raise ValueError(ess_method)
+    def get_ess(self, ess_key="posterior", **kwargs):
         lower_i = 0
         if "lower_i" in kwargs:
             lower_i = kwargs["lower_i"]
@@ -776,17 +517,8 @@ class MChain:
                 raise IndexError(f"{upper_i} out of range!")
             if lower_i > upper_i or lower_i < 0 or upper_i < 0:
                 raise ValueError("Something went wrong with the given upper and lower index!")
-
         if ess_key in list(self.log_data.columns):
-            chain_length = 1
-            if upper_i != lower_i:
-                chain_length = int(self.log_data["Sample"][upper_i]) - int(self.log_data["Sample"][lower_i])
-            cur_sampling_interval = int(chain_length / (
-                    self.log_data[ess_key][lower_i:(upper_i + 1)].shape[0] - 1 - self.log_data[ess_key][lower_i:(
-                    upper_i + 1)].isna().sum()))
-            return getattr(ess, f"{ess_method}_ess")(data_list=self.log_data[ess_key][lower_i:(upper_i + 1)].dropna(),
-                                                     chain_length=chain_length,
-                                                     sampling_interval=cur_sampling_interval)
+            return autocorr_ess(data_list=list(self.log_data[ess_key][lower_i:(upper_i + 1)].dropna()))
         else:
             raise ValueError("Not (yet) implemented!")
 
@@ -810,12 +542,7 @@ class MChain:
                                   col_key=f"Geweke_focal_{focal_tree}_{kind}{'_norm' if norm else ''}")
         return new_log_list
 
-    def get_pseudo_ess(self, ess_method="arviz", **kwargs):
-        if type(ess_method) is str:
-            if not hasattr(ess, f"{ess_method}_ess"):
-                raise ValueError(f"The given ESS method {ess_method} does not exist!")
-        else:
-            raise ValueError(ess_method)
+    def get_pseudo_ess(self, **kwargs):
         lower_i = 0
         if "lower_i" in kwargs:
             lower_i = kwargs["lower_i"]
@@ -840,8 +567,7 @@ class MChain:
         chain_length = 1
         if upper_i > 0:
             chain_length = (self.chain_length / (len(self.trees) - 1)) * ((upper_i - 1) - lower_i)
-        return ess.pseudo_ess(ess_method=ess_method, tree_set=self.trees[lower_i:upper_i], chain_length=chain_length,
-                              sampling_interval=self.chain_length / (len(self.trees) - 1),
+        return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                               dist=dist, sample_range=sample_range)
 
     # todo missing tests
@@ -869,16 +595,16 @@ class MChain:
 
     # todo missing test and proper management of the average parameter
     # todo delete the enums things, not really useful in this case
-    def compute_new_tree_distance_log(self, average: enums.Average = enums.Average.MEAN, norm: bool = False,
-                                      add: bool = True):
-        new_log_list = [0]  # initialize as the first iteration is just one tree
-        for i in range(1, len(self.trees)):
-            new_log_list.append(
-                average.function([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list,
-                                  col_key=f"Distance{'_norm' if norm else ''}_{average.name}")
-        return new_log_list
+    # def compute_new_tree_distance_log(self, average: enums.Average = enums.Average.MEAN, norm: bool = False,
+    #                                   add: bool = True):
+    #     new_log_list = [0]  # initialize as the first iteration is just one tree
+    #     for i in range(1, len(self.trees)):
+    #         new_log_list.append(
+    #             average.function([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
+    #     if add:
+    #         self.add_new_log_list(new_log_list=new_log_list,
+    #                               col_key=f"Distance{'_norm' if norm else ''}_{average.name}")
+    #     return new_log_list
 
     def compute_new_tree_summary_distance_log(self, summary="FM", norm=False, add=True):
         new_log_list = [0]  # initialize as the first iteration is just one tree
@@ -950,32 +676,7 @@ class MChain:
         #     raise KeyError(f"Given Value {value_key} does not exist!")
         self.log_data[new_key] = self.log_data[col] / self.log_data[normcol]
 
-    def get_ess_trace_plot(self, ess_key="all", ess_method="tracerer", kind="cummulative"):
-        # todo add kind window ?
-        #  add a interval size for the plot
-        # todo all the checks for the variables given
-        # todo ess method can be list of all methods and then it will create multiplot thing with distribution on the diagonal
-
-        if ess_key == "all":
-            ess_key = self.get_key_names()
-        elif type(ess_key) is str and ess_key in self.log_data:
-            ess_key = [ess_key]
-        elif not (type(ess_key) is list and all(item in self.get_key_names() for item in ess_key)):
-            raise ValueError("ess_key wrong type")
-
-        data = []
-        for i in range(5, self.log_data.shape[0]):  # Starting at sample 5 as it is not useful to look at less samples
-            data.extend([[key, self.get_ess(ess_key=key, ess_method=ess_method, upper_i=i), i] for key in ess_key])
-        data = pd.DataFrame(data, columns=["Ess_key", "Ess_value", "Upper_i"])
-        _plots._ess_trace_plot(data)
-        return 0
-
-    def get_trace_plot(self, value_key='posterior'):
-        if value_key not in self.log_data:
-            raise KeyError(f"Given Value {value_key} does not exist!")
-        _plots._log_trace_plot(self.log_data[value_key][:5])
-        return 0
-
+    # todo these funciton should be in different module?
     def get_simmatrix(self, index="", name="", beta=1):
         if not os.path.exists(
                 f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
@@ -1004,59 +705,28 @@ class MChain:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
 
-    # todo add function that add the ESS traces as columns in the dataframe for the Tracer Visualization
-    #  this is easier than writing my own plots
 
-    def write_log_file(self, path):
-        # todo check if path is correct
-        #  throw warning if file exitsts and stuff like that
+def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, beast_applauncher, _overwrite=False):
 
-        # todo make this a function to calculate all the values and then write a tracer compatible log file
-        #  this should also have a parameter accepting columns which will then be included in the log file
-        #  default all columns including the original log values from beast logfile
-
-        # todo this should take the working directory into account?
-
-        # This should output a csv file that is compatible with Tracer to visualize all the values
-        self.log_data.dropna().to_csv(path, sep="\t", index=False)
-
-    def do_all_the_things(self, out_file, only_norm=True):
-        # todo computes all the parameters possible, and then writes a logfile that is compatible with tracer
-
-        # todo should also use parallel processes for each thing!
-
-        # todo write things to the file whenever finished
-
-        # todo should check if the outfile exists and if it does only add the things that are missing!
-
-        # todo Enum for parameter setting instead of the current stuff
-
-        if not only_norm:
-            # todo compute all the un normed parameters also
-            sys.exit("currently not implemented feature!")
-
-        self.log_data.dropna().to_csv(out_file, sep="\t", index=False)
-
-
-def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_applauncher, _overwrite=False):
+    # todo do i need this function?
 
     # extracting tree and logfile entries for the range [start, end]
-    cmchain._extract_cutoff(i, start, end, ess, ess_method, _overwrite=_overwrite, compare_to=j)
-    cmchain._extract_cutoff(j, start, end, ess, ess_method, _overwrite=_overwrite, compare_to=i)
+    cmchain._extract_cutoff(i, start, end, ess, _overwrite=_overwrite, compare_to=j)
+    cmchain._extract_cutoff(j, start, end, ess, _overwrite=_overwrite, compare_to=i)
 
     # todo do we want to compare it to some big combined set from all chains or the two or what?
 
     cutoff_chain = coupled_MChains(m_MChains=4,
                                    trees=[cmchain.tree_files[i],
                                           cmchain.tree_files[j],
-                                          f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.trees",
-                                          f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.trees"],
+                                          f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}.trees",
+                                          f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}.trees"],
                                    log_files=[cmchain.log_files[i],
                                               cmchain.log_files[j],
-                                              f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log",
-                                              f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}_{ess_method}.log"],
+                                              f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}.log",
+                                              f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}.log"],
                                    working_dir=cmchain.working_dir,
-                                   name=f"Cutoff_{cmchain.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}_{ess_method}")
+                                   name=f"Cutoff_{cmchain.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}")
 
     cutoff_chain.cladesetcomparator(beast_applauncher)
     cutoff_chain.cen_for_each_chain()
@@ -1066,7 +736,7 @@ def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, ess_method, beast_a
     # cutoff_chain.gelman_rubin_like_diagnostic_plot() # todo this with different sized treesets so it works for this?
 
     #### todo
-    cutoff_chain.ess_stripplot(ess_method="tracerer")
+    cutoff_chain.ess_stripplot()
     # todo the current title of this plot is not quite correct but does the job
 
     # todo other comparisons?
