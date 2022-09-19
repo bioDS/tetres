@@ -55,8 +55,8 @@ void compute_geweke_list(long n, long dm[][n], double geweke[n], double first_s,
 
             double first_len = floor(i * first_e) - floor(i * first_s);
             double last_len = i - floor(i * (1 - last));
-            first_len = pow(first_len, 2.0) - first_len;
-            last_len = pow(last_len, 2.0) - last_len;
+            first_len = pow(first_len, 2.0) - first_len;  // this is the number of pairwise samples for the first set
+            last_len = pow(last_len, 2.0) - last_len;  // this is the number of pairwise distances for the second set
             if(first_len == 0){
                 first_len = 1;
             }
