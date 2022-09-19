@@ -48,6 +48,12 @@ def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=Fals
 
 
 def plot_density_over_coordinates(coords, density, filename, animate: bool = False):
+
+    ###########################
+    # TODO  This only makes sense for MDS coordinates because tsne is just to find clusters
+    #       For the density it is important to have an implicit representaiton of the metric space not just a visual representation of probably close/far trees
+    #
+    ###########################
     if coords.shape[1] != 2:
         raise ValueError(f"Wrong dimenstion coordinates given {coords.shape[1]}!")
     if density.shape[0] != coords.shape[0]:
