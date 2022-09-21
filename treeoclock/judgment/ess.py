@@ -94,11 +94,9 @@ def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
     cor = list()
     for i in range(max_lag):
         c = gamma(i) / gamma_0
-        if c < 0:
-            break
-        cor.append(c)
         if c < trunc:
             break
+        cor.append(c)
     return cor
 
 
