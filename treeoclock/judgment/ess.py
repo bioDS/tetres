@@ -61,9 +61,9 @@ def autocorr_ess(data_list, max_lag=2000, trunc=0.05):
         ess (double): estimate of the Effective Sample Size
     """
     n = len(data_list)
-    max_lag = min(n - 1, max_lag)
+    max_lag = min(n, max_lag)
     # return the ESS or the number of samples if ESS overestimates the value
-    return min(n / (-1 + 2 * sum(_autocorr_t(data_list, max_lag, trunc))), n)
+    return n / (-1 + (2 * np.sum(_autocorr_t(data_list, max_lag, trunc))))
 
 
 def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
@@ -84,15 +84,20 @@ def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
         cor (list): truncated autocorrelation series
     """
     n = len(data_list)
-    m = sum(data_list)/n
-    gamma_0 = sum([(y - m)**2 for y in data_list])
+    m = np.mean(data_list)
+    # m = sum(data_list)/n
+    # gamma_0 = sum([(y - m)**2 for y in data_list])
+    gamma_0 = (n-1)*np.var(data_list)
     def gamma(k):
-        return sum([ (data_list[i] - m) * (data_list[i+k] - m) for i in range(0,n-k) ])
+        nonlocal data_list
+        return np.sum([(data_list[i] - m) * (data_list[i+k] - m) for i in range(0,n-k)])
     cor = list()
     for i in range(max_lag):
         c = gamma(i) / gamma_0
+        if c < 0:
+            break
         cor.append(c)
-        if(c < trunc):
+        if c < trunc:
             break
     return cor
 
@@ -107,7 +112,7 @@ def pseudo_ess(tree_set, dist="rnni", sample_range=10):
     for s in samples:
         cur_focal_fix = tree_set[s]
         if dist == "rf":
-            cur_distance_list = [cur_focal_fix.etree.robinson_foulds(t.etree)[0] for t in tree_set]
+            cur_distance_list = [int(cur_focal_fix.etree.robinson_foulds(t.etree)[0]) for t in tree_set]
         elif dist == "rnni":
             cur_distance_list = [t.fp_distance(cur_focal_fix) for t in tree_set]
         else:
