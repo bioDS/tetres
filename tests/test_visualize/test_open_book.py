@@ -13,14 +13,14 @@ def test_get_trees_embedding(twenty_taxa_tts):
     assert len(page_coords["ab|c"]) == 8, "Something failed"
 
 
-def test_plot_pages(twenty_taxa_tts):
-    page_coords = get_trees_embedding(twenty_taxa_tts, [["1"], ["7"], ["9"]])
-    plot_pages(page1=page_coords["ab|c"], page2=page_coords ["bc|a"], page1_label="17|9", page2_label="79|1")
-    plot_pages(page1=page_coords["ab|c"], page2=page_coords["ac|b"], page1_label="17|9", page2_label="19|7")
+def test_plot_book(twenty_taxa_tts):
+    plot_book(twenty_taxa_tts, [["1"], ["7"], ["9"]])
 
-    # todo get all the three pages ontop of each other in a subplot manner
-    #  instead of legend add the labels to the pages themselves
-    #  constrain the triple in a sensable way, not over the root? what else, is this even good?
-    #  should book pages have the same size? i.e. figure out which is bigger and use that
-    #
+
+# def test_plot_pages(twenty_taxa_tts):
+#     page_coords = get_trees_embedding(twenty_taxa_tts, [["1"], ["7"], ["9"]])
+#     plot_pages(page1=page_coords["ab|c"], page2=page_coords ["bc|a"], page1_label="17|9", page2_label="79|1")
+#     plot_pages(page1=page_coords["ab|c"], page2=page_coords["ac|b"], page1_label="17|9", page2_label="19|7")
+
+
 

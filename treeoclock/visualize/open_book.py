@@ -9,8 +9,8 @@ def get_tree_coordinates(tree, triple_leaves):
 
     combined_triple_set = [taxa for sublist in triple_leaves for taxa in sublist]
 
-    if tree.etree.get_common_ancestor(combined_triple_set).is_root():
-        raise TripleNotASubtree
+    # if tree.etree.get_common_ancestor(combined_triple_set).is_root():
+    #    raise TripleNotASubtree
 
     # triple_root = tree.etree.get_common_ancestor(combined_triple_set)
 
@@ -57,23 +57,34 @@ def get_trees_embedding(trees, triple_leaves):
     return page_coords
 
 
-def plot_pages(page1, page1_label, page2, page2_label):
+def plot_pages(page1, page1_label, page2, page2_label, pages_ax):
     # plotting page 1 and 2 accordingly
-    fig, ax = plt.subplots(figsize=(12, 6))
 
-    x1, y1 = zip(*page1)
-    ax.scatter(x1, y1, label=page1_label)
 
     # page2 coordinates need to be transformed, bl * -1, because height is the shared axis, bl is the 2nd coordinate
     x2, y2 = zip(*page2)
-    ax.scatter([-tmp for tmp in x2], y2, label=page2_label)
+    pages_ax.scatter([-tmp for tmp in x2], y2, label=page2_label)
 
-    plt.ylim(0, max([max(y1), max(y2)])+.1)
-    plt.axvline(x=0, color="black")
-    plt.legend()
+    x1, y1 = zip(*page1)
+    pages_ax.scatter(x1, y1, label=page1_label)
 
+    # pages_ax.setylim(0, max([max(y1), max(y2)])+.1)
+    pages_ax.axvline(x=0, color="black")
+    pages_ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
+              ncol=3, fancybox=True, shadow=True)
+    return 0
+
+
+def plot_book(trees, triples):
+
+    fig, axs = plt.subplots(3, sharex=True, figsize=(12, 8))
+
+    plt.suptitle(f"a={triples[0]}, b={triples[1]}, c={triples[2]}")
+
+    page_coords = get_trees_embedding(trees, triples)
+    plot_pages(page1=page_coords["ab|c"], page2=page_coords["bc|a"], page1_label="ab|c", page2_label="bc|a", pages_ax=axs[0])
+    plot_pages(page1=page_coords["ab|c"], page2=page_coords["ac|b"], page1_label="ab|c", page2_label="ac|b", pages_ax=axs[1])
+    plot_pages(page1=page_coords["bc|a"], page2=page_coords["ac|b"], page1_label="bc|a", page2_label="ac|b", pages_ax=axs[2])
 
     plt.show()
-
-
 
