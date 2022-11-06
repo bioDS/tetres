@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 global _gr_boundary
-_gr_boundary = 0.05
+_gr_boundary = 0.02
 
 
 def _psrf_like_value(dm_in, dm_bt, k, s, e):
@@ -26,7 +26,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, ess_method="arviz", smoothing_average="median"):
+def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, smoothing_average="median"):
     # this function will return the cut.start and cut.end values calculated for the given full chain
     global _gr_boundary
 
@@ -59,14 +59,14 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_thresho
         else:
             raise ValueError(f"Unrecognized parameter {smoothing_average} smoothing_average!")
 
-        if 1-_gr_boundary < psrf_like_i < 1+_gr_boundary and 1-_gr_boundary < psrf_like_j < 1+_gr_boundary:
+        if 1/(1+_gr_boundary) < psrf_like_i < 1+_gr_boundary and 1/(1+_gr_boundary) < psrf_like_j < 1+_gr_boundary:
             consecutive += 1
             if cur_sample - (cur_sample-consecutive) >= ess_threshold:
                 if cutoff_end == -1 and consecutive >= int(threshold_percentage * cur_sample):
                         # todo change to calculate the pseudo ess with the already existing distance matrix
-                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range, ess_method=ess_method) >= ess_threshold) \
+                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
                                 and \
-                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range, ess_method=ess_method) >= ess_threshold):
+                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
                             cutoff_end = cur_sample
                             cutoff_start = cur_sample - consecutive
                             return cutoff_start, cutoff_end
@@ -113,7 +113,7 @@ def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, 
         else:
             raise ValueError(f"Smoothing_function = {smoothing_average} not recognized!")
 
-        if 1-_gr_boundary < df[-1][1] < 1+_gr_boundary and 1-_gr_boundary < df[-2][1] < 1+_gr_boundary:
+        if 1/(1+_gr_boundary) < df[-1][1] < 1+_gr_boundary and 1/(1+_gr_boundary) < df[-2][1] < 1+_gr_boundary:
             consecutive += 1
             if cur_sample - (cur_sample-consecutive) >= ess_threshold:
                 for threshold in cutoff_end.keys():
