@@ -263,7 +263,7 @@ def gelman_rubin_fast_approx_threshold_list(cmchain, i, j, smoothing, threshold_
         else:
             raise ValueError(f"Smoothing_function = {smoothing_average} not recognized!")
 
-        if 1 - _gr_boundary < df[-1][1] < 1 + _gr_boundary and 1 - _gr_boundary < df[-2][1] < 1 + _gr_boundary:
+        if 1/(1+_gr_boundary) < df[-1][1] < 1 + _gr_boundary and 1/(1+_gr_boundary) < df[-2][1] < 1 + _gr_boundary:
             consecutive += 1
             if cur_sample - (cur_sample - consecutive) >= ess_threshold:
                 for threshold in cutoff_end.keys():
