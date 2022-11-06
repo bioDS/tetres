@@ -1,6 +1,7 @@
 import pytest
 import os
 from treeoclock.visualize.open_book import *
+import matplotlib.pyplot as plt
 
 
 def test_get_tree_coordinate(twenty_taxa_tts):
@@ -14,7 +15,14 @@ def test_get_trees_embedding(twenty_taxa_tts):
 
 
 def test_plot_book(twenty_taxa_tts):
-    plot_book(twenty_taxa_tts, [["1"], ["7"], ["9"]])
+    # todo figure out a better triple example for this dataset
+    fig = plot_book(twenty_taxa_tts, [["1"], ["7"], ["9"]])
+    plt.show()
+
+
+def test_get_all_triples(twenty_taxa_tts):
+    # todo some test to check it works properly
+    get_all_triples(twenty_taxa_tts[0].etree)
 
 
 # def test_plot_pages(twenty_taxa_tts):
