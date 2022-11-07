@@ -16,13 +16,21 @@ def test_get_trees_embedding(twenty_taxa_tts):
 
 def test_plot_book(twenty_taxa_tts):
     # todo figure out a better triple example for this dataset
-    fig = plot_book(twenty_taxa_tts, [["1"], ["7"], ["9"]])
+    ts = get_all_triples(twenty_taxa_tts[-1].etree)
+    # for t in ts:
+    fig = plot_book(twenty_taxa_tts, ts[10])
     plt.show()
+    plt.close(fig)
 
 
 def test_get_all_triples(twenty_taxa_tts):
     # todo some test to check it works properly
     get_all_triples(twenty_taxa_tts[0].etree)
+
+
+def test_distribution_classifier(twenty_taxa_tts):
+    d = distribution_classifier(twenty_taxa_tts, [["1"], ["7"], ["9"]])
+    assert d == "A", "Distribution classifier failed"
 
 
 # def test_plot_pages(twenty_taxa_tts):

@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
-
+import scipy.stats as stat
+from pingouin import multivariate_normality
+import pandas as pd
 
 class TripleNotAClade(Exception):
     pass
@@ -141,6 +143,8 @@ def plot_pages(page1, page1_label, page2, page2_label, pages_ax):
 
     _p1 = False
     _p2 = False
+
+    x1, x2, y1, y2 = (), (), (), ()
     # page2 coordinates need to be transformed, bl * -1, because height is the shared axis, bl is the 2nd coordinate
     try:
         x2, y2 = zip(*page2)
@@ -156,12 +160,46 @@ def plot_pages(page1, page1_label, page2, page2_label, pages_ax):
     except ValueError:
         pass
 
+    t1_pingouin, t2_pingouin = 0, 0
+    if len(x1) > 19:
+        # t_scipy = stat.normaltest((x1, y1), axis=1)
+        t1_pingouin = multivariate_normality(pd.DataFrame({"x": x1, "y": y1})).pval
+
+    if len(x2) > 19:
+        # t_scipy = stat.normaltest((x1, y1), axis=1)
+        t2_pingouin = multivariate_normality(pd.DataFrame({"x": x2, "y": y2})).pval
+
     if _p1 or _p2:
+        pages_ax.set_title(f"{t2_pingouin}, {t1_pingouin}")
         # pages_ax.setylim(0, max([max(y1), max(y2)])+.1)
         pages_ax.axvline(x=0, color="black")
         pages_ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
-                  ncol=3, fancybox=True, shadow=True)
+                    ncol=3, fancybox=True, shadow=True)
+
     return 0
+
+
+def distribution_classifier(trees, triples, tree_space=1):
+
+    page_coords, fails = get_trees_embedding(trees, triples, tree_space=tree_space)
+
+    ab = len(page_coords["ab|c"])
+    ac = len(page_coords["ac|b"])
+    bc = len(page_coords["bc|a"])
+    total_points = ab + ac + bc
+    values = sorted([ab/total_points, ac/total_points, bc/total_points], reverse=True)
+
+    if values[0] >= .95:
+        return "A"
+    if values[0] + values[1] >= .95:
+        if values[1] >= (values[0]/2):
+            return "AB"
+        return "Ab"
+    if values[1] >= (values[0] / 2):
+        if values[2] >= (values[0] / 2):
+            return "ABC"
+        return "ABc"
+    return "Abc"
 
 
 def plot_book(trees, triples, tree_space=1):
