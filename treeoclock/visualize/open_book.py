@@ -7,6 +7,10 @@ class TripleNotAClade(Exception):
     pass
 
 
+class TripleInNoTree(Exception):
+    pass
+
+
 def get_all_triples(tree):
     # Take an ete3 tree and extract all triples
     triples = []
@@ -138,6 +142,11 @@ def get_trees_embedding(trees, triple_leaves, tree_space):
     return page_coords, fails
 
 
+import numpy as np
+from scipy.stats import multivariate_normal
+import seaborn as sns
+
+
 def plot_pages(page1, page1_label, page2, page2_label, pages_ax):
     # plotting page 1 and 2 accordingly
 
@@ -148,14 +157,29 @@ def plot_pages(page1, page1_label, page2, page2_label, pages_ax):
     # page2 coordinates need to be transformed, bl * -1, because height is the shared axis, bl is the 2nd coordinate
     try:
         x2, y2 = zip(*page2)
-        pages_ax.scatter([-tmp for tmp in x2], y2, label=page2_label)
+        pages_ax.scatter([-tmp for tmp in x2], y2, label=page2_label, alpha=0.5, s=1)
+        if len(x2) > 20:
+            sns.kdeplot(x=[-tmp for tmp in x2], y=y2, ax=pages_ax, warn_singular=False)
+
+        # grid_x = np.linspace(np.min(page2), np.max(page2), 10, endpoint=False)
+        # grid_x, grid_y = np.mgrid[-np.max(x2):-np.min(x2):0.01, np.min(y2):np.max(y2):0.01]
+        # normal = multivariate_normal([-np.mean(x2), np.mean(y2)], [np.cov(x2), np.cov(y2)])
+        # pos = np.dstack((grid_x, grid_y))
+        # pages_ax.contour(grid_x, grid_y, normal.pdf(pos))
         _p2 = True
     except ValueError:
         pass
 
     try:
         x1, y1 = zip(*page1)
-        pages_ax.scatter(x1, y1, label=page1_label)
+        pages_ax.scatter(x1, y1, label=page1_label, alpha=0.5, s=1)
+        if len(x1) > 20:
+            sns.kdeplot(x=x1, y=y1, ax=pages_ax, warn_singular=False)
+
+        # grid_x, grid_y = np.mgrid[np.min(x1):np.max(x1):0.01, np.min(y1):np.max(y1):0.01]
+        # normal = multivariate_normal([np.mean(x1), np.mean(y1)], [np.cov(x1), np.cov(y1)])
+        # pos = np.dstack((grid_x, grid_y))
+        # pages_ax.contour(grid_x, grid_y, normal.pdf(pos))
         _p1 = True
     except ValueError:
         pass
@@ -174,41 +198,52 @@ def plot_pages(page1, page1_label, page2, page2_label, pages_ax):
         # pages_ax.setylim(0, max([max(y1), max(y2)])+.1)
         pages_ax.axvline(x=0, color="black")
         pages_ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
-                    ncol=3, fancybox=True, shadow=True)
+                        ncol=3, fancybox=True, shadow=True)
 
     return 0
 
 
-def distribution_classifier(trees, triples, tree_space=1):
+def distribution_classifier(trees, triples, tree_space=1, page_coords=False, fails=False):
 
-    page_coords, fails = get_trees_embedding(trees, triples, tree_space=tree_space)
+    if not page_coords or fails:
+        page_coords, fails = get_trees_embedding(trees, triples, tree_space=tree_space)
+
+    # if not (1 - (fails / len(trees))) > .5:
+    #     return None
 
     ab = len(page_coords["ab|c"])
     ac = len(page_coords["ac|b"])
     bc = len(page_coords["bc|a"])
     total_points = ab + ac + bc
+    if total_points == 0:
+        raise TripleInNoTree()
     values = sorted([ab/total_points, ac/total_points, bc/total_points], reverse=True)
 
     if values[0] >= .95:
-        return "A"
+        return "A", (1- (fails/len(trees))), (values[0], values[1])
     if values[0] + values[1] >= .95:
         if values[1] >= (values[0]/2):
-            return "AB"
-        return "Ab"
+            return "AB", (1- (fails/len(trees))), (values[0], values[1])
+        return "Ab", (1- (fails/len(trees))), (values[0], values[1])
     if values[1] >= (values[0] / 2):
         if values[2] >= (values[0] / 2):
-            return "ABC"
-        return "ABc"
-    return "Abc"
+            return "ABC", (1- (fails/len(trees))), (values[0], values[1])
+        return "ABc", (1- (fails/len(trees))), (values[0], values[1])
+    return "Abc", (1- (fails/len(trees))), (values[0], values[1])
 
 
-def plot_book(trees, triples, tree_space=1):
+def plot_book(trees, triples, tree_space=1, add_class=False):
 
     fig, axs = plt.subplots(3, sharex=True, figsize=(12, 8))
 
     page_coords, fails = get_trees_embedding(trees, triples, tree_space=tree_space)
+    try:
+        dc, posterior_support, _ = distribution_classifier(trees, triples, tree_space=tree_space, page_coords=page_coords, fails=fails)
+    except TripleInNoTree:
+        dc = ""
+        pass
 
-    plt.suptitle(f"%trees = {(1 - (fails/len(trees)))*100}\na={triples[0]}, b={triples[1]}, c={triples[2]}")
+    plt.suptitle(f"%trees = {(1 - (fails/len(trees)))*100}\na={triples[0]}, b={triples[1]}, c={triples[2]}\n{dc if add_class else ''}")
 
     plot_pages(page1=page_coords["ab|c"], page2=page_coords["bc|a"], page1_label="ab|c", page2_label="bc|a", pages_ax=axs[0])
     plot_pages(page1=page_coords["ab|c"], page2=page_coords["ac|b"], page1_label="ab|c", page2_label="ac|b", pages_ax=axs[1])
