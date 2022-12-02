@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sympy import Sum, Product
 from sympy.abc import x, i, m
-
+from treeoclock.judgment.conditional_clade_distribution import get_tree_probability, get_maps
 
 def get_coefficients(n):
     # i, m = symbols('i m', integer=True)
@@ -47,6 +47,12 @@ def _get_approx_orbits(n):
     return list(product.values())
 
 
+def get_fraction_95area():
+    # todo get the 95% interval of the trees and then look at the fraction with all trees vs. up to that orbit size
+
+    return 1
+
+
 def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1):
     # todo the MChain object has a centroid object in it, use that one at some point
     if centroid == "calc":
@@ -55,39 +61,60 @@ def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1):
 
     cen_distances = [t.fp_distance(centroid) for t in Mchain[0].trees]
 
-    if given_x == -1:
-        given_x = max(cen_distances)
-
-    # orbits = _get_approx_orbits(len(centroid))
-    orbits = get_coefficients(len(centroid))
     n = len(centroid)
+    if given_x == -1:
+        # given_x = max(cen_distances)
+        given_x = int(((n-1)*(n-2))/2)
+
+        # orbits = _get_approx_orbits(len(centroid))
+    orbits = get_coefficients(n)
     points = []
     points_2 = []
     points_3 = []
     # for i in range(len(orbits)-1):
-    for i in range(min(max(cen_distances), given_x)):
+    for i in range(given_x):
         points.append(cen_distances.count(i)/orbits[i])
         points_2.append(sum(d < i for d in cen_distances)/sum(orbits[0:i+1]))
         points_3.append(cen_distances.count(i))
     fig, ax = plt.subplots(2,2, sharex=True)
 
     # sns.lineplot(x = range(len(orbits)-1), y = points, ax=ax[0])
-    sns.lineplot(x = range(min(max(cen_distances), given_x)), y = points, ax=ax[0, 0])
+    sns.lineplot(x = range(given_x), y = points, ax=ax[0, 0])
 
     # sns.lineplot(x=range(len(orbits) - 1), y=points_2, ax=ax[1])
-    sns.lineplot(x=range(min(max(cen_distances), given_x)), y=points_2, ax=ax[1, 0])
+    sns.lineplot(x=range(given_x), y=points_2, ax=ax[1, 0])
 
-    
-    sns.lineplot(x=range(min(max(cen_distances), given_x)), y=points_3, ax=ax[0, 1])
-    # sns.lineplot(x=range(min(max(cen_distances), given_x)), y=orbits[0:min(max(cen_distances), given_x)+1], ax=ax[0, 1])
 
+    sns.lineplot(x=range(given_x), y=points_3, ax=ax[0, 1])
+
+    sns.lineplot(x=range(len(orbits)), y=orbits, ax=ax[1, 1])
+
+    print(points_3)
+    print(orbits)
+    # print(orbits[0:min(max(cen_distances), given_x)+1])
 
     ax[1, 0].set_xlabel("Distance from centroid")
     ax[0, 0].set_ylabel("Ts at d/\n orbit at d")
     ax[1, 0].set_ylabel("sum of Ts upto d/\n sum orbits upto d")
 
     ax[0, 0].set_title(f"{n} taxa, max distance = {int(((n-1)*(n-2))/2)}")
-
     fig.show()
-
     return 0
+
+
+def plot_CCD_vs_centroid_distance(Mchain):
+
+    mycen = Centroid(variation="inc_sub", n_cores=24)
+    centroid, sos = mycen.compute_centroid(Mchain[0].trees)
+    cen_distances = [t.fp_distance(centroid) for t in Mchain[0].trees]
+    m1, m2 = get_maps(Mchain[0].trees)
+    tree_probs = [get_tree_probability(t, m1, m2) for t in Mchain[0].trees]
+
+    sns.boxplot(x=cen_distances, y=tree_probs)
+    plt.ylabel("CCD (Probability)")
+    plt.suptitle("Comparing Larget CCD probaility with distance to centroid tree")
+    plt.xlabel("Distance to centroid")
+
+    plt.show()
+
+    return 1
