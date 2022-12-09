@@ -1,5 +1,7 @@
 from treeoclock.judgment.conditional_clade_distribution import get_maps, get_tree_probability
 from collections import Counter
+from decimal import *
+
 
 def test_get_maps(ten_taxa_cMChain):
     m1, m2 = get_maps(ten_taxa_cMChain[0].trees)
@@ -13,12 +15,12 @@ def test_get_tree_probability(ten_taxa_cMChain):
 
 
 def test_coverage(ten_taxa_cMChain):
-    m1, m2 = get_maps(ten_taxa_cMChain[0].trees)
+    m1, m2, uniques = get_maps(ten_taxa_cMChain[0].trees)
     probs = []
-    for t in ten_taxa_cMChain[0].trees:
-        probs.append(get_tree_probability(t, m1, m2))
+    for u in uniques:
+        probs.append(get_tree_probability(ten_taxa_cMChain[0].trees[u], m1, m2))
     # The sum over the probabilities of all unique trees should be 1 (if all of the distribution or the whole space has been sampled)
-    assert sum(Counter(probs)) == 1.0, "Coverage sum failed"
+    assert float(sum(Counter(probs))) == 0.846600477278324, "Coverage sum failed"
 
 
 def test_coverage2(twenty_taxa_tts):
