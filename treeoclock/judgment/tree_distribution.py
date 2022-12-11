@@ -102,19 +102,29 @@ def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1):
     return 0
 
 
-def plot_CCD_vs_centroid_distance(Mchain):
+def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0):
 
     mycen = Centroid(variation="inc_sub", n_cores=24)
-    centroid, sos = mycen.compute_centroid(Mchain[0].trees)
-    cen_distances = [t.fp_distance(centroid) for t in Mchain[0].trees]
-    m1, m2 = get_maps(Mchain[0].trees)
-    tree_probs = [get_tree_probability(t, m1, m2) for t in Mchain[0].trees]
+    centroid, sos = mycen.compute_centroid(Mchain[ix_chain].trees)
+    m1, m2, uniques = get_maps(Mchain[ix_chain].trees)
+
+    cen_distances = [Mchain[ix_chain].trees[t].fp_distance(centroid) for t in uniques]
+    tree_probs = [get_tree_probability(Mchain[ix_chain].trees[t], m1, m2) for t in uniques]
+
+    # cen_distances = [t.fp_distance(centroid) for t in Mchain[0].trees]
+    # tree_probs = [get_tree_probability(t, m1, m2) for t in Mchain[0].trees]
 
     sns.boxplot(x=cen_distances, y=tree_probs)
     plt.ylabel("CCD (Probability)")
     plt.suptitle("Comparing Larget CCD probaility with distance to centroid tree")
     plt.xlabel("Distance to centroid")
 
-    plt.show()
+    plt.yscale('log')
+
+    plt.savefig(
+        fname=f"{Mchain.working_dir}/plots/{Mchain.name}_{ix_chain}_cen_dist_CCD.png",
+        format="png", bbox_inches="tight", dpi=800)
+    plt.clf()
+    plt.close("all")
 
     return 1
