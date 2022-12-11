@@ -53,13 +53,13 @@ def get_fraction_95area():
     return 1
 
 
-def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1):
+def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1, ix_chain=0):
     # todo the MChain object has a centroid object in it, use that one at some point
     if centroid == "calc":
         mycen = Centroid(variation="inc_sub", n_cores=24)
-        centroid, sos = mycen.compute_centroid(Mchain[0].trees)
+        centroid, sos = mycen.compute_centroid(Mchain[ix_chain].trees)
 
-    cen_distances = [t.fp_distance(centroid) for t in Mchain[0].trees]
+    cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
 
     n = len(centroid)
     if given_x == -1:
@@ -67,10 +67,10 @@ def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1):
         given_x = int(((n-1)*(n-2))/2)
 
         # orbits = _get_approx_orbits(len(centroid))
-    orbits = get_coefficients(n)
-    points = []
-    points_2 = []
-    points_3 = []
+    orbits = get_coefficients(n)  # total number of trees at distance
+    points = []  # number of trees at distanes to the centroid
+    points_2 = []  # fraction of orbit at distance to centroid that has been sampled
+    points_3 = []  # samples at distance from centroid
     # for i in range(len(orbits)-1):
     for i in range(given_x):
         points.append(cen_distances.count(i)/orbits[i])
@@ -89,8 +89,6 @@ def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1):
 
     sns.lineplot(x=range(len(orbits)), y=orbits, ax=ax[1, 1])
 
-    print(points_3)
-    print(orbits)
     # print(orbits[0:min(max(cen_distances), given_x)+1])
 
     ax[1, 0].set_xlabel("Distance from centroid")
@@ -100,6 +98,32 @@ def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1):
     ax[0, 0].set_title(f"{n} taxa, max distance = {int(((n-1)*(n-2))/2)}")
     fig.show()
     return 0
+
+
+def get_sample_treespace_coverage(Mchain, centroid="calc", ix_chain=0):
+
+    # todo this is probably way to inefficient, but it'll do for now
+
+    if centroid == "calc":
+        mycen = Centroid(variation="inc_sub", n_cores=24)
+        centroid, sos = mycen.compute_centroid(Mchain[ix_chain].trees)
+
+    cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
+    points = []
+    n = len(centroid)
+    for i in range(int(((n-1)*(n-2))/2)):
+        points.append(cen_distances.count(i))
+    orbits = get_coefficients(n)  # total number of trees at distance
+    
+    total_trees = len(Mchain[ix_chain].trees)
+    coverages = [sum(points[0:i+1]) / total_trees for i in range(len(points))]
+
+    index_95 = -1
+    for ix, el in enumerate(coverages):
+        if el >= 0.95:
+            index_95 = ix
+            break
+    return sum(points[0:index_95+1])/sum(orbits[0:index_95+1])
 
 
 def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0):
