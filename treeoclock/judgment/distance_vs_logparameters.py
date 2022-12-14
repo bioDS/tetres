@@ -155,12 +155,14 @@ def plot_log_neighbours(mchain, rf=False):
 
     df = pd.DataFrame(df, columns=["Value", "Parameter", "Offset"])
     print("Plotting")
-    sns.lineplot(data=df, y="Value", x="Offset", hue="Parameter", errorbar="ci")
+    sns.lineplot(data=df, y="Value", x="Offset", hue="Parameter")
     print("Finished")
 
-    plt.suptitle(f"Smoothness of log parameters in the {'Robinson-Foulds' if rf else 'RNNI'} space")
-    plt.ylabel("Differeence of log parameter (relative)")
-    plt.xlabel(f"{'RF' if rf else 'RNNI'} distance (relative)")
+    # plt.suptitle(f"Smoothness of log parameters in the {'Robinson-Foulds' if rf else 'RNNI'} space", fontsize=20)
+    # plt.suptitle(f"Smoothness - {'Robinson-Foulds' if rf else 'RNNI'} space", fontsize=20)
+
+    plt.ylabel("Diff. of log parameter\n (relative)", fontsize=16)
+    plt.xlabel(f"{'RF' if rf else 'RNNI'} distance (relative)", fontsize=16)
 
     # # sns.violinplot(data=df, x="Value", y="Parameter", inner="stick", cut=0)
     # sns.boxplot(data=df, y="Value", x="Parameter", hue="Offset")
@@ -173,10 +175,10 @@ def plot_log_neighbours(mchain, rf=False):
     # # plt.suptitle(f"Comparing log parameters for {samples} trees with distance < {threshold}")
     # plt.title(f"10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})",
     #              fontsize=20, y=-0.25)
-    # plt.tick_params(labelsize=20)
+    plt.tick_params(labelsize=14)
     plt.tight_layout()
     #
-    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}_new.png", dpi=400, bbox_inches="tight")
+    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}_new.eps", format="eps", dpi=400, bbox_inches="tight")
 
     # plt.show()
     plt.clf()

@@ -20,5 +20,6 @@ def test_loglike_along_path(thirty_taxa_MChain):
 
 
 def test_plot_log_neighbours(thirty_taxa_MChain):
-    plot_log_neighbours(thirty_taxa_MChain)
+    plot_log_neighbours(thirty_taxa_MChain, rf=True)
+    plot_log_neighbours(thirty_taxa_MChain, rf=False)
     assert True
