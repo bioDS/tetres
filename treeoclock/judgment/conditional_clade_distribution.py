@@ -15,15 +15,11 @@ def get_maps(trees):
     #  this needs to replace trees in the for loop and the weight will be added instead of 1 each time!
 
     for ix, t in enumerate(trees):
-        # if t.get_newick(f=9) == '(8,(((((1,10),7),2),3),((5,4),(6,9))));' or t.get_newick(f=9) == '(8,(((((1,10),7),2),3),((5,4),(9,6))));':
-        #     print("Galah")
         if not frozenset(sorted(t.get_clades())) in seen:
             seen[frozenset(sorted(t.get_clades()))] = ix
-            uniques[ix] = [] 
-            # uniques.append(ix)
+            uniques[ix] = []
         else:
-            # todo get the index of where current tree has been seen before!
-            uniques[seen[frozenset(sorted(t.get_clades()))]].append(ix) 
+            uniques[seen[frozenset(sorted(t.get_clades()))]].append(ix)
 
         for node in t.etree.traverse("levelorder"):
             if len(node) > 2:

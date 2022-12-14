@@ -17,10 +17,10 @@ def test_get_tree_probability(ten_taxa_cMChain):
 def test_coverage(ten_taxa_cMChain):
     m1, m2, uniques = get_maps(ten_taxa_cMChain[0].trees)
     probs = []
-    for u in uniques:
+    for u in uniques.keys():
         probs.append(get_tree_probability(ten_taxa_cMChain[0].trees[u], m1, m2))
     # The sum over the probabilities of all unique trees should be 1 (if all of the distribution or the whole space has been sampled)
-    assert float(sum(Counter(probs))) == 0.846600477278324, "Coverage sum failed"
+    assert sum(Counter(probs)) == 0.8403013465493053, "Coverage sum failed"
 
 
 def test_coverage2(twenty_taxa_tts):
