@@ -3,7 +3,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sympy import Sum, Product
 from sympy.abc import x, i, m
-from treeoclock.judgment.conditional_clade_distribution import get_tree_probability, get_maps
+from treeoclock.judgment.conditional_clade_distribution import get_tree_probability, get_maps, add_centroid
+import pandas as pd
+import numpy as np
+import scipy.stats as st
+
 
 def get_coefficients(n):
     # i, m = symbols('i m', integer=True)
@@ -45,12 +49,6 @@ def _get_approx_orbits(n):
                     tmp_product[exp + exp_s] += (coeff * coeff_s)
         product = tmp_product.copy()
     return list(product.values())
-
-
-def get_fraction_95area():
-    # todo get the 95% interval of the trees and then look at the fraction with all trees vs. up to that orbit size
-
-    return 1
 
 
 def plot_tree_density_distribution(Mchain, centroid="calc", given_x=-1, ix_chain=0):
@@ -106,7 +104,7 @@ def get_sample_treespace_coverage(Mchain, centroid="calc", ix_chain=0):
 
     if centroid == "calc":
         mycen = Centroid(variation="inc_sub", n_cores=24)
-        centroid, sos = mycen.compute_centroid(Mchain[ix_chain].trees)
+        centroid, _ = mycen.compute_centroid(Mchain[ix_chain].trees)
 
     cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
     points = []
@@ -126,29 +124,98 @@ def get_sample_treespace_coverage(Mchain, centroid="calc", ix_chain=0):
     return sum(points[0:index_95+1])/sum(orbits[0:index_95+1])
 
 
-def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0):
+def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
 
-    mycen = Centroid(variation="inc_sub", n_cores=24)
-    centroid, sos = mycen.compute_centroid(Mchain[ix_chain].trees)
+    if centroid == "calc":
+        mycen = Centroid(variation="inc_sub", n_cores=24)
+        centroid, _ = mycen.compute_centroid(Mchain[ix_chain].trees)
+
     m1, m2, uniques = get_maps(Mchain[ix_chain].trees)
 
-    cen_distances = [Mchain[ix_chain].trees[t].fp_distance(centroid) for t in uniques]
-    tree_probs = [get_tree_probability(Mchain[ix_chain].trees[t], m1, m2) for t in uniques]
+    # todo work with the new uniques dictionary to calculate the correct plot
 
-    # cen_distances = [t.fp_distance(centroid) for t in Mchain[0].trees]
-    # tree_probs = [get_tree_probability(t, m1, m2) for t in Mchain[0].trees]
 
-    sns.boxplot(x=cen_distances, y=tree_probs)
-    plt.ylabel("CCD (Probability)")
-    plt.suptitle("Comparing Larget CCD probaility with distance to centroid tree")
-    plt.xlabel("Distance to centroid")
+    cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
+    points = []
+    n = len(centroid)
+    for i in range(int(((n - 1) * (n - 2)) / 2)):
+        points.append(cen_distances.count(i))
 
-    plt.yscale('log')
+    total_trees = len(Mchain[ix_chain].trees)
+    coverages = [sum(points[0:i + 1]) / total_trees for i in range(len(points))]
+
+    # finding 95 percent radius orbit, i.e. at this distance 95% of samples are closer to the tree
+    index_95 = -1
+    for ix, el in enumerate(coverages):
+        if el >= 0.95:
+            index_95 = ix
+            break
+
+    data = []
+
+    # todo different?
+    cen_probability = get_tree_probability(centroid, m1, m2)
+
+    # if cen_probability == 0:
+    #     # todo this is still an open problem i suppose
+    #     m1, m2 = add_centroid(centroid, m1, m2)
+    # cen_probability = get_tree_probability(centroid, m1, m2)
+
+    for t in uniques.keys():
+    # for t in range(len(Mchain[ix_chain].trees)):
+        cur_probability = get_tree_probability(Mchain[ix_chain].trees[t], m1, m2)
+        mean_cen_distance = np.mean([cen_distances[k] for k in uniques[t]] + [cen_distances[t]])
+        if mean_cen_distance <= index_95:  # all trees that are within the 95% radius of centroid
+            data.append([mean_cen_distance, cur_probability, len(uniques[t]) == 0])
+    data = pd.DataFrame(data, columns = ["Dist", "Prob", "Shift"])
+
+    # todo fit linear regression to the data with logscale to the probability value!
+    #  check the sos ll correlation for how to get the correlation value of these
+    #  This is going to just be correlation for now!
+    # todo
+
+    # pearson correlation changes with log
+    pr = st.pearsonr(np.log(data["Prob"]), data["Dist"])
+
+    data_f = data.query("Shift == False")
+    data_t = data.query("Shift == True")
+
+    pr_f = "Not enough samples"
+    pr_t = "Not enough samples"
+    if data_f.shape[0] > 5:
+        pr_f = st.pearsonr(np.log(data_f["Prob"]), data_f["Dist"])
+    if data_t.shape[0] > 5:
+        pr_t = st.pearsonr(np.log(data_t["Prob"]), data_t["Dist"])
+
+    # spearman is invariant to monotone transformation becausse based on ranks
+    # sr = st.spearmanr(np.log(data["Prob"]), data["Dist"])
+
+
+    # bp = sns.boxplot(data=data, x="Dist", y="Prob", order=sorted(set(data["Dist"].values)))
+    # bp = sns.scatterplot(data=data, x="Dist", y="Prob")
+    bp = sns.lmplot(y="Dist", x="Prob", data=data, logx=True, hue="Shift", legend=False)
+    # bp = sns.regplot(y="Dist", x="Prob", data=data, logx=True, line_kws={"color": "red"})
+    
+    # xmin, xmax = bp.get_ylim()
+    # bp.vlines(x=cen_probability, ymin=xmin, ymax=xmax, ls="--", lw=4, colors="tab:orange")
+    # plt.axhline(y = cen_probability, color="purple")
+
+    plt.legend(loc="lower left")
+
+    plt.xlabel("CCD (Probability)")
+    plt.suptitle(f"Correlation: {pr[0]}\nMultiple(false): {pr_f[0]}\nSingle(true): {pr_t[0]}")
+    plt.ylabel("Distance to centroid")
+
+    plt.xscale('log')
+
+    plt.xticks(rotation=270)
+    plt.tight_layout()
+    # plt.show()
+    # return 0
 
     plt.savefig(
         fname=f"{Mchain.working_dir}/plots/{Mchain.name}_{ix_chain}_cen_dist_CCD.png",
         format="png", bbox_inches="tight", dpi=800)
     plt.clf()
     plt.close("all")
-
-    return 1
+    return 0
