@@ -193,18 +193,19 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
 
     # bp = sns.boxplot(data=data, x="Dist", y="Prob", order=sorted(set(data["Dist"].values)))
     # bp = sns.scatterplot(data=data, x="Dist", y="Prob")
-    bp = sns.lmplot(x="Dist", y="Prob", data=data, hue="Shift", legend=False)
+    bp = sns.lmplot(x="Dist", y="Prob", data=data, hue="Shift", legend=False, hue_order=[True, False])
     # bp = sns.regplot(y="Dist", x="Prob", data=data, logx=True, line_kws={"color": "red"})
     
-    # xmin, xmax = bp.get_ylim()
-    # bp.vlines(x=cen_probability, ymin=xmin, ymax=xmax, ls="--", lw=4, colors="tab:orange")
+    xmin, xmax = bp.ax.get_xlim()
+    if cen_probability != 0:
+        bp.ax.hlines(y=np.log(cen_probability), xmin=xmin, xmax=xmax, ls="--", lw=2, colors="tab:green")
     # plt.axhline(y = cen_probability, color="purple")
 
     plt.legend(loc="lower left")
 
     plt.ylabel("CCD (Probability), Log Scale")
-    plt.suptitle(f"Correlation: {pr[0]}\nMultiple(false): {pr_f[0]}\nSingle(true): {pr_t[0]}")
-    plt.xlabel("Distance to centroid")
+    plt.suptitle(f"{Mchain.name}\nCorrelation(all): {pr[0]}\nMultiple(false): {pr_f[0]}\nSingle(true): {pr_t[0]}")
+    plt.xlabel("Distance to centroid\nGreen line = Centroid CCD probability")
 
     # plt.xscale('log')
 
@@ -219,3 +220,8 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
     plt.clf()
     plt.close("all")
     return 0
+
+
+def get_corr_p_coverage(Mchain, ix_chain = 0, centroid = "calc"):
+
+    return corr, p_value, coverage
