@@ -141,15 +141,15 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
     for i in range(int(((n - 1) * (n - 2)) / 2)):
         points.append(cen_distances.count(i))
 
-    total_trees = len(Mchain[ix_chain].trees)
-    coverages = [sum(points[0:i + 1]) / total_trees for i in range(len(points))]
-
+    # total_trees = len(Mchain[ix_chain].trees)
+    # coverages = [sum(points[0:i + 1]) / total_trees for i in range(len(points))]
     # finding 95 percent radius orbit, i.e. at this distance 95% of samples are closer to the tree
-    index_95 = -1
-    for ix, el in enumerate(coverages):
-        if el >= 0.95:
-            index_95 = ix
-            break
+    # index_95 = -1
+    # for ix, el in enumerate(coverages):
+    #     if el >= 0.95:
+    #         index_95 = ix
+    #         break
+    index_95 = np.max(cen_distances)
 
     data = []
 
@@ -166,7 +166,7 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
         cur_probability = get_tree_probability(Mchain[ix_chain].trees[t], m1, m2)
         mean_cen_distance = np.mean([cen_distances[k] for k in uniques[t]] + [cen_distances[t]])
         if mean_cen_distance <= index_95:  # all trees that are within the 95% radius of centroid
-            data.append([mean_cen_distance, cur_probability, len(uniques[t]) == 0])
+            data.append([mean_cen_distance, np.log(cur_probability), len(uniques[t]) == 0])
     data = pd.DataFrame(data, columns = ["Dist", "Prob", "Shift"])
 
     # todo fit linear regression to the data with logscale to the probability value!
@@ -175,7 +175,7 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
     # todo
 
     # pearson correlation changes with log
-    pr = st.pearsonr(np.log(data["Prob"]), data["Dist"])
+    pr = st.pearsonr(data["Prob"], data["Dist"])
 
     data_f = data.query("Shift == False")
     data_t = data.query("Shift == True")
@@ -183,9 +183,9 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
     pr_f = "Not enough samples"
     pr_t = "Not enough samples"
     if data_f.shape[0] > 5:
-        pr_f = st.pearsonr(np.log(data_f["Prob"]), data_f["Dist"])
+        pr_f = st.pearsonr(data_f["Prob"], data_f["Dist"])
     if data_t.shape[0] > 5:
-        pr_t = st.pearsonr(np.log(data_t["Prob"]), data_t["Dist"])
+        pr_t = st.pearsonr(data_t["Prob"], data_t["Dist"])
 
     # spearman is invariant to monotone transformation becausse based on ranks
     # sr = st.spearmanr(np.log(data["Prob"]), data["Dist"])
@@ -193,7 +193,7 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
 
     # bp = sns.boxplot(data=data, x="Dist", y="Prob", order=sorted(set(data["Dist"].values)))
     # bp = sns.scatterplot(data=data, x="Dist", y="Prob")
-    bp = sns.lmplot(y="Dist", x="Prob", data=data, logx=True, hue="Shift", legend=False)
+    bp = sns.lmplot(x="Dist", y="Prob", data=data, hue="Shift", legend=False)
     # bp = sns.regplot(y="Dist", x="Prob", data=data, logx=True, line_kws={"color": "red"})
     
     # xmin, xmax = bp.get_ylim()
@@ -202,11 +202,11 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
 
     plt.legend(loc="lower left")
 
-    plt.xlabel("CCD (Probability)")
+    plt.ylabel("CCD (Probability), Log Scale")
     plt.suptitle(f"Correlation: {pr[0]}\nMultiple(false): {pr_f[0]}\nSingle(true): {pr_t[0]}")
-    plt.ylabel("Distance to centroid")
+    plt.xlabel("Distance to centroid")
 
-    plt.xscale('log')
+    # plt.xscale('log')
 
     plt.xticks(rotation=270)
     plt.tight_layout()
