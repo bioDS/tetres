@@ -163,8 +163,8 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
         cur_probability = get_tree_probability(Mchain[ix_chain].trees[t], m1, m2)
         mean_cen_distance = np.mean([cen_distances[k] for k in uniques[t]] + [cen_distances[t]])
         if mean_cen_distance <= index_95:  # all trees that are within the 95% radius of centroid
-            data.append([mean_cen_distance, np.log(cur_probability), len(uniques[t]) == 0])
-    data = pd.DataFrame(data, columns = ["Dist", "Prob", "Shift"])
+            data.append([mean_cen_distance, np.log(cur_probability), f"{'Single' if len(uniques[t]) == 0 else 'Multiple'}"])
+    data = pd.DataFrame(data, columns = ["Dist", "Prob", "Hue"])
 
     # todo fit linear regression to the data with logscale to the probability value!
     #  check the sos ll correlation for how to get the correlation value of these
@@ -174,15 +174,15 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
     # pearson correlation changes with log
     pr = st.pearsonr(data["Prob"], data["Dist"])
 
-    data_f = data.query("Shift == False")
-    data_t = data.query("Shift == True")
+    data_m = data[data["Hue"] == "Multiple"]
+    data_s = data[data["Hue"] == "Single"]
 
-    pr_f = "Not enough samples"
-    pr_t = "Not enough samples"
-    if data_f.shape[0] > 5:
-        pr_f = st.pearsonr(data_f["Prob"], data_f["Dist"])
-    if data_t.shape[0] > 5:
-        pr_t = st.pearsonr(data_t["Prob"], data_t["Dist"])
+    pr_m = "Not enough samples"
+    pr_s = "Not enough samples"
+    if data_m.shape[0] > 5:
+        pr_m = st.pearsonr(data_m["Prob"], data_m["Dist"])
+    if data_s.shape[0] > 5:
+        pr_s = st.pearsonr(data_s["Prob"], data_s["Dist"])
 
     # spearman is invariant to monotone transformation becausse based on ranks
     # sr = st.spearmanr(np.log(data["Prob"]), data["Dist"])
@@ -190,7 +190,7 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
 
     # bp = sns.boxplot(data=data, x="Dist", y="Prob", order=sorted(set(data["Dist"].values)))
     # bp = sns.scatterplot(data=data, x="Dist", y="Prob")
-    bp = sns.lmplot(x="Dist", y="Prob", data=data, hue="Shift", legend=False, hue_order=[True, False])
+    bp = sns.lmplot(x="Dist", y="Prob", data=data, hue="Hue", legend=False, hue_order=["Single", "Multiple"])
     # bp = sns.regplot(y="Dist", x="Prob", data=data, logx=True, line_kws={"color": "red"})
     
     xmin, xmax = bp.ax.get_xlim()
@@ -201,7 +201,7 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
     plt.legend(loc="lower left")
 
     plt.ylabel("CCD (Probability), Log Scale")
-    plt.suptitle(f"{Mchain.name}\nCorrelation(all): {pr[0]}\nMultiple(false): {pr_f[0]}\nSingle(true): {pr_t[0]}")
+    plt.suptitle(f"{Mchain.name}(Chain {ix_chain})\nCorrelation(all): {pr[0]}\nMultiple: {pr_m[0]}\nSingle: {pr_s[0]}")
     plt.xlabel("Distance to centroid\nGreen line = Centroid CCD probability")
 
     # plt.xscale('log')
