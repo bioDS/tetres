@@ -132,9 +132,6 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
 
     m1, m2, uniques = get_maps(Mchain[ix_chain].trees)
 
-    # todo work with the new uniques dictionary to calculate the correct plot
-
-
     cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
     points = []
     n = len(centroid)
@@ -228,9 +225,6 @@ def get_corr_p_coverage(Mchain, ix_chain = 0, centroid = "calc"):
         centroid, _ = mycen.compute_centroid(Mchain[ix_chain].trees)
 
     m1, m2, uniques = get_maps(Mchain[ix_chain].trees)
-
-    # todo work with the new uniques dictionary to calculate the correct plot
-
 
     cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
     points = []
