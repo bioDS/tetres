@@ -223,5 +223,44 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
 
 
 def get_corr_p_coverage(Mchain, ix_chain = 0, centroid = "calc"):
+    if centroid == "calc":
+        mycen = Centroid(variation="inc_sub", n_cores=24)
+        centroid, _ = mycen.compute_centroid(Mchain[ix_chain].trees)
 
-    return corr, p_value, coverage
+    m1, m2, uniques = get_maps(Mchain[ix_chain].trees)
+
+    # todo work with the new uniques dictionary to calculate the correct plot
+
+
+    cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
+    points = []
+    n = len(centroid)
+    for i in range(int(((n - 1) * (n - 2)) / 2)):
+        points.append(cen_distances.count(i))
+    index_95 = np.max(cen_distances)
+
+    data = []
+    coverage = 0
+
+    for t in uniques.keys():
+        # for t in range(len(Mchain[ix_chain].trees)):
+        cur_probability = get_tree_probability(Mchain[ix_chain].trees[t], m1, m2)
+        coverage += cur_probability
+        mean_cen_distance = np.mean([cen_distances[k] for k in uniques[t]] + [cen_distances[t]])
+        if mean_cen_distance <= index_95:  # all trees that are within the 95% radius of centroid
+            data.append([mean_cen_distance, np.log(cur_probability), len(uniques[t]) == 0])
+    data = pd.DataFrame(data, columns=["Dist", "Prob", "Shift"])
+
+    # pearson correlation changes with log
+    pr = st.pearsonr(data["Prob"], data["Dist"])
+
+    data_f = data.query("Shift == False")
+    data_t = data.query("Shift == True")
+
+    pr_f = "Not enough samples"
+    pr_t = "Not enough samples"
+    if data_f.shape[0] > 5:
+        pr_f = st.pearsonr(data_f["Prob"], data_f["Dist"])
+    if data_t.shape[0] > 5:
+        pr_t = st.pearsonr(data_t["Prob"], data_t["Dist"])
+    return pr, pr_f, pr_t, coverage

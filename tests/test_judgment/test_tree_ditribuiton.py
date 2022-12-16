@@ -2,7 +2,8 @@ import pytest
 import os
 from treeoclock.judgment.tree_distribution import get_coefficients,\
     _get_approx_orbits, plot_tree_density_distribution, \
-    plot_CCD_vs_centroid_distance, get_sample_treespace_coverage
+    plot_CCD_vs_centroid_distance, get_sample_treespace_coverage, \
+    get_corr_p_coverage
 
 def test_sympy_product():
     o = get_coefficients(5)
@@ -29,4 +30,9 @@ def test_get_sample_treespace_coverage(ten_taxa_cMChain):
 
 def test_plot_CCD_vs_centroid_distance(ten_taxa_cMChain):
     plot_CCD_vs_centroid_distance(ten_taxa_cMChain)
+    assert True
+
+
+def test_get_corr_p_coverage(ten_taxa_cMChain):
+    pr, pr_f, pr_t, coverage = get_corr_p_coverage(Mchain=ten_taxa_cMChain)
     assert True
