@@ -130,6 +130,8 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
         mycen = Centroid(variation="inc_sub", n_cores=24)
         centroid, _ = mycen.compute_centroid(Mchain[ix_chain].trees)
 
+    Mchain[ix_chain].trees.trees.insert(0, centroid)
+
     m1, m2, uniques = get_maps(Mchain[ix_chain].trees)
 
     cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
@@ -163,7 +165,12 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
         cur_probability = get_tree_probability(Mchain[ix_chain].trees[t], m1, m2)
         mean_cen_distance = np.mean([cen_distances[k] for k in uniques[t]] + [cen_distances[t]])
         if mean_cen_distance <= index_95:  # all trees that are within the 95% radius of centroid
-            data.append([mean_cen_distance, np.log(cur_probability), f"{'Single' if len(uniques[t]) == 0 else 'Multiple'}"])
+            data.append([mean_cen_distance, np.log10(cur_probability), f"{'Single' if len(uniques[t]) == 0 else 'Multiple'}"])
+
+    # adding centroid to the data for both hues
+    # data.append([0, np.log10(cen_probability), "Single"])
+    # data.append([0, np.log10(cen_probability), "Multiple"])
+
     data = pd.DataFrame(data, columns = ["Dist", "Prob", "Hue"])
 
     # todo fit linear regression to the data with logscale to the probability value!
@@ -185,7 +192,7 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
         pr_s = st.pearsonr(data_s["Prob"], data_s["Dist"])
 
     # spearman is invariant to monotone transformation becausse based on ranks
-    # sr = st.spearmanr(np.log(data["Prob"]), data["Dist"])
+    # sr = st.spearmanr(np.log10(data["Prob"]), data["Dist"])
 
 
     # bp = sns.boxplot(data=data, x="Dist", y="Prob", order=sorted(set(data["Dist"].values)))
@@ -195,19 +202,20 @@ def plot_CCD_vs_centroid_distance(Mchain, ix_chain = 0, centroid = "calc"):
     
     xmin, xmax = bp.ax.get_xlim()
     if cen_probability != 0:
-        bp.ax.hlines(y=np.log(cen_probability), xmin=xmin, xmax=xmax, ls="--", lw=2, colors="tab:green")
+        bp.ax.hlines(y=np.log10(cen_probability), xmin=xmin, xmax=xmax, ls="--", lw=2, colors="tab:green")
     # plt.axhline(y = cen_probability, color="purple")
 
     plt.legend(loc="lower left")
 
-    plt.ylabel("CCD (Probability), Log Scale")
-    plt.suptitle(f"{Mchain.name}(Chain {ix_chain})\nCorrelation(all): {pr[0]}\nMultiple: {pr_m[0]}\nSingle: {pr_s[0]}")
+    plt.ylabel("CCD (Probability), Log10 Scale")
+    plt.suptitle(f"{Mchain.name}(Chain {ix_chain}), {'CenT-U' if len(uniques[0]) == 0 else f'CenT-NU({len(uniques[0])})'}\nCorrelation(all): {pr[0]}\nMultiple: {pr_m[0]}\nSingle: {pr_s[0]}")
     plt.xlabel("Distance to centroid\nGreen line = Centroid CCD probability")
 
     # plt.xscale('log')
 
     plt.xticks(rotation=270)
     plt.tight_layout()
+
     # plt.show()
     # return 0
 
@@ -227,10 +235,10 @@ def get_corr_p_coverage(Mchain, ix_chain = 0, centroid = "calc"):
     m1, m2, uniques = get_maps(Mchain[ix_chain].trees)
 
     cen_distances = [t.fp_distance(centroid) for t in Mchain[ix_chain].trees]
-    points = []
-    n = len(centroid)
-    for i in range(int(((n - 1) * (n - 2)) / 2)):
-        points.append(cen_distances.count(i))
+    # points = []
+    # n = len(centroid)
+    # for i in range(int(((n - 1) * (n - 2)) / 2)):
+    #     points.append(cen_distances.count(i))
     index_95 = np.max(cen_distances)
 
     data = []
@@ -242,7 +250,7 @@ def get_corr_p_coverage(Mchain, ix_chain = 0, centroid = "calc"):
         coverage += cur_probability
         mean_cen_distance = np.mean([cen_distances[k] for k in uniques[t]] + [cen_distances[t]])
         if mean_cen_distance <= index_95:  # all trees that are within the 95% radius of centroid
-            data.append([mean_cen_distance, np.log(cur_probability), len(uniques[t]) == 0])
+            data.append([mean_cen_distance, np.log10(cur_probability), len(uniques[t]) == 0])
     data = pd.DataFrame(data, columns=["Dist", "Prob", "Shift"])
 
     # pearson correlation changes with log
@@ -251,8 +259,8 @@ def get_corr_p_coverage(Mchain, ix_chain = 0, centroid = "calc"):
     data_f = data.query("Shift == False")
     data_t = data.query("Shift == True")
 
-    pr_f = "Not enough samples"
-    pr_t = "Not enough samples"
+    pr_f = ["NaN", "NaN"]
+    pr_t = ["NaN", "NaN"]
     if data_f.shape[0] > 5:
         pr_f = st.pearsonr(data_f["Prob"], data_f["Dist"])
     if data_t.shape[0] > 5:
