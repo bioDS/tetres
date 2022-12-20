@@ -25,7 +25,7 @@ def permanova_cut(cmchain, i, j, smoothing=0.9):
         raise ValueError("Treesets have different sizes!")
 
     for cur_sample in range(10,dm_i.shape[0], 50):
-        slide_start = int(np.rint(cur_sample * (1 - smoothing)))  # TODO smoothing is set to 0.9 for now, only burnin detection for this case!
+        slide_start = int(np.rint(cur_sample * (1 - smoothing)))
 
         cur_block = np.block([[dm_i[slide_start:cur_sample+1, slide_start:cur_sample+1],
                                dm_ij[slide_start:cur_sample+1, slide_start:cur_sample+1]],
@@ -58,7 +58,7 @@ def permanova_pvalue_plot(cmchain, i, j, smoothing_l=[0.9]):
 
     for cur_sample in range(10,dm_i.shape[0], 50):
         for smoothing in smoothing_l:
-            slide_start = int(np.rint(cur_sample * (1 - smoothing)))  # TODO smoothing is set to 0.9 for now, only burnin detection for this case!
+            slide_start = int(np.rint(cur_sample * (1 - smoothing)))
 
             cur_block = np.block([[dm_i[slide_start:cur_sample+1, slide_start:cur_sample+1],
                                    dm_ij[slide_start:cur_sample+1, slide_start:cur_sample+1]],
