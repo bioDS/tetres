@@ -26,7 +26,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, smoothing_average="median"):
+def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="median"):
     # this function will return the cut.start and cut.end values calculated for the given full chain
     global _gr_boundary
 
@@ -61,22 +61,21 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, threshold_percentage, ess_thresho
 
         if 1/(1+_gr_boundary) < psrf_like_i < 1+_gr_boundary and 1/(1+_gr_boundary) < psrf_like_j < 1+_gr_boundary:
             consecutive += 1
-            if cur_sample - (cur_sample-consecutive) >= ess_threshold:
-                if cutoff_end == -1 and consecutive >= int(threshold_percentage * cur_sample):
-                        # todo change to calculate the pseudo ess with the already existing distance matrix
-                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
-                                and \
-                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
-                            cutoff_end = cur_sample
-                            cutoff_start = cur_sample - consecutive
-                            return cutoff_start, cutoff_end
+            if cutoff_end == -1 and consecutive >= ess_threshold:
+                    # todo change to calculate the pseudo ess with the already existing distance matrix
+                    if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                            and \
+                            (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                        cutoff_end = cur_sample
+                        cutoff_start = cur_sample - consecutive
+                        return cutoff_start, cutoff_end
         else:
             consecutive = 0
     # No cutoff found
     return -1, -1
 
 
-def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, smoothing_average="median"):
+def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median"):
     # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
     global _gr_boundary
 
@@ -90,8 +89,8 @@ def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, 
 
     df = []
 
-    cutoff_start = {k: -1 for k in threshold_percentage}
-    cutoff_end = {k: -1 for k in threshold_percentage}
+    cutoff_start = {k: -1 for k in ess_threshold_list}
+    cutoff_end = {k: -1 for k in ess_threshold_list}
     consecutive = 0
 
     for cur_sample in range(dm_i.shape[0]):
@@ -115,15 +114,14 @@ def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, 
 
         if 1/(1+_gr_boundary) < df[-1][1] < 1+_gr_boundary and 1/(1+_gr_boundary) < df[-2][1] < 1+_gr_boundary:
             consecutive += 1
-            if cur_sample - (cur_sample-consecutive) >= ess_threshold:
-                for threshold in cutoff_end.keys():
-                    if cutoff_end[threshold] == -1 and consecutive >= int(threshold * cur_sample):
-                        # todo change to calculate the pseudo ess with the already existing distance matrix
-                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
-                                and \
-                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
-                            cutoff_end[threshold] = cur_sample
-                            cutoff_start[threshold] = cur_sample - consecutive
+            for ess_threshold in cutoff_end.keys():
+                if cutoff_end[ess_threshold] == -1 and consecutive >= ess_threshold:
+                    # todo change to calculate the pseudo ess with the already existing distance matrix
+                    if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                            and \
+                            (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                        cutoff_end[ess_threshold] = cur_sample
+                        cutoff_start[ess_threshold] = cur_sample - consecutive
         else:
             consecutive = 0
 
@@ -133,49 +131,46 @@ def gelman_rubin_threshold_list(cmchain, i, j, smoothing, threshold_percentage, 
 def gelman_rubin_parameter_choice_plot(cmchain, i, j):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
     # TODO WIP for clean up and rename!
-    ess_threshold = 200
+    ess_threshold_list = np.sort([50, 200, 500])
     smoothing_function = "mean"  # TODO
 
-    sample_from = [0.1, 0.5, 0.6, 0.75, 1, 0.25, 0.9]
-    sample_from = np.sort(sample_from)
-    threshold_percentage = [0, 0.1, 0.25, 0.5, 0.75, 1.0, 0.4, 0.6]
-    threshold_percentage = np.sort(threshold_percentage)
+    smoothing = [0.3, 0.5, 0.6, 0.75, 0.9]
+    smoothing = np.sort(smoothing)
 
-    figure, axis = plt.subplots(ncols=len(sample_from), nrows=len(threshold_percentage),
+    figure, axis = plt.subplots(ncols=len(smoothing), nrows=len(ess_threshold_list),
                                 constrained_layout=True,
                                 # figsize=[9, 7],
                                 squeeze=False, sharex=True, sharey=True)
 
-    for col in range(len(sample_from)):
-        df, cutoff_start, cutoff_end = gelman_rubin_threshold_list(cmchain, i, j, smoothing=sample_from[col],
-                                                                                threshold_percentage=threshold_percentage,
-                                                                                ess_threshold=ess_threshold,
+    for col in range(len(smoothing)):
+        df, cutoff_start, cutoff_end = gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing=smoothing[col],
+                                                                                ess_threshold_list=ess_threshold_list,
                                                                                 smoothing_average=smoothing_function)
-        for row in range(len(threshold_percentage)):
+        for row in range(len(ess_threshold_list)):
             axis[row, col].set_ylim([0.9, 1.1])
             sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
 
             axis[row, col].set_xticks = set(df["Sample"])
 
-            if cutoff_end[threshold_percentage[row]] != -1 and cutoff_start[threshold_percentage[row]] != -1:
+            if cutoff_end[ess_threshold_list[row]] != -1 and cutoff_start[ess_threshold_list[row]] != -1:
                 # adding lines for the cutoff in red and green
-                axis[row, col].axvline(x=cutoff_end[threshold_percentage[row]], color="red")
-                axis[row, col].axvline(x=cutoff_start[threshold_percentage[row]], color="green")
+                axis[row, col].axvline(x=cutoff_end[ess_threshold_list[row]], color="red")
+                axis[row, col].axvline(x=cutoff_start[ess_threshold_list[row]], color="green")
 
                 # adding text of how many trees are being cut by the specific parameter setting
-                axis[row, col].text(x=cutoff_end[threshold_percentage[row]]-(0.5*(cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]])) + 0.1, y=-.05,
-                                    s=f'{cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]] + 1}',
+                axis[row, col].text(x=cutoff_end[ess_threshold_list[row]]-(0.5*(cutoff_end[ess_threshold_list[row]] - cutoff_start[ess_threshold_list[row]])) + 0.1, y=-.05,
+                                    s=f'{cutoff_end[ess_threshold_list[row]] - cutoff_start[ess_threshold_list[row]] + 1}',
                                     transform=axis[row, col].get_xaxis_transform(),
                                     fontsize=8, zorder=20, ha="center",
                                     va="top", color="black")
 
-            axis[row, col].set_ylabel(f"{threshold_percentage[row]}", color="green")
-            axis[row, col].set_xlabel(f"{sample_from[col]}", color="blue")
+            axis[row, col].set_ylabel(f"{ess_threshold_list[row]}", color="green")
+            axis[row, col].set_xlabel(f"{smoothing[col]}", color="blue")
 
-    figure.supylabel("Threshold Time (fraction of iterations)", color="green")
+    figure.supylabel("Pseudo ESS threshold", color="green")
     figure.supxlabel("Sample from last x-fraction of trees", color="blue")
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices_ess-{ess_threshold}_{smoothing_function}.png",
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices_ess-list_{smoothing_function}.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
     plt.close("all")

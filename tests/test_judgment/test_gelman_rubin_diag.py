@@ -6,7 +6,7 @@ import os
 def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
     # Testing the parameter choice plot function
     ten_taxa_cMChain.gelman_rubin_parameter_choice_plot(i=0, j=1)
-    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_grd_singlevalue_evaluation.png"), \
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_grd_parameter_choices_ess-list_mean.png"), \
         "Gelman Rubin Trace Plot failed!"
 
 
