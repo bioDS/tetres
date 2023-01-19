@@ -100,7 +100,7 @@ def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
     return cor
 
 
-def pseudo_ess(tree_set, dist="rnni", sample_range=10):
+def pseudo_ess(tree_set, dist="rnni", sample_range=10, no_zero=False):
     # todo use the pairwise distance matrix if avaialble?! For this i will need to add upper and lower i boundaries for this function and then calculate with that!
     #  also the parameter of rf needs to be given to the pwd_matrix funciton!
     ess = []
@@ -115,5 +115,7 @@ def pseudo_ess(tree_set, dist="rnni", sample_range=10):
             cur_distance_list = [t.fp_distance(cur_focal_fix) for t in tree_set]
         else:
             raise ValueError(f"Unkown distance given {dist}!")
+        if no_zero:
+            cur_distance_list = [d for d in cur_distance_list if d != 0]
         ess.append(autocorr_ess(data_list=cur_distance_list))
     return np.median(ess)
