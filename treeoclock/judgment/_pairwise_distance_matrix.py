@@ -4,6 +4,7 @@ import os
 import numpy as np
 from multiprocessing import Pool
 import itertools
+# pip install git+https://github.com/widmi/multiprocess-shared-numpy-arrays
 from share_array.share_array import get_shared_array, make_shared_array
 
 
