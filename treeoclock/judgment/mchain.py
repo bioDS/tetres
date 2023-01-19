@@ -198,30 +198,31 @@ class coupled_MChains():
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling)
 
-    def gelman_rubin_cut(self, i, j, smoothing=0.5, threshold_percentage=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="median"):
-
-        # todo move exceptions, computation not needed if file exists, speeding up computation
+    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="median"):
+        # First if overwrite delete previous computation file
+        if _overwrite:
+            try:
+                os.remove(
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_{smoothing_average}")
+            except FileNotFoundError:
+                pass
+        # if the file still exists here then we do not need to compute anything
+        if os.path.exists(f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_{smoothing_average}"):
+            raise FileExistsError("Pass _overwrite=True to overwrite previous computaitons")
 
         cut_start, cut_end = grd.gelman_rubin_cut(self, i=i, j=j,
                                                   smoothing=smoothing,
-                                                  threshold_percentage=threshold_percentage,
                                                   ess_threshold=ess_threshold,
                                                   pseudo_ess_range=pseudo_ess_range,
                                                   smoothing_average=smoothing_average)
         # Write the cutoff boundaries to a file, if it already exists skip this part
-        if _overwrite:
-            try:
-                os.remove(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}_{smoothing_average}")
-            except FileNotFoundError:
-                pass
         try:
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}_{smoothing_average}",
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_{smoothing_average}",
                     "x") as f:
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
-            pass
+            raise Exception("Something went wrong!")
 
     def __getitem__(self, index):
         if isinstance(index, int):
