@@ -9,9 +9,6 @@ global _gr_boundary
 _gr_boundary = 0.02
 
 
-import math
-
-
 def _psrf_like_fast_value(dm_in, dm_bt, k, s, e, fix_trees, weights_in, weights_other):
     """
         dm_in is the pairwise distance for one tree set - upper triangular form!
@@ -37,7 +34,8 @@ def _psrf_like_fast_value(dm_in, dm_bt, k, s, e, fix_trees, weights_in, weights_
     return np.sqrt(bt_var/in_var)
 
 
-def fast_grd_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100, smoothing_average="median"):
+def fast_grd_cut(cmchain, i, j, smoothing, ess_threshold=0, pseudo_ess_range=100, smoothing_average="median",
+                 fix_tree_fraction=0.8):
 
     if len(cmchain[i]) != len(cmchain[j]):
         raise ValueError("Tree sets need to have the same size!")
@@ -53,10 +51,10 @@ def fast_grd_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0
             "Current Implementation is for 1000 trees in the set, "
             "if there are more there needs to be adjusting to the fixed tree indeces!")
 
-    fix_points = 100
+    # fix_point_fraction = 1  # Number of fixed trees as a fraction of the full length
+    fix_points = int(len(cmchain[i].trees) * fix_tree_fraction)
 
-    fix_trees = np.linspace(start=0, stop=len(cmchain[i])-1,num = fix_points, dtype=int)
-
+    fix_trees = np.linspace(start=0, stop=len(cmchain[i]) - 1, num=int(fix_points), dtype=int)
     weights_i = {t: 1.0 for t in fix_trees}
     weights_j = {t: 1.0 for t in fix_trees}
 
@@ -64,6 +62,8 @@ def fast_grd_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0
     dm_j = cmchain.pwd_matrix(j)
     dm_ij = cmchain.pwd_matrix(i, j)
     dm_ji = np.transpose(dm_ij)
+
+    m = 4  # fuzzy cluster m, larger values make the clusteres fuzzier
 
     ###
     # Inefficient precomputation of the weights, but thats not the point here!
@@ -83,33 +83,40 @@ def fast_grd_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0
         cur_dist_i = {}
         cur_dist_j = {}
 
-        for update_fix in upto_now_fixed:
-            cur_dist_i[update_fix] = dm_i[update_fix, cur_sample]
-            cur_dist_j[update_fix] = dm_j[update_fix, cur_sample]
+        i_zero = False
+        j_zero = False
 
-        s_i = sum(cur_dist_i.values())
-        s_j = sum(cur_dist_j.values())
+        for update_tree in upto_now_fixed:
+            if dm_i[update_tree, cur_sample] == 0:
+                i_zero = True
+                weights_i[update_tree] += 1
+            elif not i_zero:
+                cur_dist_i[update_tree] = dm_i[update_tree, cur_sample]  # + dm_j[cur_sample, update_fix]
 
-        for update_fix in upto_now_fixed:
-            weights_i[update_fix] += cur_dist_i[update_fix]/s_i
-            weights_j[update_fix] += cur_dist_j[update_fix]/s_j
+            if dm_j[update_tree, cur_sample] == 0:
+                j_zero = True
+                weights_j[update_tree] += 1
+            elif not j_zero:
+                cur_dist_j[update_tree] = dm_j[update_tree, cur_sample]  # + dm_j[cur_sample, update_fix]
 
-    ###
-    # the sum of the weights is 993, missing 8 values which are arising from the numbers between the fix 0 and 10
-    #  i.e. these 8 numbers are not weighted to any fixed point because there is no fix point in their sliding window
-    ###
+        if i_zero and j_zero:
+            # this is for cases where in both chains the same tree as the respective fixed tree got sampled
+            continue
 
-    # todo maybe analyse the weights in some plot at some point
-    # print(np.mean(list(weights_i.values())))
-    # print(np.mean(list(weights_j.values())))
-    # print(np.var(list(weights_i.values())))
-    # print(np.std(list(weights_j.values())))
+        # s_i = sum(cur_dist_i.values())
+        # s_j = sum(cur_dist_j.values())
 
+        for update_tree in upto_now_fixed:
+            # tmp_sum_i = (1 - prev_prop_i)
+            # tmp_sum_j = (1 - prev_prop_j) - (cur_dist_j[update_fix] / s_j)
+            if not i_zero:
+                weights_i[update_tree] += (1 / sum(
+                    [((cur_dist_i[update_tree] / cur_dist_i[f]) ** (2 / (m - 1))) for f in
+                     upto_now_fixed]))  # (cur_dist_i[update_fix] / s_i) ** (2/m-1))
+            if not j_zero:
+                weights_j[update_tree] += (1 / sum(
+                    [((cur_dist_j[update_tree] / cur_dist_j[f]) ** (2 / (m - 1))) for f in upto_now_fixed]))
 
-    # return weights_i, weights_j
-    # todo adapt the rest to the new datastructure
-
-    cutoff_end = -1
     consecutive = 0
 
     for cur_sample in range(dm_i.shape[0]):
@@ -133,22 +140,45 @@ def fast_grd_cut(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0
 
         if 1-_gr_boundary < psrf_like_i < 1+_gr_boundary and 1-_gr_boundary < psrf_like_j < 1+_gr_boundary:
             consecutive += 1
-            if cur_sample - (cur_sample-consecutive) >= ess_threshold:
-                if cutoff_end == -1 and consecutive >= int(threshold_percentage * cur_sample):
+            if cur_sample - (cur_sample - consecutive) >= ess_threshold and (
+                    cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample,
+                                              sample_range=pseudo_ess_range) >= ess_threshold) \
+                    and \
+                    (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample,
+                                               sample_range=pseudo_ess_range) >= ess_threshold):
+                # if cutoff_end == -1 and consecutive >= int(threshold_percentage * cur_sample):
                         # todo change to calculate the pseudo ess with the already existing distance matrix
-                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
-                                and \
-                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
-                            cutoff_end = cur_sample
-                            cutoff_start = cur_sample - consecutive
-                            return cutoff_start, cutoff_end
+                        # if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                        #         and \
+                        #         (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                    cutoff_end = cur_sample
+                    cutoff_start = cur_sample - consecutive
+                    return cutoff_start, cutoff_end
         else:
             consecutive = 0
     # No cutoff found
     return -1, -1
 
 
-def gelman_rubin_fast_approx_threshold_list(cmchain, i, j, smoothing, threshold_percentage, ess_threshold=0, pseudo_ess_range=100,
+
+def fast_approx_fix_fraction_plot(cmchain, i, j):
+
+    # todo add the original diagnostic cut also to double check that ftf=1 is the same as this!
+
+    smt = 0.5
+    esst = 200
+    pessr = 100
+    smtavg = "mean"
+
+    # todo multiprocess this part i guess?
+    for ftf in np.arange(0.1, 1.1, 0.1):
+
+        cur_start, cur_end = fast_grd_cut(cmchain, i, j, smoothing=smt, ess_threshold=esst,
+                              pseudo_ess_range=pessr, smoothing_average=smtavg, fix_tree_fraction=ftf)
+        print(ftf, cur_start, cur_end)
+
+
+def gelman_rubin_fast_approx_threshold_list(cmchain, i, j, smoothing, ess_threshold=0, pseudo_ess_range=100,
                                 smoothing_average="median"):
 
     if len(cmchain[i]) != len(cmchain[j]):
@@ -157,31 +187,44 @@ def gelman_rubin_fast_approx_threshold_list(cmchain, i, j, smoothing, threshold_
     # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
     global _gr_boundary
 
-
-    # Creating 100 fixed points over the length of treesets i and j
-    #  in the final implementation this 100 should instead be computed on the go and not be preset!
-    if len(cmchain[i]) > 1001:
-        print(
-            "Current Implementation is for 1000 trees in the set, "
-            "if there are more there needs to be adjusting to the fixed tree indeces!")
-
-    m = 2  # fuzzy cluster m, larger values make the clusteres fuzzier
-
-    fix_points = 100  # todo test some variations, maybe instead of linspace some random choices also
-    # todo investiage how the number impacts the result of the heuristic
-    # todo there could be some threshold at which a new tree is added as a fixed tree instead of weighting it!
-
-    # todo if any of the fixed trees have distance 0 then one should be eliminated and switched for something else!
-    fix_trees = np.linspace(start=0, stop=len(cmchain[i])-1,num = fix_points, dtype=int)
-
-    weights_i = {t: 1.0 for t in fix_trees}
-    weights_j = {t: 1.0 for t in fix_trees}
-
-
+    # precompute distance matrices
     dm_i = cmchain.pwd_matrix(i)
     dm_j = cmchain.pwd_matrix(j)
     dm_ij = cmchain.pwd_matrix(i, j)
     dm_ji = np.transpose(dm_ij)
+
+    # todo investigate this a little more
+    m = 4  # fuzzy cluster m, larger values make the clusteres fuzzier
+
+    fix_point_fraction = 1  # Number of fixed trees as a fraction of the full length
+    fix_points = int(len(cmchain[i].trees) * fix_point_fraction)
+
+    # todo if any of the fixed trees have distance 0 then one should be eliminated and switched for something else!
+    # fix_trees = np.linspace(start=0, stop=len(cmchain[i])-1,num = fix_points, dtype=int)
+    fix_trees = np.concatenate((np.linspace(start=0, stop=int((len(cmchain[i]) - 1) / 2) - 1, num=int(fix_points * 0.3), dtype=int),
+                                np.linspace(start=int((len(cmchain[i]) - 1) / 2), stop=len(cmchain[i]) - 1, num=int(fix_points * 0.7), dtype=int)))
+
+    # delete duplicate fix trees, i.e. dm[i,j]=0
+    change_i = set()
+    change_j = set()
+    for index_i, ei in enumerate(fix_trees):
+        for index_j, ej in enumerate(fix_trees[i+1:]):
+            if dm_i[ei, ej] == 0:
+                change_i.add(index_j+i)
+            if dm_j[ei, ej] == 0:
+                change_j.add(index_j+i)
+
+    if len(change_i) != 0:
+        print('Duplicated fixes!')  # todo
+    if len(change_j) != 0:
+        print('Duplicated fixes!')  # todo
+
+    # todo investiage how the number impacts the result of the heuristic
+    # todo there could be some threshold at which a new tree is added as a fixed tree instead of weighting it!
+
+    weights_i = {t: 1.0 for t in fix_trees}
+    weights_j = {t: 1.0 for t in fix_trees}
+
 
     ###
     # Inefficient precomputation of the weights, but thats not the point here!
@@ -204,44 +247,40 @@ def gelman_rubin_fast_approx_threshold_list(cmchain, i, j, smoothing, threshold_
         i_zero = False
         j_zero = False
 
-        for update_fix in upto_now_fixed:
-            if dm_i[update_fix, cur_sample] == 0:
-                i_zero = True
-                weights_i[update_fix] += 1
-            elif not i_zero:
-                cur_dist_i[update_fix] = dm_i[update_fix, cur_sample]  # + dm_j[cur_sample, update_fix]
+        # todo speed this function up
 
-            if dm_j[update_fix, cur_sample] == 0:
+        for update_tree in upto_now_fixed:
+            if dm_i[update_tree, cur_sample] == 0:
+                i_zero = True
+                weights_i[update_tree] += 1
+            elif not i_zero:
+                cur_dist_i[update_tree] = dm_i[update_tree, cur_sample]  # + dm_j[cur_sample, update_fix]
+
+            if dm_j[update_tree, cur_sample] == 0:
                 j_zero = True
-                weights_j[update_fix] += 1
+                weights_j[update_tree] += 1
             elif not j_zero:
-                cur_dist_j[update_fix] = dm_j[update_fix, cur_sample]  # + dm_j[cur_sample, update_fix]
+                cur_dist_j[update_tree] = dm_j[update_tree, cur_sample]  # + dm_j[cur_sample, update_fix]
 
         if i_zero and j_zero:
-            print("Continued for loop!")  # this is only the case if the sample in i and j are also a fixed tree, i.e. sampled twice, should be veryveryvery unlikly
+            # this is for cases where in both chains the same tree as the respective fixed tree got sampled
             continue
 
         # s_i = sum(cur_dist_i.values())
         # s_j = sum(cur_dist_j.values())
 
-        # todo if any value in cur_dist_i or cur_dist_j is 0 then add 1 to the weight for that fixed tree!
-
-
-        for update_fix in upto_now_fixed:
+        for update_tree in upto_now_fixed:
             # tmp_sum_i = (1 - prev_prop_i)
             # tmp_sum_j = (1 - prev_prop_j) - (cur_dist_j[update_fix] / s_j)
             if not i_zero:
-                weights_i[update_fix] += (1 / sum([((cur_dist_i[update_fix] /cur_dist_i[f]) ** (2/(m-1))) for f in upto_now_fixed]))  # (cur_dist_i[update_fix] / s_i) ** (2/m-1))
+                weights_i[update_tree] += (1 / sum([((cur_dist_i[update_tree] /cur_dist_i[f]) ** (2/(m-1))) for f in upto_now_fixed]))  # (cur_dist_i[update_fix] / s_i) ** (2/m-1))
             if not j_zero:
-                weights_j[update_fix] += (1 / sum([((cur_dist_j[update_fix] /cur_dist_j[f]) ** (2/(m-1))) for f in upto_now_fixed]))
-            # if math.isnan(weights_i[update_fix]):
-            #     print("galah")
-
+                weights_j[update_tree] += (1 / sum([((cur_dist_j[update_tree] /cur_dist_j[f]) ** (2/(m-1))) for f in upto_now_fixed]))
 
     df = []
 
-    cutoff_start = {k: -1 for k in threshold_percentage}
-    cutoff_end = {k: -1 for k in threshold_percentage}
+    cutoff_start = -1
+    cutoff_end = -1
     consecutive = 0
 
     for cur_sample in range(dm_i.shape[0]):
@@ -266,16 +305,15 @@ def gelman_rubin_fast_approx_threshold_list(cmchain, i, j, smoothing, threshold_
         if 1/(1+_gr_boundary) < df[-1][1] < 1 + _gr_boundary and 1/(1+_gr_boundary) < df[-2][1] < 1 + _gr_boundary:
             consecutive += 1
             if cur_sample - (cur_sample - consecutive) >= ess_threshold:
-                for threshold in cutoff_end.keys():
-                    if cutoff_end[threshold] == -1 and consecutive >= int(threshold * cur_sample):
-                        # todo change to calculate the pseudo ess with the already existing distance matrix
-                        if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample,
-                                                      sample_range=pseudo_ess_range) >= ess_threshold) \
-                                and \
-                                (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample,
-                                                           sample_range=pseudo_ess_range) >= ess_threshold):
-                            cutoff_end[threshold] = cur_sample
-                            cutoff_start[threshold] = cur_sample - consecutive
+                if cutoff_end == -1:
+                    # todo change to calculate the pseudo ess with the already existing distance matrix
+                    if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample,
+                                                    sample_range=pseudo_ess_range) >= ess_threshold) \
+                            and \
+                            (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample,
+                                                        sample_range=pseudo_ess_range) >= ess_threshold):
+                        cutoff_end = cur_sample
+                        cutoff_start = cur_sample - consecutive
         else:
             consecutive = 0
 
@@ -288,43 +326,41 @@ def gelman_rubin_fast_approx_parameter_choice_plot(cmchain, i, j):
     ess_threshold = 200
     smoothing_function = "mean"  # TODO
 
-    sample_from = [0.1, 0.5, 0.6, 0.75, 1, 0.25, 0.9]
+    # sample_from = [0.1, 0.5, 0.6, 0.75, 1, 0.25, 0.9]
+    sample_from = [0.5, 0.75]
     sample_from = np.sort(sample_from)
-    threshold_percentage = [0, 0.1, 0.25, 0.5, 0.75, 1.0, 0.4, 0.6]
-    threshold_percentage = np.sort(threshold_percentage)
 
-    figure, axis = plt.subplots(ncols=len(sample_from), nrows=len(threshold_percentage),
-                                constrained_layout=True,
+    figure, axis = plt.subplots(ncols=len(sample_from), nrows=1,
+                                constrained_layout=True, sharey=True)
                                 # figsize=[9, 7],
-                                squeeze=False, sharex=True, sharey=True)
+                                # squeeze=False)
 
     for col in range(len(sample_from)):
         df, cutoff_start, cutoff_end = gelman_rubin_fast_approx_threshold_list(cmchain, i, j, smoothing=sample_from[col],
-                                                                   threshold_percentage=threshold_percentage,
                                                                    ess_threshold=ess_threshold,
                                                                    smoothing_average=smoothing_function)
-        for row in range(len(threshold_percentage)):
-            axis[row, col].set_ylim([0.9, 1.1])
-            sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
+        # todo set the ylim for the plot
+        # axis.set_ylim([0.9, 1.1])  # todo this doesnt work....
+        sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[col], legend=False)
 
-            axis[row, col].set_xticks = set(df["Sample"])
+        # axis[col].set_xticks = set(df["Sample"])
 
-            if cutoff_end[threshold_percentage[row]] != -1 and cutoff_start[threshold_percentage[row]] != -1:
-                # adding lines for the cutoff in red and green
-                axis[row, col].axvline(x=cutoff_end[threshold_percentage[row]], color="red")
-                axis[row, col].axvline(x=cutoff_start[threshold_percentage[row]], color="green")
+        if cutoff_end != -1 and cutoff_start != -1:
+            # adding lines for the cutoff in red and green
+            axis[col].axvline(x=cutoff_end, color="red")
+            axis[col].axvline(x=cutoff_start, color="green")
 
-                # adding text of how many trees are being cut by the specific parameter setting
-                axis[row, col].text(x=cutoff_end[threshold_percentage[row]] - (0.5 * (
-                            cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]])) + 0.1,
-                                    y=-.05,
-                                    s=f'{cutoff_end[threshold_percentage[row]] - cutoff_start[threshold_percentage[row]] + 1}',
-                                    transform=axis[row, col].get_xaxis_transform(),
-                                    fontsize=8, zorder=20, ha="center",
-                                    va="top", color="black")
+            # adding text of how many trees are being cut by the specific parameter setting
+            # axis[col].text(x=cutoff_end - (0.5 * (
+            #             cutoff_end - cutoff_start)) + 0.1,
+            #                     y=-.05,
+            #                     s=f'{cutoff_end - cutoff_start + 1}',
+            #                     transform=axis[col].get_xaxis_transform(),
+            #                     fontsize=8, zorder=20, ha="center",
+            #                     va="top", color="black")
 
-            axis[row, col].set_ylabel(f"{threshold_percentage[row]}", color="green")
-            axis[row, col].set_xlabel(f"{sample_from[col]}", color="blue")
+        # axis[col].set_ylabel(f"{[row]}", color="green")
+        axis[col].set_xlabel(f"{sample_from[col]}", color="blue")
 
     figure.supylabel("Threshold Time (fraction of iterations)", color="green")
     figure.supxlabel("Sample from last x-fraction of trees", color="blue")

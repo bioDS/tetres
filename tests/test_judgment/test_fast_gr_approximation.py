@@ -1,22 +1,38 @@
 import pytest
 from treeoclock.judgment.mchain import coupled_MChains
 from treeoclock.judgment._gelman_rubin_diag import gelman_rubin_cut
-from treeoclock.judgment._fast_gr_approximation import fast_grd_cut, gelman_rubin_fast_approx_parameter_choice_plot
+from treeoclock.judgment._fast_gr_approximation import fast_grd_cut, gelman_rubin_fast_approx_parameter_choice_plot\
+    , fast_approx_fix_fraction_plot
 import os
+import random
 
 
 def test_original_values(ten_taxa_cMChain):
     # Testing the parameter choice plot function
+
+    state = random.getstate()  # get the random seed state
+    random.seed(10)  # Fixing the seed to get the same result
+
     start, end = gelman_rubin_cut(ten_taxa_cMChain, 0, 1, smoothing=0.5, threshold_percentage=0.2,
-                                  ess_threshold=0, pseudo_ess_range=100, smoothing_average="median")
+                                  ess_threshold=100, pseudo_ess_range=100, smoothing_average="mean")
     # ten_taxa_cMChain.gelman_rubin_parameter_choice_plot(i=0, j=1)
-    assert [start, end] == [255, 318]
+    random.setstate(state)
+    assert [start, end] == [255, 357]
 
 
 def test_fast_grd(ten_taxa_cMChain):
-    start, end = fast_grd_cut(ten_taxa_cMChain, 0, 1, smoothing=0.5, threshold_percentage=0.2,
-                                ess_threshold=0, pseudo_ess_range=100, smoothing_average="median")
-    assert [start, end] == [-1, -1]
+    state = random.getstate()  # get the random seed state
+    random.seed(10)  # Fixing the seed to get the same result
+    # todo this function needs to be updated at some point
+    start, end = fast_grd_cut(ten_taxa_cMChain, 0, 1, smoothing=0.5,
+                                ess_threshold=100, pseudo_ess_range=100, smoothing_average="mean")
+    random.setstate(state)
+    assert [start, end] == [255, 357]
+
+
+def test_fast_approx_fix_fraction_plot(ten_taxa_cMChain):
+    fast_approx_fix_fraction_plot(ten_taxa_cMChain, 0, 1)
+
 
 def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
     # Testing the parameter choice plot function
