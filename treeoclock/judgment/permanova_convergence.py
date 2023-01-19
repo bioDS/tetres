@@ -69,8 +69,56 @@ def permanova_pvalue_plot(cmchain, i, j, smoothing_l=[0.9]):
             pm = permanova(cur_block, cur_groups, permutations=1000)
 
             data.append([pm["p-value"], smoothing, cur_sample])
+
+        # adding randomly shuffled groups
+        slide_start = int(np.rint(cur_sample * (1 - 0.6)))
+
+        cur_block = np.block([[dm_i[slide_start:cur_sample + 1, slide_start:cur_sample + 1],
+                               dm_ij[slide_start:cur_sample + 1, slide_start:cur_sample + 1]],
+                              [dm_ji[slide_start:cur_sample + 1, slide_start:cur_sample + 1],
+                               dm_j[slide_start:cur_sample + 1, slide_start:cur_sample + 1]]])
+        cur_groups = [0 for _ in range(slide_start, cur_sample + 1)] + [1 for _ in range(slide_start, cur_sample + 1)]
+        np.random.shuffle(cur_groups)
+        cur_block = DistanceMatrix(cur_block + cur_block.transpose())
+        pm_r = permanova(cur_block, cur_groups, permutations=1000)
+        data.append([pm_r["p-value"], -1, cur_sample])
+
+        # adding randomly shuffled off diagonal matrix values
+        slide_start = int(np.rint(cur_sample * (1 - 0.6)))
+
+        cur_block = np.block([[dm_i[slide_start:cur_sample + 1, slide_start:cur_sample + 1],
+                               dm_ij[slide_start:cur_sample + 1, slide_start:cur_sample + 1]],
+                              [dm_ji[slide_start:cur_sample + 1, slide_start:cur_sample + 1],
+                               dm_j[slide_start:cur_sample + 1, slide_start:cur_sample + 1]]])
+        cur_groups = [0 for _ in range(slide_start, cur_sample + 1)] + [1 for _ in range(slide_start, cur_sample + 1)]
+        m = ~np.eye(len(cur_block), dtype=bool)
+        cbm = cur_block[m]
+        np.random.shuffle(cbm)
+        cur_block[m] = cbm
+        cur_block = DistanceMatrix(cur_block + cur_block.transpose())
+        pm_r = permanova(cur_block, cur_groups, permutations=1000)
+        data.append([pm_r["p-value"], -2, cur_sample])
+
+        # shuffling both?
+        slide_start = int(np.rint(cur_sample * (1 - 0.6)))
+
+        cur_block = np.block([[dm_i[slide_start:cur_sample + 1, slide_start:cur_sample + 1],
+                               dm_ij[slide_start:cur_sample + 1, slide_start:cur_sample + 1]],
+                              [dm_ji[slide_start:cur_sample + 1, slide_start:cur_sample + 1],
+                               dm_j[slide_start:cur_sample + 1, slide_start:cur_sample + 1]]])
+        cur_groups = [0 for _ in range(slide_start, cur_sample + 1)] + [1 for _ in range(slide_start, cur_sample + 1)]
+        np.random.shuffle(cur_groups)
+        m = ~np.eye(len(cur_block), dtype=bool)
+        cbm = cur_block[m]
+        np.random.shuffle(cbm)
+        cur_block[m] = cbm
+        cur_block = DistanceMatrix(cur_block + cur_block.transpose())
+        pm_r = permanova(cur_block, cur_groups, permutations=1000)
+        data.append([pm_r["p-value"], -3, cur_sample])
+
+
     data = pd.DataFrame(data, columns=["p-value", "smoothing", "sample"])
-    sns.swarmplot(data=data, x="sample", y="p-value", hue="smoothing")
+    sns.swarmplot(data=data, x="sample", y="p-value", hue="smoothing", palette="tab10")
     plt.xticks(rotation=270)
     plt.show()
     return 0
