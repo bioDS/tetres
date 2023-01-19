@@ -193,10 +193,10 @@ class coupled_MChains():
             raise ValueError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
 
-    def gelman_rubin_parameter_choice_plot(self, i, j):
+    def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False):
         if len(self) < 2:
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
-        return grd.gelman_rubin_parameter_choice_plot(self, i, j)
+        return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling)
 
     def gelman_rubin_cut(self, i, j, smoothing=0.5, threshold_percentage=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="median"):
 
@@ -564,11 +564,14 @@ class MChain:
         sample_range = 10
         if "sample_range" in kwargs:
             sample_range = kwargs["sample_range"]
-        chain_length = 1
-        if upper_i > 0:
-            chain_length = (self.chain_length / (len(self.trees) - 1)) * ((upper_i - 1) - lower_i)
+        no_zero = False
+        if "no_zero" in kwargs:
+            no_zero = kwargs["no_zero"]
+        # chain_lngth = 1
+        # if upper_i > 0:
+        #     chain_leength = (self.chain_length / (len(self.trees) - 1)) * ((upper_i - 1) - lower_i)
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
-                              dist=dist, sample_range=sample_range)
+                              dist=dist, sample_range=sample_range, no_zero=no_zero)
 
     # todo missing tests
     # the rnni variance log is essentially a running mean plot

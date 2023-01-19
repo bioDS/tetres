@@ -10,6 +10,13 @@ def test_cMChain_gelman_rubin_trace(ten_taxa_cMChain):
         "Gelman Rubin Trace Plot failed!"
 
 
+def test_cMChain_gelman_rubin_trace_subsampling(ten_taxa_cMChain):
+    # Testing the parameter choice plot function
+    ten_taxa_cMChain.gelman_rubin_parameter_choice_plot(i=0, j=1, _subsampling=True)
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_{0}-{1}_grd_parameter_choices_subsampling_ess-list_mean.png"), \
+        "Gelman Rubin Trace Plot failed!"
+
+
 def test_cMChain_gelman_rubin_plot(ten_taxa_cMChain):
     # todo this test should delete the plot before recomputing it
     # todo test different sample parameters

@@ -75,7 +75,7 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_ran
     return -1, -1
 
 
-def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median"):
+def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median", _subsampling=False):
     # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
     global _gr_boundary
 
@@ -93,7 +93,23 @@ def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold
     cutoff_end = {k: -1 for k in ess_threshold_list}
     consecutive = 0
 
-    for cur_sample in range(dm_i.shape[0]):
+    # todo simply cut the rows and columns from the matrices should be easier than whatever i've just done
+    if _subsampling:
+        # delete every second row (can be repeated multiple times)
+        for _ in range(1):
+            dm_i = np.delete(dm_i, list(range(0, dm_i.shape[0], 2)), axis=0)
+            dm_i = np.delete(dm_i, list(range(0, dm_i.shape[0], 2)), axis=1)
+
+            dm_j = np.delete(dm_j, list(range(0, dm_j.shape[0], 2)), axis=0)
+            dm_j = np.delete(dm_j, list(range(0, dm_j.shape[0], 2)), axis=1)
+
+            dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[0], 2)), axis=0)
+            dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[0], 2)), axis=1)
+
+            dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[0], 2)), axis=0)
+            dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[0], 2)), axis=1)
+
+    for cur_sample in range(0, dm_i.shape[0]):
         slide_start = int(cur_sample * (1 - smoothing))  # smoothing is impacting the current sliding window start
         
         psrf_like_i = []
@@ -128,7 +144,7 @@ def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold
     return pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"]), cutoff_start, cutoff_end
 
 
-def gelman_rubin_parameter_choice_plot(cmchain, i, j):
+def gelman_rubin_parameter_choice_plot(cmchain, i, j, _subsampling=False):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
     # TODO WIP for clean up and rename!
     ess_threshold_list = np.sort([50, 200, 500])
@@ -144,8 +160,9 @@ def gelman_rubin_parameter_choice_plot(cmchain, i, j):
 
     for col in range(len(smoothing)):
         df, cutoff_start, cutoff_end = gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing=smoothing[col],
-                                                                                ess_threshold_list=ess_threshold_list,
-                                                                                smoothing_average=smoothing_function)
+                                                                            ess_threshold_list=ess_threshold_list,
+                                                                            smoothing_average=smoothing_function,
+                                                                            _subsampling=_subsampling)
         for row in range(len(ess_threshold_list)):
             axis[row, col].set_ylim([0.9, 1.1])
             sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
@@ -170,7 +187,7 @@ def gelman_rubin_parameter_choice_plot(cmchain, i, j):
     figure.supylabel("Pseudo ESS threshold", color="green")
     figure.supxlabel("Sample from last x-fraction of trees", color="blue")
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices_ess-list_{smoothing_function}.png",
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices{'_subsampling' if _subsampling else ''}_ess-list_{smoothing_function}.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
     plt.close("all")
