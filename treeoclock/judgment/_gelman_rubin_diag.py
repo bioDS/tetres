@@ -93,10 +93,9 @@ def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold
     cutoff_end = {k: -1 for k in ess_threshold_list}
     consecutive = 0
 
-    # todo simply cut the rows and columns from the matrices should be easier than whatever i've just done
     if _subsampling:
         # delete every second row (can be repeated multiple times)
-        for _ in range(3):
+        for _ in range(_subsampling):
             dm_i = np.delete(dm_i, list(range(0, dm_i.shape[0], 2)), axis=0)
             dm_i = np.delete(dm_i, list(range(0, dm_i.shape[1], 2)), axis=1)
 
@@ -187,7 +186,7 @@ def gelman_rubin_parameter_choice_plot(cmchain, i, j, _subsampling=False):
     figure.supylabel("Pseudo ESS threshold", color="green")
     figure.supxlabel("Sample from last x-fraction of trees", color="blue")
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices{'_subsampling' if _subsampling else ''}_ess-list_{smoothing_function}.png",
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices{f'_subsampling-{_subsampling}' if _subsampling else ''}_ess-list_{smoothing_function}.png",
                 format="png", bbox_inches="tight", dpi=800)
     plt.clf()
     plt.close("all")
