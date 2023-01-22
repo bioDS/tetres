@@ -96,18 +96,18 @@ def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold
     # todo simply cut the rows and columns from the matrices should be easier than whatever i've just done
     if _subsampling:
         # delete every second row (can be repeated multiple times)
-        for _ in range(1):
+        for _ in range(3):
             dm_i = np.delete(dm_i, list(range(0, dm_i.shape[0], 2)), axis=0)
-            dm_i = np.delete(dm_i, list(range(0, dm_i.shape[0], 2)), axis=1)
+            dm_i = np.delete(dm_i, list(range(0, dm_i.shape[1], 2)), axis=1)
 
             dm_j = np.delete(dm_j, list(range(0, dm_j.shape[0], 2)), axis=0)
-            dm_j = np.delete(dm_j, list(range(0, dm_j.shape[0], 2)), axis=1)
+            dm_j = np.delete(dm_j, list(range(0, dm_j.shape[1], 2)), axis=1)
 
             dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[0], 2)), axis=0)
-            dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[0], 2)), axis=1)
+            dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[1], 2)), axis=1)
 
             dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[0], 2)), axis=0)
-            dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[0], 2)), axis=1)
+            dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[1], 2)), axis=1)
 
     for cur_sample in range(0, dm_i.shape[0]):
         slide_start = int(cur_sample * (1 - smoothing))  # smoothing is impacting the current sliding window start
