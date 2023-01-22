@@ -26,7 +26,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="median"):
+def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False):
     # this function will return the cut.start and cut.end values calculated for the given full chain
     global _gr_boundary
 
@@ -40,6 +40,20 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_ran
 
     cutoff_end = -1
     consecutive = 0
+
+    if _subsampling:
+        for _ in range(_subsampling):
+            dm_i = np.delete(dm_i, list(range(0, dm_i.shape[0], 2)), axis=0)
+            dm_i = np.delete(dm_i, list(range(0, dm_i.shape[1], 2)), axis=1)
+
+            dm_j = np.delete(dm_j, list(range(0, dm_j.shape[0], 2)), axis=0)
+            dm_j = np.delete(dm_j, list(range(0, dm_j.shape[1], 2)), axis=1)
+
+            dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[0], 2)), axis=0)
+            dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[1], 2)), axis=1)
+
+            dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[0], 2)), axis=0)
+            dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[1], 2)), axis=1)
 
     for cur_sample in range(dm_i.shape[0]):
         slide_start = int(cur_sample * (1 - smoothing))  # smoothing is impacting the current sliding window start

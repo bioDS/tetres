@@ -27,5 +27,11 @@ def test_cMChain_gelman_rubin_plot(ten_taxa_cMChain):
 def test_cMChain_gress(ten_taxa_cMChain):
     # todo test different setting also
     ten_taxa_cMChain.gelman_rubin_cut(i=0, j=1, _overwrite=True)
-    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_{0}_{1}_gelman_rubin_cutoff_no-esst_smoothing-0.5_thresholdp-0.5"), \
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_{0}_{1}_gelman_rubin_cutoff_smoothing-0.5_median"), \
+        "Gelman Rubin Trace Plot with ess failed!"
+
+
+def test_cMChain_gress(ten_taxa_cMChain):
+    ten_taxa_cMChain.gelman_rubin_cut(i=0, j=1, _overwrite=True, _subsampling=2)
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_{0}_{1}_gelman_rubin_cutoff_subsampling-2_smoothing-0.5_median"), \
         "Gelman Rubin Trace Plot with ess failed!"
