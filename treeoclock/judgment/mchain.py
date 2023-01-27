@@ -213,6 +213,9 @@ class coupled_MChains():
                     "r") as file:
                 cut_start = int(file.readline())
                 cut_end = int(file.readline())
+            if _subsampling:
+                for _ in range(_subsampling):
+                    cut_start, cut_end = cut_start * 2, cut_end * 2
             return cut_start, cut_end
 
         cut_start, cut_end = grd.gelman_rubin_cut(self, i=i, j=j,
@@ -222,6 +225,9 @@ class coupled_MChains():
                                                   smoothing_average=smoothing_average,
                                                   _subsampling=_subsampling)
         # Write the cutoff boundaries to a file, if it already exists skip this part
+        if _subsampling:
+            for _ in range(_subsampling):
+                cut_start, cut_end = cut_start * 2, cut_end * 2
         try:
             with open(
                     f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}",
