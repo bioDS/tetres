@@ -9,5 +9,5 @@ def test_permanova_cut(ten_taxa_cMChain):
 
 
 def test_permanova_pvalue_plot(ten_taxa_cMChain):
-    permanova_pvalue_plot(ten_taxa_cMChain, 0, 1, smoothing_l=[0.5, 0.6, 0.9])
+    permanova_pvalue_plot(ten_taxa_cMChain, 0, 1, smoothing_l=[0.6])
     assert True

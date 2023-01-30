@@ -119,6 +119,10 @@ def permanova_pvalue_plot(cmchain, i, j, smoothing_l=[0.9]):
 
     data = pd.DataFrame(data, columns=["p-value", "smoothing", "sample"])
     sns.swarmplot(data=data, x="sample", y="p-value", hue="smoothing", palette="tab10")
+    plt.legend().remove()
     plt.xticks(rotation=270)
-    plt.show()
+    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_permanova_test.eps",
+                format='eps')
+    plt.clf()
+    plt.cla()
     return 0
