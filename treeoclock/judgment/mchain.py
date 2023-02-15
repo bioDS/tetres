@@ -440,7 +440,7 @@ class MChain:
         elif type(trees) is str:
             self.trees = TimeTreeSet(f"{self.working_dir}/{trees}")  # todo use os.path.join
         else:
-            raise ValueError(trees)
+            raise ValueError(f"{type(trees)} of trees not recognized!")
 
         # Reading the log_file
         if log_file is None:
