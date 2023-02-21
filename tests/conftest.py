@@ -206,3 +206,19 @@ def ten_taxa_cMChain():
 def thirty_taxa_log_data():
     return pd.read_csv(f"{Path(__file__).parent.absolute()}/data/30Taxa_beast2.log", header=0, sep=r"\s+", comment="#")
 
+@pytest.fixture
+def threespace():
+    return coupled_MChains(m_MChains=1,
+                           trees=["3space.trees"], log_files=[None],
+                           working_dir=f"{Path(__file__).parent.absolute()}/data/",
+                           name="3Space"
+                           )
+
+
+@pytest.fixture
+def fourspace():
+    return coupled_MChains(m_MChains=1,
+                           trees=["4space.trees"], log_files=[None],
+                           working_dir=f"{Path(__file__).parent.absolute()}/data/",
+                           name="4Space"
+                           )
