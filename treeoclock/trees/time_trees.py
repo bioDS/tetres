@@ -356,4 +356,5 @@ def nwk_to_cluster(treestr):
 
 
 def _diam_treespace(n):
+    # returns the RNNI diameter for n taxa
     return ((n - 1) * (n - 2)) / 2
