@@ -133,14 +133,17 @@ def get_tree_from_partition(p_list, n_taxa):
 
 def sample_from_dict_partition(dict_partitions, n_taxa, samples=1):
     # sample samples many trees from a given dict_partition
-    out = []
-    # todo this is dependant on the fact that the dict is sorted, should be sorted by number of | in string
-    k = sorted(dict_partitions.keys(), key=len)[0]
-    while len(out) < n_taxa - 2:
-        cur_dict = dict_partitions[k]
-        cur_count = cur_dict.pop("Count")  # delete count from dict and get the total number of choices
-        cur_p = [i / cur_count for i in list(cur_dict.values())]
-        out.append(np.random.choice(list(cur_dict.keys()), p=cur_p))
-        k = out[-1]
-    out.append(re.sub(",", "|", out[-1]))
-    return(get_tree_from_partition(out, n_taxa))
+    new_samples = []
+    for _ in range(samples):
+        out = []
+        # todo this is dependant on the fact that the dict is sorted, should be sorted by number of | in string
+        k = sorted(dict_partitions.keys(), key=len)[0]
+        while len(out) < n_taxa - 2:
+            cur_dict = dict_partitions[k].copy()
+            cur_count = cur_dict.pop("Count")  # delete count from dict and get the total number of choices
+            cur_p = [i / cur_count for i in list(cur_dict.values())]
+            out.append(np.random.choice(list(cur_dict.keys()), p=cur_p))
+            k = out[-1]
+        out.append(re.sub(",", "|", out[-1]))
+        new_samples.append(get_tree_from_partition(out, n_taxa))
+    return new_samples

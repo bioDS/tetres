@@ -50,5 +50,5 @@ def test_get_tree_from_partition(ten_taxa_cMChain):
 
 def test_sample_from_dict_partition(ten_taxa_cMChain):
     dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
-    t = sample_from_dict_partition(dict_part, samples=1, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
+    t = sample_from_dict_partition(dict_part, samples=100, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
     assert True
