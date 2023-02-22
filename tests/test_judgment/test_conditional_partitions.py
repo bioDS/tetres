@@ -1,5 +1,5 @@
-from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_pp_coverage, get_greedy_pp_tree, get_tree_from_partition
-from treeoclock.trees._converter import ctree_to_ete3
+from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_pp_coverage, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition
+
 
 def test_get_conditional_partitions(ten_taxa_cMChain):
     get_conditional_partitions(ten_taxa_cMChain[0].trees[0])
@@ -46,3 +46,9 @@ def test_get_tree_from_partition(ten_taxa_cMChain):
         nt = get_tree_from_partition(cp, 10)
         distance_sum += nt.fp_distance(tree)
     assert distance_sum == 0, "Tree from partition failed!"
+
+
+def test_sample_from_dict_partition(ten_taxa_cMChain):
+    dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
+    t = sample_from_dict_partition(dict_part, samples=1, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
+    assert True
