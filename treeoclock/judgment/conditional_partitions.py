@@ -2,7 +2,7 @@ from treeoclock.trees._converter import ctree_to_ete3
 import re
 
 
-def get_conditional_partitions(tree):
+def get_conditional_partitions(tree, as_dict=False):
     rank_etree = ctree_to_ete3(tree.ctree)
     rc_dict = {}
     for node in rank_etree.traverse("levelorder"):
@@ -23,6 +23,9 @@ def get_conditional_partitions(tree):
             rc_dict[node_rank] = f"{','.join([str(i) for i in sorted(c0_leafs)])}|{','.join([str(i) for i in sorted(c1_leafs)])}"
 
     rc_dict[max(rc_dict.keys())+1] = ",".join(sorted([t for t in re.split(r",|\|", rc_dict[max(rc_dict.keys())])], key=int))  # Setting root
+
+    if as_dict:
+        return rc_dict
 
     for rank in sorted(rc_dict.keys(), reverse=True)[1:]:
         cur_split = rc_dict[rank]
@@ -68,6 +71,60 @@ def get_pp(tree, dict_partitions):
 def get_pp_coverage(trees):
     dict_partitions = get_dict_of_partitions(trees)
     cov = 0
+    # todo this should only count unique trees and nothing else
     for t in trees:
         cov += get_pp(t, dict_partitions)
     return cov
+
+
+# todo general sample from dict_partition function
+
+
+def get_greedy_pp_tree(dict_partitions, n_taxa):
+    out = []
+    # todo this is dependant on the fact that the dict is sorted, should be sorted by number of | in string
+    k = sorted(dict_partitions.keys(), key=len)[0]
+    while len(out) < n_taxa-2:
+        highest = 0
+        h_v = 0
+        for v in dict_partitions[k]:
+            if v != "Count":
+                if dict_partitions[k][v] > highest:
+                    highest = dict_partitions[k][v]
+                    h_v = v
+        k = h_v
+        out.append(h_v)
+    # calculate a tree from the list of partitions
+    t = get_tree_from_partition(out, n_taxa)
+    return out
+
+
+import ete3
+
+
+def get_tree_from_partition(p_list, n_taxa):
+    cur_t = ete3.Tree(support=n_taxa-1, name=",".join([str(i) for i in range(1, n_taxa+1)]))
+    # add the first thing manually
+    init_split = p_list[0].split("|")
+    for split in init_split:
+        if len(split) == 1:
+            # It splits off a leaf, therefore the distance can be set to the rank n-1
+            cur_t.add_child(name=split, dist=n_taxa-1)
+        else:
+            cur_t.add_child(name=split)
+    rank = n_taxa-2
+    for string in p_list[1:]:
+        splits = string.split("|")
+        splits = [s for s in splits if s not in cur_t]
+
+        # find the node we need to extend:
+        node = cur_t.search_nodes(name=",".join(sorted(",".join(splits).split(","), key=int)))[0]
+        node.support = rank
+        node.dist = node.up.support - rank
+        for s in splits:
+            if len(s) == 1:
+                node.add_child(name=s, dist=rank)
+            else:
+                node.add_child(name=s)
+        rank -= 1
+    return cur_t

@@ -1,5 +1,5 @@
-from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_pp_coverage
-
+from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_pp_coverage, get_greedy_pp_tree, get_tree_from_partition
+from treeoclock.trees._converter import ctree_to_ete3
 
 def test_get_conditional_partitions(ten_taxa_cMChain):
     get_conditional_partitions(ten_taxa_cMChain[0].trees[0])
@@ -24,9 +24,26 @@ def test_get_pp_coverage(ten_taxa_cMChain):
 
 def test_get_pp_coverage_threespace(threespace):
     cov = get_pp_coverage(threespace[0].trees)
-    assert True
+    assert cov == 1, "Coverage failed (3space)"
 
 
 def test_get_pp_coverage_threespace(fourspace):
     cov = get_pp_coverage(fourspace[0].trees)
+    cov == 1, "Coverage failed (4space)!"
+
+
+def test_get_greedy_pp_tree(ten_taxa_cMChain):
+    dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
+    tree = get_greedy_pp_tree(dict_part, len(ten_taxa_cMChain[0].trees[0]))
     assert True
+
+
+def test_get_tree_from_partition(ten_taxa_cMChain):
+    tree = ten_taxa_cMChain[0].trees[0]
+    tree.etree = ctree_to_ete3(tree.ctree)
+    cp = get_conditional_partitions(tree)
+    cp = [cp[k] for k in sorted(cp, reverse=True)[1:]]  # adapting for now
+    nt = get_tree_from_partition(cp, 10)
+    # todo make it a timetree and check the fp distance
+    #  make it a loop for more than one tree to make sure it works
+    assert nt.write(format=5) == tree.get_newick(f=5)
