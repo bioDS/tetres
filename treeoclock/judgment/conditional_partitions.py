@@ -96,6 +96,8 @@ def get_greedy_pp_tree(dict_partitions, n_taxa):
                     h_v = v
         k = h_v
         out.append(h_v)
+    # append last h_v with replaced , for | to get full resolution building the tree
+    out.append(re.sub(",", "|", h_v))
     # calculate a tree from the list of partitions
     return(get_tree_from_partition(out, n_taxa))
 
