@@ -1,4 +1,5 @@
 from treeoclock.trees._converter import ctree_to_ete3
+from treeoclock.trees.time_trees import TimeTree
 import re
 
 
@@ -127,4 +128,4 @@ def get_tree_from_partition(p_list, n_taxa):
             else:
                 node.add_child(name=s)
         rank -= 1
-    return cur_t
+    return TimeTree(cur_t.write(format=0))

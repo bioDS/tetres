@@ -39,11 +39,10 @@ def test_get_greedy_pp_tree(ten_taxa_cMChain):
 
 
 def test_get_tree_from_partition(ten_taxa_cMChain):
-    tree = ten_taxa_cMChain[0].trees[0]
-    tree.etree = ctree_to_ete3(tree.ctree)
-    cp = get_conditional_partitions(tree)
-    cp = [cp[k] for k in sorted(cp, reverse=True)[1:]]  # adapting for now
-    nt = get_tree_from_partition(cp, 10)
-    # todo make it a timetree and check the fp distance
-    #  make it a loop for more than one tree to make sure it works
-    assert nt.write(format=5) == tree.get_newick(f=5)
+    distance_sum = 0
+    for tree in ten_taxa_cMChain[0].trees:
+        cp = get_conditional_partitions(tree)
+        cp = [cp[k] for k in sorted(cp, reverse=True)[1:]]  # adapting for now
+        nt = get_tree_from_partition(cp, 10)
+        distance_sum += nt.fp_distance(tree)
+    assert distance_sum == 0, "Tree from partition failed!"
