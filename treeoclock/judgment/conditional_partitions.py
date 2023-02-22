@@ -1,6 +1,7 @@
 from treeoclock.trees._converter import ctree_to_ete3
 from treeoclock.trees.time_trees import TimeTree
 import re
+import ete3
 
 
 def get_conditional_partitions(tree, as_dict=False):
@@ -96,11 +97,7 @@ def get_greedy_pp_tree(dict_partitions, n_taxa):
         k = h_v
         out.append(h_v)
     # calculate a tree from the list of partitions
-    t = get_tree_from_partition(out, n_taxa)
-    return out
-
-
-import ete3
+    return(get_tree_from_partition(out, n_taxa))
 
 
 def get_tree_from_partition(p_list, n_taxa):
