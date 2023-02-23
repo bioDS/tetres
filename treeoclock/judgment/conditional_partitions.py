@@ -175,9 +175,9 @@ def search_maxpp_tree(dict_partitions, n_taxa):
                     sol[lp].append(k)
                     return lp
                 else:
-                    return -1
+                    return None
     out = rec_max_search(0, list(dict_partitions.keys())[0], level=n_taxa)
-    if out == -1:
+    if out == None:
         return None, None
     # todo check if there is actually anything in sol otherwise return -1 or something
     sol[max(sol)].insert(0, sol[max(sol)][0].replace(",", "|"))
