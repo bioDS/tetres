@@ -153,30 +153,8 @@ def sample_from_dict_partition(dict_partitions, n_taxa, samples=1):
 
 
 def search_maxpp_tree(dict_partitions, n_taxa):
-    # out = []
-    # # todo this is dependent on the fact that the dict is sorted, should be sorted by number of | in string
-    # k = sorted(dict_partitions.keys(), key=len)[0]
-    # while len(out) < n_taxa-2:
-    #     highest = 0
-    #     h_v = 0
-    #     for v in dict_partitions[k]:
-    #         if v != "Count":
-    #             if dict_partitions[k][v] > highest:
-    #                 highest = dict_partitions[k][v]
-    #                 h_v = v
-    #     k = h_v
-    #     out.append(h_v)
-    # # append last h_v with replaced , for | to get full resolution building the tree
-    # out.append(re.sub(",", "|", h_v))
-    # # calculate a tree from the list of partitions
-    #
-    #
-    # return(get_tree_from_partition(out, n_taxa))
     baseline = get_greedy_pp_tree(dict_partitions, n_taxa)
     baseline_p = get_pp(baseline, dict_partitions, log=True)
-
-    # dropping below the baseline_p in log spcae means that the tree is worse, i.e. we can stop
-    # we want to find a maximum in log probability space
 
     sol = {}
 
@@ -185,14 +163,15 @@ def search_maxpp_tree(dict_partitions, n_taxa):
         nonlocal dict_partitions
         nonlocal sol
         if log_p < baseline_p:
-            return -1
+            return None
         if level == 2:
             sol[log_p] = []
             return log_p
         for k in dict_partitions[partition]:
             if k != "Count":
                 lp = rec_max_search(log_p+np.log(dict_partitions[partition][k]/dict_partitions[partition]["Count"]), k, level-1)
-                if lp != -1:
+                if lp != None:
+                    # print(dict_partitions[partition][k], dict_partitions[partition]["Count"])
                     sol[lp].append(k)
                     return lp
                 else:
