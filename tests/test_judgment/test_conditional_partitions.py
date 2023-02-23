@@ -48,6 +48,13 @@ def test_get_tree_from_partition(ten_taxa_cMChain):
     assert distance_sum == 0, "Tree from partition failed!"
 
 
+def test_get_tree_from_partition20(twenty_taxa_tts):
+    cp = get_conditional_partitions(twenty_taxa_tts[0])
+    cp = [cp[k] for k in sorted(cp, reverse=True)[1:]]  # adapting for now
+    nt = get_tree_from_partition(cp, len(twenty_taxa_tts[0]))
+    assert nt.fp_distance(twenty_taxa_tts[0]) == 0, "Get tree form partition for 20 taxa failed!"
+
+
 def test_sample_from_dict_partition(ten_taxa_cMChain):
     dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
     t = sample_from_dict_partition(dict_part, samples=100, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
@@ -56,6 +63,7 @@ def test_sample_from_dict_partition(ten_taxa_cMChain):
 
 def test_search_maxpp_tree(ten_taxa_cMChain):
     dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
-    search_maxpp_tree(dict_part, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
-    # todo add test if logp is actually better
-    assert True
+    t, t_lp = search_maxpp_tree(dict_part, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
+    baseline = get_greedy_pp_tree(dict_part, len(ten_taxa_cMChain[0].trees[0]))
+    baseline_p = get_pp(baseline, dict_part, log=True)
+    assert t_lp > baseline_p, "Branch and bound search went wrong."

@@ -111,7 +111,7 @@ def get_tree_from_partition(p_list, n_taxa):
     # add the first thing manually
     init_split = p_list[0].split("|")
     for split in init_split:
-        if len(split) == 1:
+        if len(split.split(",")) == 1:
             # It splits off a leaf, therefore the distance can be set to the rank n-1
             cur_t.add_child(name=split, dist=n_taxa-1)
         else:
@@ -120,14 +120,12 @@ def get_tree_from_partition(p_list, n_taxa):
     for string in p_list[1:]:
         splits = string.split("|")
         splits = [s for s in splits if s not in cur_t]
-        if splits == []:
-            print("Help")
         # find the node we need to extend:
         node = cur_t.search_nodes(name=",".join(sorted(",".join(splits).split(","), key=int)))[0]
         node.support = rank
         node.dist = node.up.support - rank
         for s in splits:
-            if len(s) == 1:
+            if len(s.split(",")) == 1:
                 node.add_child(name=s, dist=rank)
             else:
                 node.add_child(name=s)
@@ -205,5 +203,4 @@ def search_maxpp_tree(dict_partitions, n_taxa):
     sol[max(sol)].insert(0, sol[max(sol)][0].replace(",", "|"))
     sol[max(sol)].reverse()
     t = get_tree_from_partition(sol[max(sol)], n_taxa)
-    # lp_post = get_pp(t, dict_partitions, log=True)
-    return t
+    return t, max(sol)
