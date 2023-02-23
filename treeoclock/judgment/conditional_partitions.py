@@ -57,13 +57,19 @@ def get_dict_of_partitions(treeset):
     return ret
 
 
-def get_pp(tree, dict_partitions):
+def get_pp(tree, dict_partitions, log=False):
     tree_part = get_conditional_partitions(tree)
-    pp = 1
+    if log:
+        pp=0
+    else:
+        pp = 1
     for k in sorted(tree_part.keys(), reverse=True)[:-2]:
         if tree_part[k] in dict_partitions:
             if tree_part[k-1] in dict_partitions[tree_part[k]]:
-                pp *= (dict_partitions[tree_part[k]][tree_part[k-1]]/dict_partitions[tree_part[k]]["Count"])
+                if log:
+                    pp += np.log(dict_partitions[tree_part[k]][tree_part[k-1]]/dict_partitions[tree_part[k]]["Count"])
+                else:
+                    pp *= (dict_partitions[tree_part[k]][tree_part[k-1]]/dict_partitions[tree_part[k]]["Count"])
             else:
                 return 0
         else:
@@ -78,9 +84,6 @@ def get_pp_coverage(trees):
     for t in trees:
         cov += get_pp(t, dict_partitions)
     return cov
-
-
-# todo general sample from dict_partition function
 
 
 def get_greedy_pp_tree(dict_partitions, n_taxa):
@@ -117,7 +120,8 @@ def get_tree_from_partition(p_list, n_taxa):
     for string in p_list[1:]:
         splits = string.split("|")
         splits = [s for s in splits if s not in cur_t]
-
+        if splits == []:
+            print("Help")
         # find the node we need to extend:
         node = cur_t.search_nodes(name=",".join(sorted(",".join(splits).split(","), key=int)))[0]
         node.support = rank
@@ -136,7 +140,7 @@ def sample_from_dict_partition(dict_partitions, n_taxa, samples=1):
     new_samples = []
     for _ in range(samples):
         out = []
-        # todo this is dependant on the fact that the dict is sorted, should be sorted by number of | in string
+        # todo this is dependent on the fact that the dict is sorted, should be sorted by number of | in string
         k = sorted(dict_partitions.keys(), key=len)[0]
         while len(out) < n_taxa - 2:
             cur_dict = dict_partitions[k].copy()
@@ -144,6 +148,62 @@ def sample_from_dict_partition(dict_partitions, n_taxa, samples=1):
             cur_p = [i / cur_count for i in list(cur_dict.values())]
             out.append(np.random.choice(list(cur_dict.keys()), p=cur_p))
             k = out[-1]
-        out.append(re.sub(",", "|", out[-1]))
+        out.append(re.sub(",", "|", out[-1]))  # todo this probably needs to be sorted?
         new_samples.append(get_tree_from_partition(out, n_taxa))
     return new_samples
+
+
+def search_maxpp_tree(dict_partitions, n_taxa):
+    # out = []
+    # # todo this is dependent on the fact that the dict is sorted, should be sorted by number of | in string
+    # k = sorted(dict_partitions.keys(), key=len)[0]
+    # while len(out) < n_taxa-2:
+    #     highest = 0
+    #     h_v = 0
+    #     for v in dict_partitions[k]:
+    #         if v != "Count":
+    #             if dict_partitions[k][v] > highest:
+    #                 highest = dict_partitions[k][v]
+    #                 h_v = v
+    #     k = h_v
+    #     out.append(h_v)
+    # # append last h_v with replaced , for | to get full resolution building the tree
+    # out.append(re.sub(",", "|", h_v))
+    # # calculate a tree from the list of partitions
+    #
+    #
+    # return(get_tree_from_partition(out, n_taxa))
+    baseline = get_greedy_pp_tree(dict_partitions, n_taxa)
+    baseline_p = get_pp(baseline, dict_partitions, log=True)
+
+    # dropping below the baseline_p in log spcae means that the tree is worse, i.e. we can stop
+    # we want to find a maximum in log probability space
+
+    sol = {}
+
+    # todo recursive search algorithm for a good tree in here
+    #  maybe exhaustive serach?
+    def rec_max_search(log_p, partition, level):
+        nonlocal baseline_p
+        nonlocal dict_partitions
+        nonlocal sol
+        if log_p < baseline_p:
+            return -1
+        if level == 2:
+            sol[log_p] = []
+            return log_p
+        for k in dict_partitions[partition]:
+            if k != "Count":
+                lp = rec_max_search(log_p+np.log(dict_partitions[partition][k]/dict_partitions[partition]["Count"]), k, level-1)
+                if lp != -1:
+                    sol[lp].append(k)
+                    return lp
+                else:
+                    return -1
+    rec_max_search(0, list(dict_partitions.keys())[0], level=n_taxa)
+    # todo check if there is actually anything in sol otherwise return -1 or something
+    sol[max(sol)].insert(0, sol[max(sol)][0].replace(",", "|"))
+    sol[max(sol)].reverse()
+    t = get_tree_from_partition(sol[max(sol)], n_taxa)
+    # lp_post = get_pp(t, dict_partitions, log=True)
+    return t

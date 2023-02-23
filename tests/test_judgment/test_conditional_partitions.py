@@ -1,4 +1,4 @@
-from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_pp_coverage, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition
+from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_pp_coverage, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree
 
 
 def test_get_conditional_partitions(ten_taxa_cMChain):
@@ -51,4 +51,11 @@ def test_get_tree_from_partition(ten_taxa_cMChain):
 def test_sample_from_dict_partition(ten_taxa_cMChain):
     dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
     t = sample_from_dict_partition(dict_part, samples=100, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
+    assert True
+
+
+def test_search_maxpp_tree(ten_taxa_cMChain):
+    dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
+    search_maxpp_tree(dict_part, n_taxa=len(ten_taxa_cMChain[0].trees[0]))
+    # todo add test if logp is actually better
     assert True
