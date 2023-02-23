@@ -34,7 +34,7 @@ def get_conditional_partitions(tree, as_dict=False):
         cur_split = rc_dict[rank]
         to_be_mod = rc_dict[rank+1]
         to_be_swapped = ','.join(sorted([t for t in re.split(r',|\|', cur_split)], key=int))
-        rc_dict[rank] = re.sub(to_be_swapped, cur_split, to_be_mod)
+        rc_dict[rank] = re.sub(fr"{to_be_swapped}(?=$|[^\d])",cur_split, to_be_mod)
     # return set of strings for a tree
     return rc_dict
 
@@ -110,13 +110,14 @@ def get_tree_from_partition(p_list, n_taxa):
     cur_t = ete3.Tree(support=n_taxa-1, name=",".join([str(i) for i in range(1, n_taxa+1)]))
     # add the first thing manually
     init_split = p_list[0].split("|")
+    rank = n_taxa-1
     for split in init_split:
         if len(split.split(",")) == 1:
             # It splits off a leaf, therefore the distance can be set to the rank n-1
-            cur_t.add_child(name=split, dist=n_taxa-1)
+            cur_t.add_child(name=split, dist=rank)
         else:
             cur_t.add_child(name=split)
-    rank = n_taxa-2
+    rank -= 1
     for string in p_list[1:]:
         splits = string.split("|")
         splits = [s for s in splits if s not in cur_t]
@@ -179,8 +180,6 @@ def search_maxpp_tree(dict_partitions, n_taxa):
 
     sol = {}
 
-    # todo recursive search algorithm for a good tree in here
-    #  maybe exhaustive serach?
     def rec_max_search(log_p, partition, level):
         nonlocal baseline_p
         nonlocal dict_partitions
@@ -198,7 +197,9 @@ def search_maxpp_tree(dict_partitions, n_taxa):
                     return lp
                 else:
                     return -1
-    rec_max_search(0, list(dict_partitions.keys())[0], level=n_taxa)
+    out = rec_max_search(0, list(dict_partitions.keys())[0], level=n_taxa)
+    if out == -1:
+        return None, None
     # todo check if there is actually anything in sol otherwise return -1 or something
     sol[max(sol)].insert(0, sol[max(sol)][0].replace(",", "|"))
     sol[max(sol)].reverse()
