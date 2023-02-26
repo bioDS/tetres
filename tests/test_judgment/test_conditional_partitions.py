@@ -1,4 +1,4 @@
-from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_pp_coverage, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree
+from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree
 
 
 def test_get_conditional_partitions(ten_taxa_cMChain):
@@ -14,11 +14,6 @@ def test_get_list_of_partitions(ten_taxa_cMChain):
 def test_get_pp(ten_taxa_cMChain):
     dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
     pp = get_pp(ten_taxa_cMChain[0].trees[0], dict_part)
-    assert True
-
-
-def test_get_pp_coverage(ten_taxa_cMChain):
-    cov = get_pp_coverage(ten_taxa_cMChain[0].trees)
     assert True
 
 
