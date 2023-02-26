@@ -2,41 +2,43 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-# todo in the future a cluster parameter will be added
-# todo in the future likely a center parameter will be added to visualize summary trees
-# todo in the future maybe adding a dimension parameter ?
-def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=False):
+
+def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=False, sizes=False, cmap=plt.cm.tab10, color_scaling=False):
     # Normalizing the colors
-    if colors is not None:
+
+    internal_colors = colors
+    if color_scaling:
+        # this scales the colors to be in the interval 0 to 1
+        # useful if you look at values such as likelihood or unnormed probabilities
         internal_colors = [(c - np.min(colors)) / (np.max(colors) - np.min(colors)) for c in colors]
-    else:
+    if colors is None:
+        # no colors given, everything in the same color
         internal_colors = [1 for _ in range(coords.shape[0])]
-    cmap = plt.cm.tab10_r
+    # the colors are
     internal_colors = [cmap(c) for c in internal_colors]
-    
-    # todo s is the size, so it would be possible to scale based on the colors
-    #  or also another value
-    s = [5 for _ in range(coords.shape[0])]
+
+    if not sizes:
+        sizes = [5 for _ in range(coords.shape[0])]
 
     if coords.shape[1] == 2:
         x, y = zip(*coords)
-        plt.scatter(x, y, color=internal_colors, s=s, alpha=0.2)
+        plt.scatter(x, y, c=internal_colors, s=sizes, alpha=0.2)
         if centers is not None:
             for i in range(1, centers + 1):
-                plt.scatter(x[-i], y[-i], color=internal_colors[-i], s=s[-i]*3, alpha=1)
+                plt.scatter(x[-i], y[-i], color=internal_colors[-i], s=sizes[-i]*3, alpha=1)
     elif coords.shape[1] == 3:
         x, y, z = zip(*coords)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x, y, z, color=internal_colors, s=s, alpha=0.5)
+        ax.scatter(x, y, z, color=internal_colors, s=sizes, alpha=0.5)
         if centers is not None:
             for i in range(1, centers + 1):
-                plt.scatter(x[-i], y[-i], z[-i], color=internal_colors[-i], s=s[-i]*3, alpha=1)
+                plt.scatter(x[-i], y[-i], z[-i], color=internal_colors[-i], s=sizes[-i]*3, alpha=1)
     else:
         raise ValueError(f"Unsupported number of dimensions to plot {coords.shape[1]}!")
 
-    # if colors is not None:
     if colorbar:
+        # todo is this acurate?
         plt.colorbar(plt.cm.ScalarMappable(norm=None, cmap=cmap), orientation="horizontal")
 
     if filename is None:
