@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 
 
-def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=False, sizes=False, cmap=plt.cm.tab10, color_scaling=False):
+def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=False, sizes=False, cmap=plt.cm.tab10, color_scaling=False, scale_centers=1):
     # Normalizing the colors
 
     internal_colors = colors
@@ -23,17 +23,27 @@ def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=Fals
     if coords.shape[1] == 2:
         x, y = zip(*coords)
         plt.scatter(x, y, c=internal_colors, s=sizes, alpha=0.2)
-        if centers is not None:
-            for i in range(1, centers + 1):
-                plt.scatter(x[-i], y[-i], color=internal_colors[-i], s=sizes[-i]*3, alpha=1)
+        if centers:
+            for i in range(1, len(centers) + 1):
+                plt.scatter(x[-i], y[-i], color=internal_colors[-i], s=sizes[-i]*scale_centers, alpha=1)
+                # adding a legend that identifies the centers with their respective colors
+                markers = [plt.Line2D([0, 0], [0, 0], color=internal_colors[-i], marker='o', linestyle='') for i in
+                           range(1, len(centers) + 1)]
+                plt.legend(markers, centers, numpoints=1, loc="upper center", fancybox=True, ncol=len(centers),
+                           bbox_to_anchor=(0.5, 1.15), shadow=True)
     elif coords.shape[1] == 3:
         x, y, z = zip(*coords)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x, y, z, color=internal_colors, s=sizes, alpha=0.5)
-        if centers is not None:
-            for i in range(1, centers + 1):
-                plt.scatter(x[-i], y[-i], z[-i], color=internal_colors[-i], s=sizes[-i]*3, alpha=1)
+        ax.scatter(x, y, z, color=internal_colors, s=sizes, alpha=0.2)
+        if centers:
+            for i in range(1, len(centers) + 1):
+                ax.scatter(x[-i], y[-i], z[-i], color=internal_colors[-i], s=sizes[-i]*scale_centers, alpha=1)
+                # adding a legend that identifies the centers with their respective colors
+                markers = [plt.Line2D([0, 0], [0, 0], color=internal_colors[-i], marker='o', linestyle='') for i in
+                           range(1, len(centers) + 1)]
+                plt.legend(markers, centers, numpoints=1, loc="upper center", fancybox=True, ncol=len(centers),
+                           bbox_to_anchor=(0.5, 1.15), shadow=True)
     else:
         raise ValueError(f"Unsupported number of dimensions to plot {coords.shape[1]}!")
 

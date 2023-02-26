@@ -18,12 +18,12 @@ def test_plot_coords_3d(ten_taxa_cMChain):
 
 def test_plot_coords_cluster_2d(ten_taxa_cMChain):
     coords = tsne_coords_from_mchain(ten_taxa_cMChain[1], dim=2)
-    plot_coords(coords, colors=ten_taxa_cMChain[1].spectral_clustree())
+    plot_coords(coords, colors=ten_taxa_cMChain[1].spectral_clustree(), colorbar=True, centers=["C1", "C2"], scale_centers=3)
 
 
 def test_plot_coords_cluster_3d(ten_taxa_cMChain):
     coords = tsne_coords_from_mchain(ten_taxa_cMChain[1], dim=3)
-    plot_coords(coords, colors=ten_taxa_cMChain[1].spectral_clustree())
+    plot_coords(coords, colors=ten_taxa_cMChain[1].spectral_clustree(), colorbar=True, centers=["C1", "C3"], scale_centers=3)
 
 
 def test_plot_density(ten_taxa_cMChain):
