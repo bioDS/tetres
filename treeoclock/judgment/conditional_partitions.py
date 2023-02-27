@@ -97,6 +97,55 @@ def get_greedy_pp_tree(dict_partitions, n_taxa):
     return(get_tree_from_partition(out, n_taxa))
 
 
+def are_compatible(partition1, partition2):
+    set1 = set(partition1.split("|"))
+    set2 = set(partition2.split("|"))
+    d1 = set1 -set2
+    d2 = set2 - set1
+    if len(d1) > len(d2):
+        # switching so that d1 is the smaller set
+        d1, d2 = d2, d1
+    if len(d1) !=1:
+        return False
+    if len(d2) != 2:
+        return False
+    d2_union = d2.pop() + "," + d2.pop()
+    return ",".join(sorted(d2_union.split(','), key=int)) in d1
+
+
+def get_greedy_relaxed_pp_tree(dict_partitions, n_taxa):
+    out = []
+    # todo this is dependant on the fact that the dict is sorted, should be sorted by number of | in string
+    out.append(sorted(dict_partitions.keys(), key=len)[0])
+    while len(out) < n_taxa-1:
+        cur_dict = dict_partitions[out[-1]].copy()
+        cur_dict.pop("Count")
+        # find all rank 2 keys in dict_partitions
+        for other_k in dict_partitions:
+            if other_k != "Count" and other_k != out[-1]:
+                if len(other_k.split("|")) == len(out[-1].split("|")):
+                    for sub_other_k in dict_partitions[other_k]:
+                        if are_compatible(sub_other_k, out[-1]):
+                            if sub_other_k in cur_dict:
+                                cur_dict[sub_other_k] += dict_partitions[other_k][sub_other_k]
+                            else:
+                                cur_dict[sub_other_k] = dict_partitions[other_k][sub_other_k]
+        # todo this is not relevant here, but I need this for the calculation of probabilities so the datastructure needs to be adapted for these relaxed probabilities
+        #  probably just calculate the dicitonary like this in the first place so that i can use the same greedy choice algorithm than before?
+        sum_counts = 1
+        highest = 0
+        h_v = 0
+        for k in cur_dict:
+            if cur_dict[k] > highest:
+                    highest = cur_dict[k]
+                    h_v = k
+        out.append(h_v)
+    # append last h_v with replaced , for | to get full resolution building the tree
+    out.append(re.sub(",", "|", out[-1]))
+    # calculate a tree from the list of partitions
+    return get_tree_from_partition(out[1:], n_taxa)
+
+
 def get_tree_from_partition(p_list, n_taxa):
     cur_t = ete3.Tree(support=n_taxa-1, name=",".join([str(i) for i in range(1, n_taxa+1)]))
     # add the first thing manually

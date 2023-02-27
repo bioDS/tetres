@@ -1,4 +1,4 @@
-from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree
+from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree, get_greedy_relaxed_pp_tree, are_compatible
 
 
 def test_get_conditional_partitions(ten_taxa_cMChain):
@@ -31,6 +31,25 @@ def test_get_greedy_pp_tree(ten_taxa_cMChain):
     dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
     tree = get_greedy_pp_tree(dict_part, len(ten_taxa_cMChain[0].trees[0]))
     assert True
+
+
+def test_are_compatible(ten_taxa_cMChain):
+    dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
+    keys = list(dict_part.keys())
+    assert are_compatible(keys[1], keys[2]), "Are compatible function failed"
+
+
+def test_are_compatible2(ten_taxa_cMChain):
+    dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
+    keys = list(dict_part.keys())
+    assert not are_compatible(keys[1], keys[3]), "Are compatible function failed"
+
+
+def test_get_greedy_relaxed_pp_tree(ten_taxa_cMChain):
+    dict_part = get_dict_of_partitions(ten_taxa_cMChain[0].trees)
+    relaxed_tree = get_greedy_relaxed_pp_tree(dict_part, len(ten_taxa_cMChain[0].trees[0]))
+    greedy_tree = get_greedy_pp_tree(dict_part, len(ten_taxa_cMChain[0].trees[0]))
+    assert relaxed_tree.fp_distance(greedy_tree) == 1, "Something went wrong with relaxed greedy!"
 
 
 def test_get_tree_from_partition(ten_taxa_cMChain):
