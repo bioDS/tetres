@@ -3,6 +3,7 @@ from treeoclock.trees.time_trees import TimeTree
 import re
 import ete3
 import numpy as np
+import copy
 
 
 def get_conditional_partitions(tree, as_dict=False):
@@ -111,6 +112,29 @@ def are_compatible(partition1, partition2):
         return False
     d2_union = d2.pop() + "," + d2.pop()
     return ",".join(sorted(d2_union.split(','), key=int)) in d1
+
+
+def convert_to_relaxed_partition_dict(dict_partitions, ret_newpaths_count=False):
+    relaxed_dict = copy.deepcopy(dict_partitions)
+    new_paths = 0
+    # todo implement this and test it vs the greedy relaxed one ....
+    for fix_partition in dict_partitions:
+        for other_partition in dict_partitions:
+            if fix_partition != other_partition:
+                if len(fix_partition.split("|")) == len(other_partition.split("|")):
+                    for sub_partition in dict_partitions[other_partition]:
+                        if sub_partition != "Count":
+                            if are_compatible(sub_partition, fix_partition):
+                                new_paths += 1
+                                if sub_partition in relaxed_dict[fix_partition]:
+                                    relaxed_dict[fix_partition][sub_partition] += dict_partitions[other_partition][sub_partition]
+                                else:
+                                    relaxed_dict[fix_partition][sub_partition] = dict_partitions[other_partition][sub_partition]
+                                relaxed_dict[fix_partition]["Count"] += dict_partitions[other_partition][sub_partition]
+    # print(f"NewPaths: {new_paths}")
+    if ret_newpaths_count:
+        return new_paths, relaxed_dict
+    return relaxed_dict
 
 
 def get_greedy_relaxed_pp_tree(dict_partitions, n_taxa):
