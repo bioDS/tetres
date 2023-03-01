@@ -63,7 +63,7 @@ def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, ch
     m = matrix.shape[0]
 
     summaries = []
-    if k is 1:
+    if k == 1:
         clustering = np.zeros(m, dtype=int)
         if _overwrite:
             try:
@@ -106,7 +106,7 @@ def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, ch
             cur_treeset.trees = [treeset[index] for index, x in enumerate(clustering) if x == k_cluster]
 
             # cur_trees = [trees[index] for index, x in enumerate(clustering) if x == cluster]
-            if len(cur_treeset) is not 0:  # todo empty clusters????
+            if len(cur_treeset) != 0:  # todo empty clusters????
                 if _overwrite:
                     try:
                         os.remove(f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree')
