@@ -6,11 +6,9 @@ def test_BIC_1_false(ten_taxa_cMChain):
 
     bic, mnd_cluster = BIC(treeset=ten_taxa_cMChain[0].trees,
                            matrix=ten_taxa_cMChain.pwd_matrix(0),
-                           k=1, local=False,
+                           k=1, local_norm=False,
                            working_folder=ten_taxa_cMChain.working_dir,
-                           add_random=False,
-                           matrix_is_similarity=False
-                           )
+                           random_shuffle=False)
     assert int(bic) == 395, "BIC for 1 cluster failed"
 
 
@@ -19,7 +17,7 @@ def test_BIC_1_true(ten_taxa_cMChain):
                            matrix=ten_taxa_cMChain.pwd_matrix(0),
                            k=2, local_norm=False,
                            working_folder=ten_taxa_cMChain.working_dir,
-                           add_random=False, _overwrite=True)
+                           random_shuffle=False, _overwrite=True)
     assert int(bic) == 398, "BIC for 2 clusters failed"
 
 
