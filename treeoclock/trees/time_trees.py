@@ -212,6 +212,27 @@ class TimeTreeSet:
                     ret_dict[e[1]] = [rank]
         return ret_dict
 
+    def write_nexus(self, file_name, name="TimeTree"):
+        try:
+            file = open(file_name, "x")
+            file.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self.trees[0].ctree.num_leaves};\n\t\tTaxlabels\n")
+            for taxa in range(1, self.trees[0].ctree.num_leaves + 1):
+                file.write(f"\t\t\t{self.map[taxa]}\n")
+            file.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
+            for taxa in range(1, self.trees[0].ctree.num_leaves):
+                file.write(f"\t\t\t{taxa} {self.map[taxa]},\n")
+            file.write(
+                f"\t\t\t{self.trees[0].ctree.num_leaves} {self.map[self.trees[0].ctree.num_leaves]}\n")
+            file.write(";\n")
+            count = 1
+            for t in self.trees:
+                file.write(f"tree {name}-{count} = {t.get_newick()}\n")
+                count += 1
+            file.write("End;")
+            file.close()
+        except FileExistsError:
+            raise FileExistsError("File already exists, manual deletion required!")
+
 def read_nexus(file: str) -> list:
     # re_tree returns nwk string without the root height and no ; in the end
     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
