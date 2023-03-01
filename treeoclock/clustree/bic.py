@@ -2,6 +2,7 @@ __author__ = "Lars Berling"
 
 from treeoclock.clustree.spectral_clustree import spectral_clustree_dm
 from treeoclock.summary.centroid import Centroid
+from treeoclock.trees.time_trees import TimeTreeSet
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ import pandas as pd
 import random
 
 
-def mean_normalized_distance(treeset, summaries, clustering, local=-1):
+def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
     """
     Computes the mean normalized distances given a set of trees, set of summary trees and a clustering
 
@@ -30,9 +31,9 @@ def mean_normalized_distance(treeset, summaries, clustering, local=-1):
     n = len(treeset[0])  # number of taxa
 
     # todo optimize this with a given local parameter
-    if local != -1:
+    if local_norm:
         # This will normalize with the maximum distance two trees have in the given set
-        divisor = local
+        divisor = local_norm
         # print(f'{divisor} -- max dist\n{((n - 1) * (n - 2) / 2)} -- diameter')
     else:
         # Normalizing with the maximum distance two trees can have, global normalization
@@ -45,7 +46,7 @@ def mean_normalized_distance(treeset, summaries, clustering, local=-1):
     return mnd_cluster
 
 
-def BIC(treeset, matrix, k, local_normalization, working_folder, add_random=False, chain_id='', _overwrite=False):
+def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, chain_id='myChain', _overwrite=False):
 
     # todo add other clusterings in the future
 
@@ -64,72 +65,69 @@ def BIC(treeset, matrix, k, local_normalization, working_folder, add_random=Fals
     summaries = []
     if k is 1:
         clustering = np.zeros(m, dtype=int)
-
         if _overwrite:
             try:
-                os.remove(f'{cluster_folder}/sc-{k}_0.tree')
+                os.remove(f'{cluster_folder}/sc-{k}-{chain_id}.tree')
             except FileNotFoundError:
                 pass
-
-        if os.path.exists(f'{cluster_folder}/sc-{k}_0.tree'):
-            raise ValueError('NEED to implement read centroid from file, as timetree')
-            # todo do i need to check the map for this? probably just assume that it is correct for now
+        if os.path.exists(f'{cluster_folder}/sc-{k}-{chain_id}.tree'):
+            # Assumes that the map is always the same
+            cen = TimeTreeSet(file=f'{cluster_folder}/sc-{k}-{chain_id}.tree')[0]
         else:
-            # todo call the centroid 5 times and take the best tree out of all of them  -- should be a parameter given
             centroid = Centroid()
             cen, sos = centroid.compute_centroid(treeset)
-            with open(f'{cluster_folder}/sc-{k}_0.tree', 'w+') as summary_out:
-                # todo write time tree to newick
-                # summary_out.write(f'{str(cen.get_newick(f=5))}\n')
-                raise ValueError('NEED to implement function, write tree to newick')
+            for _ in range(10):
+                new_cen, new_sos = centroid.compute_centroid(treeset)
+                if new_sos < sos:
+                    cen, sos = new_cen, new_sos
+            cen.write_nexus(treeset.map, f'{cluster_folder}/sc-{k}-{chain_id}.tree', name=f"Cen-{k}-{chain_id}")
+
         summaries.append(cen)
     else:
         if _overwrite:
             try:
-                os.remove(f"{cluster_folder}/sc-{k}-{chain_id}.csv")
+                os.remove(f"{cluster_folder}/sc-{k}-{chain_id}.npy")
             except FileNotFoundError:
                 pass
 
-        if os.path.exists(f"{cluster_folder}/sc-{k}-{chain_id}.csv"):
-            clustering = np.genfromtxt(f"{cluster_folder}/sc-{k}-{chain_id}.csv", dtype=int)
+        if os.path.exists(f"{cluster_folder}/sc-{k}-{chain_id}.npy"):
+            clustering = np.load(f"{cluster_folder}/sc-{k}-{chain_id}.npy")
         else:
             clustering = spectral_clustree_dm(matrix, n_clus=k, beta=1)
-            np.save(
-                file=f"{cluster_folder}/sc-{k}-{chain_id}.csv",
-                # todo maybe add rf option in the future, or other distances
-                arr=clustering)
+            np.save(file=f"{cluster_folder}/sc-{k}-{chain_id}", arr=clustering)
 
-        if add_random:
+        if random_shuffle:
             random.shuffle(clustering)
 
         for k_cluster in range(k):
-            # todo test this, maybe i need to do something else than just list comprehension here
-            cur_treeset = [treeset[index] for index, x in enumerate(clustering) if x == k_cluster]
+            # Creating a TimeTreeSet for the k-th cluster
+            cur_treeset = TimeTreeSet()
+            cur_treeset.map = treeset.map
+            cur_treeset.trees = [treeset[index] for index, x in enumerate(clustering) if x == k_cluster]
+
             # cur_trees = [trees[index] for index, x in enumerate(clustering) if x == cluster]
             if len(cur_treeset) is not 0:  # todo empty clusters????
                 if _overwrite:
                     try:
-                        os.remove(f'{cluster_folder}/sc-{k}_{k_cluster}.tree')
+                        os.remove(f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree')
                     except FileNotFoundError:
                         pass
-
-                if os.path.exists(f'{cluster_folder}/sc-{k}_{k_cluster}.tree'):
-                    raise ValueError('Need to read tree at this point!')
+                if os.path.exists(f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree'):
+                    cen = TimeTreeSet(file=f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree')[0]
                 else:
-                    # todo change to do best of 5 centroids -- should be a parameter given
                     centroid = Centroid()
-                    cen, sos = centroid.compute_centroid(cur_treeset)
-                    with open(f'{cluster_folder}/sc-{k}_0.tree', 'w+') as summary_out:
-                        # todo write time tree to newick
-                        # summary_out.write(f'{str(cen.get_newick(f=5))}\n')
-                        raise ValueError('NEED to implement function, write tree to newick ...')
+                    cen, sos = centroid.compute_centroid(treeset)
+                    for _ in range(10):
+                        new_cen, new_sos = centroid.compute_centroid(treeset)
+                        if new_sos < sos:
+                            cen, sos = new_cen, new_sos
+                    cen.write_nexus(treeset.map, f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree', name=f"Cen-{k}-k{k_cluster}-{chain_id}")
                 summaries.append(cen)
             else:
                 summaries.append([None])
-    local_norm = -1
-    if local_normalization:
+    if local_norm:
         local_norm = np.max(matrix)
-    mnd_cluster = mean_normalized_distance(treeset, summaries, clustering, local=local_norm)
+    mnd_cluster = mean_normalized_distance(treeset, summaries, clustering, local_norm=local_norm)
 
     # TODO division by 0 is sometimes possible for bic computation,
     #  maybe only if empty cluster exists, therefore delete that bit
@@ -137,7 +135,7 @@ def BIC(treeset, matrix, k, local_normalization, working_folder, add_random=Fals
     return bic, mnd_cluster
 
 
-def plot_bic(treeset, matrix, max_cluster=5, local=False, add_random=False, working_folder="", name=""):
+def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False, working_folder="", name="", _overwrite=False):
     """
     Saves the BIC plot for cluster evaluation
 
@@ -150,126 +148,125 @@ def plot_bic(treeset, matrix, max_cluster=5, local=False, add_random=False, work
     :type tree_name: string
     :param max_cluster: The max number for which to plot/compute the BIC, defaults to 10
     :type max_cluster: int
-    :param local: Whether to use local scale or diameter for normalization of the distance, defaults to False
-    :type local: bool
+    :param local_norm: Whether to use local scale or diameter for normalization of the distance, defaults to False
+    :type local_norm: bool
     :param add_random: Add BIC of a randomly shuffled clustering, defaults to False
     :type add_random: bool
     :param ward: Whether to use Ward or spectral clustering, defaults to False
     :type ward: bool
     :return: Saves the BIC cluster evaluation plot
     """
+    if _overwrite:
+        try:
+            os.remove(f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png")
+        except FileNotFoundError:
+            pass
+    if os.path.exists(f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png"):
+        raise FileExistsError("Plot already exists -- pass _overwrite=True if you wish to recompute.")
 
-    # mkdir_p(f'MDS_Plots/{tree_name}/Cluster_Summary')
-    global max_dist
     bic_values = []
     mnd_list = []
     random_bic = []
     rand_mnd_list = []
     for i in range(max_cluster):
         bic, mnd_cluster = BIC(treeset=treeset,
-                           matrix=matrix,
-                           k=i+1, local=False,
-                           working_folder=working_folder,
-                           add_random=False,
-                           matrix_is_similarity=False)
+                               matrix=matrix,
+                               k=i+1, local_norm=local_norm,
+                               working_folder=working_folder,
+                               _overwrite=_overwrite,
+                               chain_id=name
+                               )
         bic_values.append(bic)
         mnd_list.append(mnd_cluster)
-        # if add_random:
-        #     rand_bic, rand_mnd = BIC(tree_name, i + 1, local, add_random)
-        #     random_bic.append(rand_bic)
-        #     rand_mnd_list.append(rand_mnd)
+        if add_random:
+            rand_bic, rand_mnd = BIC(treeset=treeset,
+                                     matrix=matrix,
+                                     k=i+1, local_norm=local_norm,
+                                     working_folder=working_folder,
+                                     _overwrite=_overwrite,
+                                     chain_id=name,
+                                     random_shuffle=True)
+            random_bic.append(rand_bic)
+            rand_mnd_list.append(rand_mnd)
 
-    fig, ax = plt.subplots()
-    ax2 = ax.twinx()
+    df = pd.DataFrame(mnd_list)  # creating mean normalized distances dataframe
 
-    df = pd.DataFrame(mnd_list)
+    if not add_random:
+        fig, ax = plt.subplots()
+        ax2 = ax.twinx()
 
-    df.plot.bar(stacked=True, ax=ax)
+        df.plot.bar(stacked=True, ax=ax)
 
-    ax.set_ylabel('Mean normalised distance')
+        ax.set_ylabel('Mean normalised distance')
 
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax.legend(loc='center left', bbox_to_anchor=(1.2, 0.5))
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1.2, 0.5))
 
-    ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
-    # if add_random:
-    #     ax2.plot(range(len(random_bic)), random_bic, color='blue', label='random BIC')
-    
-    ax2.set_ylabel('BIC')
-    ax2.legend()
-    ax2.set_xlabel('Number of clusters k')
+        ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
 
-    sug_k = bic_values.index(min(bic_values))+1
+        ax2.set_ylabel('BIC')
+        ax2.legend()  # todo set legend outside of plot, on the top same as for plot_coords function
+        ax2.set_xlabel('Number of clusters k')
 
-    plt.suptitle(f"BIC - k = {sug_k} clusters suggested")
+        sug_k = bic_values.index(min(bic_values))+1
 
-    plt.xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
+        plt.suptitle(f"BIC - k = {sug_k} clusters suggested")
 
-    # mkdir.mkdir_p("MDS_Plots/BIC_Plots")
+        plt.xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
-    plt.savefig(f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local else ''}{name}.png",
+    else:
+        fig, ax = plt.subplots(nrows=1, ncols=2)
+
+        ax2 = ax[0].twinx()
+
+        df.plot.bar(stacked=True, ax=ax[0])
+
+        ax[0].set_ylabel('Mean normalised distance')
+
+        box = ax[0].get_position()
+        ax[0].set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax[0].legend(loc='center left', bbox_to_anchor=(1.2, 0.5))
+
+        ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
+
+        ax2.set_ylabel('BIC')
+
+        # ax2.legend()
+
+        ax2.set_xlabel('Number of clusters k')
+
+        sug_k = bic_values.index(min(bic_values)) + 1
+
+        plt.suptitle(f"BIC - k = {sug_k} clusters suggested")
+
+        ax[0].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
+
+        # adding the random plot to the second subplot
+
+        # todo this needs to have the double axis and all the same things as the other thing
+
+        df_rand = pd.DataFrame(rand_mnd_list)
+        ax3 = ax[1].twinx()
+
+        df_rand.plot.bar(stacked=True, ax=ax[1])
+
+        box = ax[1].get_position()
+        ax[1].set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        ax3.plot(range(len(random_bic)), random_bic, color='blue', label='random BIC')
+        ax3.set_ylabel("BIC")
+
+
+        ax[1].legend(loc='center right', bbox_to_anchor=(1.2, 0.5))
+        ax3.set_xlabel('Number of cluster k')
+        # .ylabel('Mean normalised distance')
+        # plt.suptitle('Mean Normalized distance for random clustering')
+        ax[1].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
+
+    # todo change to eps, or make the option available at some point
+    plt.tight_layout()
+    plt.savefig(f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png",
                 bbox_inches='tight', dpi=200)
-
-
-    max_dist = None
-    plt.close()
-
-    # Not needed right now
-    # todo if add_random is true we should make it a subplot left normal and right the random clustering
-    # if add_random:
-    #     fig, ax = plt.subplots()
-    #     df = pd.DataFrame(rand_mnd_list)
-    #     df.plot.bar(stacked=True, ax=ax)
-    #     box = ax.get_position()
-    #     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    #     ax.legend(loc='center left', bbox_to_anchor=(1.2, 0.5))
-    #     plt.xlabel('Number of cluster k')
-    #     plt.ylabel('Mean normalised distance')
-    #     plt.suptitle('Mean Normalized distance for random clustering')
-    #     plt.xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
-    #     plt.savefig(
-    #         f"MDS_Plots/BIC_Plots/MND_random_{'local_' if local else ''}{tree_name}.png",
-    #         bbox_inches='tight')
-    #     plt.clf()
     plt.clf()
-
-
-def plot_cluster_sizes(tree_name, max_cluster=10):
-
-    """
-    Reads all the clusterings from 2 to max_cluster and plots their sizes as a stacked bar plot.
-
-    :param tree_name: Specifies the folder in MDS_Plots/{tree_name}
-    :type tree_name: string
-    :param max_cluster: The max number for which to plot the sizes, defaults to 10
-    :type max_cluster: int
-    :return: Saves a cluster sizes plot in MDS_Plots/{tree_name}
-    """
-
-    raise ValueError('Not adapted to this package yet ...')
-
-    # cluster_sizes = []
-    # for i in range(max_cluster):
-    #     if i > 0:
-    #         clustering = np.genfromtxt(f'MDS_Plots/{tree_name}/{i + 1}clustering_{tree_name}.csv', dtype=int)
-    #     else:
-    #         clustering = np.zeros(
-    #             len(np.genfromtxt(f'MDS_Plots/{tree_name}/{i + 2}clustering_{tree_name}.csv', dtype=int)),
-    #             dtype=int)
-    #     cluster_sizes.append(collections.Counter(clustering))
-    #
-    # df = pd.DataFrame(cluster_sizes)
-    #
-    # ax = df.plot.bar(stacked=True)
-    #
-    # plt.xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
-    # plt.ylabel('Number of trees')
-    # plt.xlabel('Number of clusters k')
-    #
-    # box = ax.get_position()
-    # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    # # plt.show()
-    # plt.savefig(f"MDS_Plots/{tree_name}/Cluster_sizes_{tree_name}.png", bbox_inches='tight')
-
+    plt.close()
