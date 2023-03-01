@@ -216,7 +216,7 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
         plt.xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
     else:
-        fig, ax = plt.subplots(nrows=1, ncols=2)
+        fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(7, 7))  # todo figure out a good size
 
         ax2 = ax[0].twinx()
 
@@ -226,7 +226,8 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
 
         box = ax[0].get_position()
         ax[0].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        ax[0].legend(loc='center left', bbox_to_anchor=(1.2, 0.5))
+
+        ax[0].legend(loc='center left', bbox_to_anchor=(1.15, 0.5))
 
         ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
 
@@ -242,10 +243,8 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
 
         ax[0].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
+
         # adding the random plot to the second subplot
-
-        # todo this needs to have the double axis and all the same things as the other thing
-
         df_rand = pd.DataFrame(rand_mnd_list)
         ax3 = ax[1].twinx()
 
@@ -256,11 +255,11 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
 
         ax3.plot(range(len(random_bic)), random_bic, color='blue', label='random BIC')
         ax3.set_ylabel("BIC")
+        ax[1].set_ylabel('Mean normalised distance')
 
-
-        ax[1].legend(loc='center right', bbox_to_anchor=(1.2, 0.5))
+        ax[1].legend(loc='center left', bbox_to_anchor=(1.15, 0.5))
         ax3.set_xlabel('Number of cluster k')
-        # .ylabel('Mean normalised distance')
+        ax[1].title.set_text("Random clustering")
         # plt.suptitle('Mean Normalized distance for random clustering')
         ax[1].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
