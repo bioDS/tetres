@@ -22,6 +22,7 @@ def silhouette_score(matrix, k, working_folder, local_norm=False, random_shuffle
     if k == 1:
         raise ValueError("Silhouette for a single cluster not implemented!")
 
+    # todo the clustering should not be calculated here, but rather a parameter, therefore this will be removed soon
     if _overwrite:
         try:
             os.remove(f"{cluster_folder}/sc-{k}-{chain_id}.npy")
@@ -95,32 +96,28 @@ def silhouette_score(matrix, k, working_folder, local_norm=False, random_shuffle
     return np.mean(s)
 
 
-def plot_silhouette(treeset, matrix, max_cluster=5, var=0, add_random=False, working_folder="", name="", _overwrite=False):
-    """
-    Saves the Silhouette plot for cluster evaluation
-
-    :param tree_name: Specifies the folder MDS_Plots/{tree_name}
-    :type tree_name: string
-    :param max_cluster: The max number for which to plot/compute the silhouette, defaults to 10
-    :type max_cluster: int
-    :param add_random: Whether to add a random shuffle of the clustering, defaults to False
-    :type add_random: bool
-    :param ward: Whether to use ward or spectral clustering, defaults to False
-    :type ward: bool
-    :param var: The variation of the silhouette score to use, defaults to 0
-    :type var: int in [0, 1, 2]
-    :return: Saves the silhouette evaluation plot
-    """
+def plot_silhouette(matrix, max_cluster=5, local_norm=False, add_random=False, working_folder="", _overwrite=False, name="MyChain"):
 
     # todo add silhouette score = 0 for a 1 clustering, recheck with the paper or method how this works
+    if os.path.exists(f"{working_folder}/plots/Silhouette_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png"):
+        if _overwrite:
+            os.remove(f"{working_folder}/plots/Silhouette_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png")
+        else:
+            raise FileExistsError("Use _overwrite=True to overwrite the already existing plot.")
 
     sil_scores = []
     random_sil_scores = []
     for i in range(2, max_cluster + 1):
-        s = silhouette_score(tree_name, i, var=var, plot=False)  # todo adapt to new signature
+        s = silhouette_score(matrix=matrix,
+                           k=i, local_norm=True,
+                           working_folder=working_folder,
+                           random_shuffle=False)
         sil_scores.append(s)
         if add_random:
-            rs = silhouette_score(tree_name, i, var=0, plot=False, random_cluster=True)  # todo adapt to new signature
+            rs = silhouette_score(matrix=matrix,
+                           k=i, local_norm=True,
+                           working_folder=working_folder,
+                           random_shuffle=True)
             random_sil_scores.append(np.mean(rs))
 
     plt.plot(range(2, max_cluster + 1), sil_scores, color='black', label='Sil. Coeff.')
@@ -135,10 +132,9 @@ def plot_silhouette(treeset, matrix, max_cluster=5, var=0, add_random=False, wor
 
     plt.xticks(range(2, max_cluster + 1), labels=[i for i in range(2, max_cluster + 1)], rotation='horizontal')
 
-    plt.legend()
+    plt.legend(loc="upper center", fancybox=True, bbox_to_anchor=(0.5, 1.15), shadow=True, ncol=2)
+    plt.tight_layout()
 
-    # todo save to given location, work folder / plots directory
-    plt.savefig(f"MDS_Plots/{tree_name}/silhouette_{var}"
-                f"{'random_' if add_random else ''}{tree_name}.png", bbox_inches='tight', dpi=200)
+    plt.savefig(f"{working_folder}/plots/Silhouette_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png", bbox_inches='tight', dpi=200)
     plt.clf()
-
+    plt.close()
