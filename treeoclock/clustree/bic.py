@@ -194,73 +194,45 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
     if not add_random:
         fig, ax = plt.subplots()
         ax2 = ax.twinx()
-
         df.plot.bar(stacked=True, ax=ax)
-
         ax.set_ylabel('Mean normalised distance')
-
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         ax.legend(loc='center left', bbox_to_anchor=(1.2, 0.5))
-
         ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
-
         ax2.set_ylabel('BIC')
-        ax2.legend()  # todo set legend outside of plot, on the top same as for plot_coords function
         ax2.set_xlabel('Number of clusters k')
-
         sug_k = bic_values.index(min(bic_values))+1
-
         plt.suptitle(f"BIC - k = {sug_k} clusters suggested")
-
         plt.xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
     else:
         fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(7, 7))  # todo figure out a good size
-
         ax2 = ax[0].twinx()
-
         df.plot.bar(stacked=True, ax=ax[0])
-
         ax[0].set_ylabel('Mean normalised distance')
-
         box = ax[0].get_position()
         ax[0].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-
         ax[0].legend(loc='center left', bbox_to_anchor=(1.15, 0.5))
-
         ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
-
         ax2.set_ylabel('BIC')
-
-        # ax2.legend()
-
         ax2.set_xlabel('Number of clusters k')
-
         sug_k = bic_values.index(min(bic_values)) + 1
-
         plt.suptitle(f"BIC - k = {sug_k} clusters suggested")
-
         ax[0].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
-
 
         # adding the random plot to the second subplot
         df_rand = pd.DataFrame(rand_mnd_list)
         ax3 = ax[1].twinx()
-
         df_rand.plot.bar(stacked=True, ax=ax[1])
-
         box = ax[1].get_position()
         ax[1].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-
         ax3.plot(range(len(random_bic)), random_bic, color='blue', label='random BIC')
         ax3.set_ylabel("BIC")
         ax[1].set_ylabel('Mean normalised distance')
-
         ax[1].legend(loc='center left', bbox_to_anchor=(1.15, 0.5))
         ax3.set_xlabel('Number of cluster k')
         ax[1].title.set_text("Random clustering")
-        # plt.suptitle('Mean Normalized distance for random clustering')
         ax[1].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
     # todo change to eps, or make the option available at some point

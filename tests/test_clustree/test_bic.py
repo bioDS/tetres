@@ -1,4 +1,5 @@
 from treeoclock.clustree.bic import BIC, plot_bic
+import os
 
 
 def test_BIC_1_false(ten_taxa_cMChain):
@@ -31,6 +32,10 @@ def test_plot_bic(ten_taxa_cMChain):
              )
 
 def test_plot_bic_reading(ten_taxa_cMChain):
+    try:
+        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/BIC_10TaxaFix_0.png")
+    except FileNotFoundError:
+        pass
     plot_bic(treeset=ten_taxa_cMChain[0].trees,
              matrix=ten_taxa_cMChain.pwd_matrix(0),
              working_folder=ten_taxa_cMChain.working_dir,
@@ -40,6 +45,10 @@ def test_plot_bic_reading(ten_taxa_cMChain):
 
 
 def test_plot_bic_local_scale(ten_taxa_cMChain):
+    try:
+        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/BIC_local_10TaxaFix_0.png")
+    except FileNotFoundError:
+        pass
     plot_bic(treeset=ten_taxa_cMChain[0].trees,
              matrix=ten_taxa_cMChain.pwd_matrix(0),
              working_folder=ten_taxa_cMChain.working_dir,
@@ -50,8 +59,10 @@ def test_plot_bic_local_scale(ten_taxa_cMChain):
 
 
 def test_plot_bic_add_random(ten_taxa_cMChain):
-    import os
-    os.remove(f"{ten_taxa_cMChain.working_dir}/plots/BIC_random_10TaxaFix_0.png")
+    try:
+        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/BIC_random_10TaxaFix_0.png")
+    except FileNotFoundError:
+        pass
     plot_bic(treeset=ten_taxa_cMChain[0].trees,
              matrix=ten_taxa_cMChain.pwd_matrix(0),
              working_folder=ten_taxa_cMChain.working_dir,
