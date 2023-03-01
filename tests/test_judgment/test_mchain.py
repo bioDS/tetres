@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from treeoclock.judgment.mchain import MChain, coupled_MChains
 import treeoclock.judgment.ess as ess
-from treeoclock import enums as pkg_enums
 import os
 
 
@@ -490,3 +489,7 @@ def test_MChain_spectral_clustree(thirty_taxa_MChain):
         thirty_taxa_MChain.spectral_clustree(beta=beta)
         assert os.path.exists(f"{thirty_taxa_MChain.working_dir}/data/30TestFix_{'' if beta == 1 else f'{beta}_'}clustering.npy"),\
             "Spectral clustering for mchain failed!"
+
+
+def test_MChain_split_trees_from_clustering(ten_taxa_cMChain):
+    ten_taxa_cMChain[0].split_trees_from_clustering(k=2)
