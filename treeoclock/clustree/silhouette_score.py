@@ -97,8 +97,6 @@ def silhouette_score(matrix, k, working_folder, local_norm=False, random_shuffle
 
 
 def plot_silhouette(matrix, max_cluster=5, local_norm=False, add_random=False, working_folder="", _overwrite=False, name="MyChain"):
-
-    # todo add silhouette score = 0 for a 1 clustering, recheck with the paper or method how this works
     if os.path.exists(f"{working_folder}/plots/Silhouette_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png"):
         if _overwrite:
             os.remove(f"{working_folder}/plots/Silhouette_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png")

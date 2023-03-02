@@ -1,9 +1,6 @@
 from treeoclock.clustree.silhouette_score import plot_silhouette, silhouette_score
 
 
-
-
-
 def test_silhouette_score(ten_taxa_cMChain):
     ret = silhouette_score(matrix=ten_taxa_cMChain.pwd_matrix(0),
                            k=2, local_norm=False,
