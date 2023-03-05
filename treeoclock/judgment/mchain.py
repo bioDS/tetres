@@ -283,37 +283,6 @@ class coupled_MChains():
                     # writing the better centroid tree to the file
                     cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
 
-    def compare_chain_summaries(self):
-        # todo maybe add the compare chronogram
-        trees = []
-        rTrees = []
-        for chain in self.MChain_list:
-            trees.append(TimeTreeSet(f"{chain.working_dir}/{chain.name}_cen.tree"))
-            rTrees.append(phytools.as_multiPhylo(phytools.read_newick(text=ctree_to_ete3(trees[-1].trees[0].ctree).write(format=5))))
-        with open(f"{self.working_dir}/data/{self.name}_cen_distances.log", "w+") as file:
-            for i, j in itertools.combinations(range(self.m_MChains), 2):
-                file.write(f"{self.MChain_list[i].name} - {self.MChain_list[j].name} :\t")
-                file.write(f"{trees[i][0].fp_distance(trees[j][0])}")
-                file.write("\n")
-        # todo some workaround for the stupid multiPhylo thing, write internat nexus string from the newick treestrings and then parse it with readnexus
-
-    def compare_cutoff_treesets(self, i, j, beast_applauncher, ess_threshold=0, _overwrite=False, smoothing=0.5, threshold_percentage=0.5):
-        # todo checks for i and j in range and proper indexing etc. ...
-
-        # reading the computed cutoff points for i, j
-        try:
-            with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{'_no-esst' if ess_threshold == 0 else f'_{ess_threshold}-esst'}_smoothing-{smoothing}_thresholdp-{threshold_percentage}",
-                    "r") as file:
-                start = int(file.readline())
-                end = int(file.readline())
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Needs precomputed cutoff points, run the .gelman_rubin_trace_ess_plot(*) function first! {self.working_dir}/data/{self.name}_{i}_{j}_gress_cutoff{'' if ess_threshold == 0 else f'_{ess_threshold}'}")
-        if start == -1 or end == -1:
-            # return as no cutoff points exist for this pair of chains, hence no comparison necessary
-            return 0
-        _compare_cutoff_treesets(self, i, j, start, end, ess_threshold, beast_applauncher, _overwrite=_overwrite)
-
     def clade_set_comparison(self, i, j, plot=True, burnin=0):
         # todo all test for i and j being proper indeces!
         raise ValueError("Need to finish the new implementation")
@@ -487,7 +456,6 @@ class MChain:
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                               dist=dist, sample_range=sample_range, no_zero=no_zero)
 
-    # todo these funciton should be in different module?
     def simmilarity_matrix(self, index="", name="", beta=1):
 
         # todo adapt to new folder clustering/ and integrate what I did for BIC here!
@@ -521,3 +489,9 @@ class MChain:
         else:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
+
+    def evaluate_clusterin(self, kind="Silhouette"):
+        if kind not in ["Silhouette", "BIC"]:
+            raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
+        # todo implementation missing
+        return 0
