@@ -9,7 +9,6 @@ import linecache
 import re
 import warnings
 
-from treeoclock.judgment import _geweke_diag as gwd
 from treeoclock.trees.time_trees import TimeTreeSet
 from treeoclock.summary.compute_sos import compute_sos_mt
 from treeoclock.summary.frechet_mean import frechet_mean

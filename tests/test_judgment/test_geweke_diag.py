@@ -1,7 +1,5 @@
 import pytest
 
-from treeoclock.judgment._geweke_diag import _geweke_kind
-
 
 # Tests for geweke_diag_distances
 def test_MChain_compute_geweke_distances(thirty_taxa_MChain):
