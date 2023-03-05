@@ -457,26 +457,6 @@ class MChain:
                     raise ValueError("Tree file already exists!")
                 cur_treeset.write_nexus(file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}.trees")
 
-    def compute_geweke_distances(self, norm: bool = False, add: bool = True, first_range=[0.1, 0.2], last_percent=0.4, index="", name=""):
-
-        new_log_list = gwd.geweke_diagnostic_distances(pw_distances=self.pwd_matrix(index=index, name=name),
-                                                       first_range=first_range, last_percent=last_percent)
-
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Geweke_distances{'_norm' if norm else ''}")
-        return new_log_list
-
-    def compute_geweke_focal_tree(self, focal_tree="FM", norm: bool = True, kind="default", add: bool = True,
-                                  first_range=[0.1, 0.2], last_percent=0.4):
-
-        new_log_list = gwd.geweke_diagnostic_focal_tree(trees=self.trees, focal_tree=focal_tree, norm=norm, kind=kind,
-                                                        first_range=first_range, last_percent=last_percent)
-
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list,
-                                  col_key=f"Geweke_focal_{focal_tree}_{kind}{'_norm' if norm else ''}")
-        return new_log_list
-
     def get_pseudo_ess(self, **kwargs):
         lower_i = 0
         if "lower_i" in kwargs:
@@ -507,47 +487,6 @@ class MChain:
         #     chain_leength = (self.chain_length / (len(self.trees) - 1)) * ((upper_i - 1) - lower_i)
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                               dist=dist, sample_range=sample_range, no_zero=no_zero)
-
-    # todo missing tests
-    # the rnni variance log is essentially a running mean plot
-    def compute_rnni_variance_log(self, focal_tree_type="tree", norm=False, add=True):
-        new_log_list = []
-        for i in range(0, len(self.trees)):
-            # todo this type checking is not efficient, should be outside of the loop!
-            if focal_tree_type == "FM":
-                focal_tree = frechet_mean(self.trees[0:i + 1])
-            elif focal_tree_type == "tree":
-                focal_tree = self.trees[i]
-            elif focal_tree_type == "centroid":
-                sys.exit("Not yet implemented")
-                # focal_tree = frechet_mean(self.trees[0:i + 1])
-            else:
-                raise ValueError(f"Unknown type {focal_tree_type} given!")
-            new_log_list.append(compute_sos_mt(focal_tree, self.trees[0:i + 1], n_cores=None, norm=norm) / (i + 1))
-
-        # adding the computed log value to the log dataframe
-
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Var{'_norm' if norm else ''}_{focal_tree_type}")
-        return new_log_list
-
-    # todo missing some proper tests
-    def compute_mean_in_chain_deviation(self, norm=False, add=True):
-        new_log_list = [1, 1]
-        distance_list = {f"{r},{s}": self.trees.fp_distance(r, s, norm=norm) ** 2 for r, s in
-                         list(itertools.permutations(range(len(self.trees)), 2))}
-        cur_sum = 0
-        seen = {}
-        for i in range(2, len(self.trees)):
-            cur_permutations = list(itertools.permutations(range(i), 2))
-            for r, s in cur_permutations:
-                if f"{r},{s}" not in seen:
-                    cur_sum += distance_list[f"{r},{s}"]
-                    seen[f"{r},{s}"] = 1
-            new_log_list.append(np.sqrt(cur_sum / len(cur_permutations)))
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"In_Chain_deviation{'_norm' if norm else ''}")
-        return new_log_list
 
     # todo these funciton should be in different module?
     def get_simmatrix(self, index="", name="", beta=1):
