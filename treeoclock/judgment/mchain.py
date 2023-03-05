@@ -521,39 +521,3 @@ class MChain:
         else:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
-
-
-def _compare_cutoff_treesets(cmchain, i, j, start, end, ess, beast_applauncher, _overwrite=False):
-
-    # todo do i need this function?
-
-    # extracting tree and logfile entries for the range [start, end]
-    cmchain._extract_cutoff(i, start, end, ess, _overwrite=_overwrite, compare_to=j)
-    cmchain._extract_cutoff(j, start, end, ess, _overwrite=_overwrite, compare_to=i)
-
-    # todo do we want to compare it to some big combined set from all chains or the two or what?
-
-    cutoff_chain = coupled_MChains(m_MChains=4,
-                                   trees=[cmchain.tree_files[i],
-                                          cmchain.tree_files[j],
-                                          f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}.trees",
-                                          f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}.trees"],
-                                   log_files=[cmchain.log_files[i],
-                                              cmchain.log_files[j],
-                                              f"cutoff_files/{cmchain[i].name}_{cmchain[j].name}{'' if ess == 0 else f'_{ess}'}.log",
-                                              f"cutoff_files/{cmchain[j].name}_{cmchain[i].name}{'' if ess == 0 else f'_{ess}'}.log"],
-                                   working_dir=cmchain.working_dir,
-                                   name=f"Cutoff_{cmchain.name}_{i}_{j}{'' if ess == 0 else f'_{ess}'}")
-
-    cutoff_chain.cladesetcomparator(beast_applauncher)
-    cutoff_chain.cen_for_each_chain()
-    cutoff_chain.compare_chain_summaries()
-    cutoff_chain.clade_set_comparison(i=0, j=2)
-    cutoff_chain.clade_set_comparison(i=1, j=3)
-    # cutoff_chain.gelman_rubin_like_diagnostic_plot() # todo this with different sized treesets so it works for this?
-
-    #### todo
-    cutoff_chain.ess_stripplot()
-    # todo the current title of this plot is not quite correct but does the job
-
-    # todo other comparisons?
