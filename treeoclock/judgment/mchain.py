@@ -488,7 +488,7 @@ class MChain:
                               dist=dist, sample_range=sample_range, no_zero=no_zero)
 
     # todo these funciton should be in different module?
-    def get_simmatrix(self, index="", name="", beta=1):
+    def simmilarity_matrix(self, index="", name="", beta=1):
 
         # todo adapt to new folder clustering/ and integrate what I did for BIC here!
 
@@ -513,7 +513,7 @@ class MChain:
                 f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_"
                 f"{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy"):
 
-            clustering = _spectral_clustree(self.get_simmatrix(beta=beta), n_clus=n_clus)
+            clustering = _spectral_clustree(self.simmilarity_matrix(beta=beta), n_clus=n_clus)
             np.save(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy",
                 arr=clustering)

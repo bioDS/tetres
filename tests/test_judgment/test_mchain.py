@@ -479,7 +479,7 @@ def test_MChain_pwd_matrix(thirty_taxa_MChain):
 
 def test_MChain_get_simmatrix(thirty_taxa_MChain):
     for beta in [1, 2, 0.5]:
-        thirty_taxa_MChain.get_simmatrix(beta=beta)
+        thirty_taxa_MChain.simmilarity_matrix(beta=beta)
         assert os.path.exists(f"{thirty_taxa_MChain.working_dir}/data/30TestFix_{'' if beta == 1 else f'{beta}_'}similarity.npy"),\
             "Similarity matrix computation failed!"
 
