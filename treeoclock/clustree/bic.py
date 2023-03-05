@@ -12,20 +12,6 @@ import random
 
 
 def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
-    """
-    Computes the mean normalized distances given a set of trees, set of summary trees and a clustering
-
-    :param trees:
-    :type trees: list of list of sets
-    :param summaries:
-    :type summaries: list of list of sets
-    :param clustering: The clustering vecor
-    :type clustering: ndarray of int
-    :param local: Whether to use the max distance between two trees (local) or the diameter for normalization
-    :type local: int
-    :return: The mean normalized distance for each cluster
-    :rtype: dict[int]->float
-    """
 
     m = len(treeset)  # number of trees
     n = len(treeset[0])  # number of taxa
@@ -48,7 +34,7 @@ def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
 
 def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, chain_id='myChain', _overwrite=False):
 
-    # todo add other clusterings in the future
+    # todo chnage this to only work on a given clustering, not reading anything as that is part of the MChain class!!!
 
     # check if working dir exists
     if not os.path.exists(working_folder):
@@ -116,12 +102,12 @@ def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, ch
                     cen = TimeTreeSet(file=f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree')[0]
                 else:
                     centroid = Centroid()
-                    cen, sos = centroid.compute_centroid(treeset)
+                    cen, sos = centroid.compute_centroid(cur_treeset)
                     for _ in range(10):
-                        new_cen, new_sos = centroid.compute_centroid(treeset)
+                        new_cen, new_sos = centroid.compute_centroid(cur_treeset)
                         if new_sos < sos:
                             cen, sos = new_cen, new_sos
-                    cen.write_nexus(treeset.map, f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree', name=f"Cen-{k}-k{k_cluster}-{chain_id}")
+                    cen.write_nexus(cur_treeset.map, f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree', name=f"Cen-{k}-k{k_cluster}-{chain_id}")
                 summaries.append(cen)
             else:
                 summaries.append([None])
