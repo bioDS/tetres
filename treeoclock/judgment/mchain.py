@@ -531,32 +531,6 @@ class MChain:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"Var{'_norm' if norm else ''}_{focal_tree_type}")
         return new_log_list
 
-    # todo missing test and proper management of the average parameter
-    # todo delete the enums things, not really useful in this case
-    # def compute_new_tree_distance_log(self, average: enums.Average = enums.Average.MEAN, norm: bool = False,
-    #                                   add: bool = True):
-    #     new_log_list = [0]  # initialize as the first iteration is just one tree
-    #     for i in range(1, len(self.trees)):
-    #         new_log_list.append(
-    #             average.function([self.trees[i].fp_distance(self.trees[j], norm=norm) for j in range(0, i)]))
-    #     if add:
-    #         self.add_new_log_list(new_log_list=new_log_list,
-    #                               col_key=f"Distance{'_norm' if norm else ''}_{average.name}")
-    #     return new_log_list
-
-    def compute_new_tree_summary_distance_log(self, summary="FM", norm=False, add=True):
-        new_log_list = [0]  # initialize as the first iteration is just one tree
-        for i in range(1, len(self.trees)):
-            if summary == "FM":
-                new_log_list.append(self.trees[i].fp_distance(frechet_mean(self.trees[0:i]), norm=norm))
-            elif summary == "Centroid":
-                raise ValueError("Not yet implemented!")
-            else:
-                raise ValueError(f"Not implemented summary type {summary}!")
-        if add:
-            self.add_new_log_list(new_log_list=new_log_list, col_key=f"Distance{'_norm' if norm else ''}_{summary}")
-        return new_log_list
-
     # todo missing some proper tests
     def compute_mean_in_chain_deviation(self, norm=False, add=True):
         new_log_list = [1, 1]
@@ -575,47 +549,11 @@ class MChain:
             self.add_new_log_list(new_log_list=new_log_list, col_key=f"In_Chain_deviation{'_norm' if norm else ''}")
         return new_log_list
 
-    # todo missing proper tests
-    def compute_ess_traces(self, all=True, partial=[]):
-        # computes the ess traces for all the statistic values in the data
-        if (not all) and partial:
-            # only compute the given list of statistics ess traces
-            sys.exit("Currently Feature is not implemented!")
-        ess_keys = self.get_key_names()
-        method = 'tracerer'  # todo this can be either arviz, coda or tracerer
-
-        for key in ess_keys:
-            self.log_data[f"{key}_ess_cum_trace"] = np.nan
-            # todo the start of this range/loop could be an argument given
-            for i in range(2, self.log_data.shape[0]):
-                if not np.isnan(self.log_data[key][i]):
-                    self.log_data[f"{key}_ess_cum_trace"][i] = self.get_ess(ess_key=key, ess_method=method, upper_i=i)
-        return 0
-
-    # todo missing tests
-    # todo this is only applicable if the added list is starting at 0
-    #  if it starts with index 5 the sampling interval and everything is messed up
-    def add_new_log_list(self, new_log_list, col_key):
-        if len(new_log_list) == self.log_data.shape[0]:
-            self.log_data[col_key] = new_log_list
-        elif len(new_log_list) < self.log_data.shape[0]:
-            if self.tree_sampling_interval % self.log_sampling_interval == 0:
-                sampling_diff = int(self.tree_sampling_interval / self.log_sampling_interval)
-                self.log_data[col_key] = np.nan
-                self.log_data[col_key][::sampling_diff] = new_log_list
-            else:
-                sys.exit("Feature not implemented! Trees logged is not a multiple of the log sampling interval!")
-        elif len(new_log_list) > self.log_data.shape[0]:
-            sys.exit("Feature not yet implemented! "
-                     "The logfile contains less data than the tree file!")
-
-    def norm_column(self, col, normcol, new_key):
-        # if value_key not in self.log_data:
-        #     raise KeyError(f"Given Value {value_key} does not exist!")
-        self.log_data[new_key] = self.log_data[col] / self.log_data[normcol]
-
     # todo these funciton should be in different module?
     def get_simmatrix(self, index="", name="", beta=1):
+
+        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
+
         if not os.path.exists(
                 f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
 
@@ -630,6 +568,9 @@ class MChain:
                     file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
     def spectral_clustree(self, n_clus=2, beta=1, index="", name="",):
+
+        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
+
         if not os.path.exists(
                 f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_"
                 f"{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy"):
