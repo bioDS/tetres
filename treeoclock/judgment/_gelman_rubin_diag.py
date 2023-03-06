@@ -5,9 +5,6 @@ import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 
-global _gr_boundary
-_gr_boundary = 0.02
-
 
 def _psrf_like_value(dm_in, dm_bt, k, s, e):
     """
@@ -26,9 +23,8 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False):
+def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
     # this function will return the cut.start and cut.end values calculated for the given full chain
-    global _gr_boundary
 
     dm_i = cmchain.pwd_matrix(i)
     dm_j = cmchain.pwd_matrix(j)
@@ -89,9 +85,8 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_ran
     return -1, -1
 
 
-def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median", _subsampling=False):
+def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median", _subsampling=False, _gr_boundary=0.02):
     # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
-    global _gr_boundary
 
     dm_i = cmchain.pwd_matrix(i)
     dm_j = cmchain.pwd_matrix(j)
@@ -160,6 +155,8 @@ def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold
 def gelman_rubin_parameter_choice_plot(cmchain, i, j, _subsampling=False):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
     # TODO WIP for clean up and rename!
+    _gr_boundary = 0.02  # todo not implemented for now
+    raise NotImplemented("_gr_boundary is not implemented here! WIP")
     ess_threshold_list = np.sort([50, 200, 500])
     smoothing_function = "mean"  # TODO
 
@@ -310,86 +307,3 @@ def gelman_rubin_all_chains_density_plot(cMChain, samples: int = 100):
     plt.clf()
     plt.close("all")
     gc.collect()
-
-
-def closeness_plot(cmchain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False):
-    global _gr_boundary
-
-    dm_i = cmchain.pwd_matrix(i)
-    dm_j = cmchain.pwd_matrix(j)
-    dm_ij = cmchain.pwd_matrix(i, j)
-    dm_ji = np.transpose(dm_ij)
-
-    if dm_i.shape != dm_j.shape:
-        raise ValueError("Treesets have different sizes!")
-
-    df = []
-
-    closeness = {k: [] for k in ess_threshold_list}
-    consecutive = 0
-
-    # if _subsampling:
-    #     # delete every second row (can be repeated multiple times)
-    #     for _ in range(_subsampling):
-    #         dm_i = np.delete(dm_i, list(range(0, dm_i.shape[0], 2)), axis=0)
-    #         dm_i = np.delete(dm_i, list(range(0, dm_i.shape[1], 2)), axis=1)
-    #
-    #         dm_j = np.delete(dm_j, list(range(0, dm_j.shape[0], 2)), axis=0)
-    #         dm_j = np.delete(dm_j, list(range(0, dm_j.shape[1], 2)), axis=1)
-    #
-    #         dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[0], 2)), axis=0)
-    #         dm_ij = np.delete(dm_ij, list(range(0, dm_ij.shape[1], 2)), axis=1)
-    #
-    #         dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[0], 2)), axis=0)
-    #         dm_ji = np.delete(dm_ji, list(range(0, dm_ji.shape[1], 2)), axis=1)
-
-    for cur_sample in range(0, dm_i.shape[0]):
-        slide_start = int(cur_sample * (1 - smoothing))  # smoothing is impacting the current sliding window start
-
-        psrf_like_i = []
-        psrf_like_j = []
-
-        for x in range(slide_start, cur_sample + 1):
-            psrf_like_i.append(_psrf_like_value(dm_i, dm_ij, x, slide_start, cur_sample))
-            psrf_like_j.append(_psrf_like_value(dm_j, dm_ji, x, slide_start, cur_sample))
-
-        if smoothing_average == "median":
-            df.append([cur_sample, np.median(psrf_like_i), f"chain_{i}"])
-            df.append([cur_sample, np.median(psrf_like_j), f"chain_{j}"])
-        elif smoothing_average == "mean":
-            df.append([cur_sample, np.mean(psrf_like_i), f"chain_{i}"])
-            df.append([cur_sample, np.mean(psrf_like_j), f"chain_{j}"])
-        else:
-            raise ValueError(f"Smoothing_function = {smoothing_average} not recognized!")
-
-        if 1 / (1 + _gr_boundary) < df[-1][1] < 1 + _gr_boundary and 1 / (1 + _gr_boundary) < df[-2][
-            1] < 1 + _gr_boundary:
-            consecutive += 1
-
-            ci_ess = cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive,
-                                      upper_i=cur_sample, sample_range=pseudo_ess_range)
-            cj_ess = cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample,
-                                      sample_range=pseudo_ess_range)
-
-            for ess_threshold in closeness.keys():
-                if consecutive < ess_threshold:
-                    closeness[ess_threshold].append(consecutive/ess_threshold)
-                else:
-                    ci_close = 1
-                    cj_close = 1
-                    if ci_ess < ess_threshold:
-                        ci_close = ci_ess/ess_threshold
-                    if cj_ess < ess_threshold:
-                        cj_close = cj_ess/ess_threshold
-                    cur_closeness = ((ci_close) + (cj_close)) / 2
-                    closeness[ess_threshold].append(cur_closeness)
-        else:
-            consecutive = 0
-            for ess_threshold in closeness.keys():
-                closeness[ess_threshold].append(0)
-
-    data = pd.DataFrame.from_dict(closeness, orient='index')
-
-    sns.lineplot(data = data.T)
-    plt.savefig(f"{cmchain.working_dir}/plots/{cmchain.name}_closeness.png")
-    return 0
