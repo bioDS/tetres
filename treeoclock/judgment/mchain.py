@@ -284,9 +284,8 @@ class coupled_MChains():
                     cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
 
     def clade_set_comparison(self, i, j, plot=True, burnin=0):
-        # todo all test for i and j being proper indeces!
-        raise ValueError("Need to finish the new implementation")
-        return discrete_cladeset_comparator(i=i, j=j, plot=plot, burnin=burnin)
+        return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot, burnin=burnin,
+                                            file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
 
 
 class MChain:

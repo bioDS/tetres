@@ -166,12 +166,13 @@ def test_compare_cutoff_ess_choices_all(ten_taxa_cMChain):
 
 
 def test_clade_set_comparison(ten_taxa_cMChain):
+    burnin = 0.1
     try:
-        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_discrete_cc_0_1.png")
+        os.remove(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_discrete_cc_0_1_burn-{burnin}.png")
     except FileNotFoundError:
         pass
-    ten_taxa_cMChain.clade_set_comparison(i=0, j=1)
-    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_discrete_cc_0_1.png"), "Discrete clade set comparator failed!"
+    ten_taxa_cMChain.clade_set_comparison(i=0, j=1, burnin=burnin)
+    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_discrete_cc_0_1_burn-{burnin}.png"), "Discrete clade set comparator failed!"
 
 
 def test_clade_set_comparison_noplot(ten_taxa_cMChain):
