@@ -1,6 +1,5 @@
 import pytest
 from treeoclock.judgment.mchain import coupled_MChains
-from treeoclock.judgment._gelman_rubin_diag import closeness_plot
 import os
 
 
@@ -25,14 +24,17 @@ def test_cMChain_gelman_rubin_plot(ten_taxa_cMChain):
     assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/plots/{ten_taxa_cMChain.name}_grd_density_full_chain_all.png"), "Gelman Rubin Plot failed!"
 
 
-def test_cMChain_gress(ten_taxa_cMChain):
-    # todo test different setting also
-    ten_taxa_cMChain.gelman_rubin_cut(i=0, j=1, _overwrite=True)
-    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_{0}_{1}_gelman_rubin_cutoff_smoothing-0.5_median"), \
-        "Gelman Rubin Trace Plot with ess failed!"
+def test_cMChain_gr_cut(ten_taxa_cMChain):
+    for _gr_boundary in [0.02, 0.01, 0.05]:
+        for sm_avg in ['mean', 'median']:
+            ten_taxa_cMChain.gelman_rubin_cut(i=0, j=1, _overwrite=True, _gr_boundary=_gr_boundary, smoothing_average=sm_avg)
+            assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_{0}_{1}_gelman_rubin_cutoff_smoothing-0.5_{sm_avg}_boundary-{_gr_boundary}"), \
+                f"Gelman Rubin Cut function failed! {_gr_boundary}-{sm_avg}"
 
 
-def test_cMChain_gress(ten_taxa_cMChain):
-    ten_taxa_cMChain.gelman_rubin_cut(i=0, j=1, _overwrite=True, _subsampling=2)
-    assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_{0}_{1}_gelman_rubin_cutoff_subsampling-2_smoothing-0.5_median"), \
-        "Gelman Rubin Trace Plot with ess failed!"
+def test_cMChain_gr_cut_subsample(ten_taxa_cMChain):
+    for _gr_boundary in [0.02, 0.01, 0.05]:
+        for sm_avg in ['mean', 'median']:
+            ten_taxa_cMChain.gelman_rubin_cut(i=0, j=1, _overwrite=True, _subsampling=2, _gr_boundary=_gr_boundary, smoothing_average=sm_avg)
+            assert os.path.exists(f"{ten_taxa_cMChain.working_dir}/data/{ten_taxa_cMChain.name}_{0}_{1}_gelman_rubin_cutoff_subsampling-2_smoothing-0.5_{sm_avg}_boundary-{_gr_boundary}"), \
+                f"Gelman Rubin Cut function failed with subsampling! {_gr_boundary}-{sm_avg}"

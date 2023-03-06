@@ -198,18 +198,18 @@ class coupled_MChains():
             raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling)
 
-    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="mean", _subsampling=False):
+    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
         # First if overwrite delete previous computation file
         if _overwrite:
             try:
                 os.remove(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}")
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}")
             except FileNotFoundError:
                 pass
         # if the file still exists here then we do not need to compute anything
-        if os.path.exists(f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}"):
+        if os.path.exists(f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}"):
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}",
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
                     "r") as file:
                 cut_start = int(file.readline())
                 cut_end = int(file.readline())
@@ -227,7 +227,7 @@ class coupled_MChains():
                 cut_start, cut_end = cut_start * 2, cut_end * 2
         try:
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}",
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
                     "x") as f:
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
@@ -249,7 +249,6 @@ class coupled_MChains():
         if not self.tree_files:
             raise ValueError("Missing tree_files list!")
         csc._cladesetcomp(self, beast_applauncher, burnin=burnin)
-        # todo add the compare chronogram on the lower diag of the plot?
 
     def cen_for_each_chain(self, repeat=5):
         for _ in range(repeat):
@@ -489,7 +488,7 @@ class MChain:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
 
-    def evaluate_clusterin(self, kind="Silhouette"):
+    def evaluate_clustering(self, kind="Silhouette"):
         if kind not in ["Silhouette", "BIC"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
         # todo implementation missing
