@@ -124,7 +124,7 @@ class coupled_MChains():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def _extract_cutoff(self, i, start, end, ess, subsample, compare_to, _overwrite=False):
+    def _extract_cutoff(self, i, start, end, ess, compare_to, subsample=False, _overwrite=False):
         # todo should be its own script, also rename all the parameters given
         try:
             os.mkdir(f"{self.working_dir}/cutoff_files")
