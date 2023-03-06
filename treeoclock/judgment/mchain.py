@@ -313,7 +313,7 @@ class MChain:
         if type(trees) is TimeTreeSet:
             self.trees = trees
         elif type(trees) is str:
-            self.trees = TimeTreeSet(f"{self.working_dir}/{trees}")  # todo use os.path.join
+            self.trees = TimeTreeSet(os.path.join(self.working_dir, trees))
         else:
             raise ValueError(f"{type(trees)} of trees not recognized!")
 
