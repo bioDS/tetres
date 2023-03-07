@@ -51,7 +51,7 @@ def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, ch
     summaries = []
     if k == 1:
         clustering = np.zeros(m, dtype=int)
-        if _overwrite:
+        if _overwrite and not random_shuffle:
             try:
                 os.remove(f'{cluster_folder}/sc-{k}-{chain_id}.tree')
             except FileNotFoundError:
@@ -70,7 +70,7 @@ def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, ch
 
         summaries.append(cen)
     else:
-        if _overwrite:
+        if _overwrite and not random_shuffle:
             try:
                 os.remove(f"{cluster_folder}/sc-{k}-{chain_id}.npy")
             except FileNotFoundError:
@@ -93,7 +93,7 @@ def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, ch
 
             # cur_trees = [trees[index] for index, x in enumerate(clustering) if x == cluster]
             if len(cur_treeset) != 0:  # todo empty clusters????
-                if _overwrite:
+                if _overwrite and not random_shuffle:
                     try:
                         os.remove(f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree')
                     except FileNotFoundError:
