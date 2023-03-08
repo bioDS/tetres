@@ -21,6 +21,7 @@ from treeoclock.summary.centroid import Centroid
 from treeoclock.summary.annotate_centroid import annotate_centroid
 from treeoclock.judgment.ess import autocorr_ess, pseudo_ess
 from treeoclock.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
+from treeoclock.clustree.bic import BIC
 
 from rpy2.robjects.packages import importr
 phytools = importr("phytools")
@@ -452,11 +453,13 @@ class MChain:
         # if upper_i > 0:
         #     chain_leength = (self.chain_length / (len(self.trees) - 1)) * ((upper_i - 1) - lower_i)
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
-                              dist=dist, sample_range=sample_range, no_zero=no_zero)
+                          dist=dist, sample_range=sample_range, no_zero=no_zero)
 
     def simmilarity_matrix(self, index="", name="", beta=1):
 
         # todo adapt to new folder clustering/ and integrate what I did for BIC here!
+
+        # todo this matrix should also be in the clustering folder
 
         if not os.path.exists(
                 f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
@@ -469,15 +472,19 @@ class MChain:
             return similarity
         else:
             return np.load(
-                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
+        raise NotImplemented("Currently WIP")
 
-    def spectral_clustree(self, n_clus=2, beta=1, index="", name="",):
+    def spectral_clustree(self, n_clus=2, beta=1):
 
         # todo adapt to new folder clustering/ and integrate what I did for BIC here!
+        try:
+            os.mkdir(os.path.join(self.working_dir, "clustering"))
+        except FileExistsError:
+            raise ValueError("Didn't work?!")
 
         if not os.path.exists(
-                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_"
-                f"{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy"):
+                f"{self.working_dir}/clustering/sc-{n_clus}-{self.name}{'' if beta == 1 else f'-{beta}'}.npy"):
 
             clustering = _spectral_clustree(self.simmilarity_matrix(beta=beta), n_clus=n_clus)
             np.save(
@@ -487,9 +494,44 @@ class MChain:
         else:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
+        raise NotImplemented("Currently WIP")
 
-    def evaluate_clustering(self, kind="Silhouette"):
-        if kind not in ["Silhouette", "BIC"]:
+    def evaluate_clustering(self, kind="silhouette", plot=True, _overwrite_plot=False, _overwrite_clustering=False):
+        if kind not in ["silhouette", "bic"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
+
+        # todo if _overwrite_plot delete plot and silhouette score
+        # todo if _recalculate_clsutering delete clustering and also the plot and save file for the scores
+
+
+        # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
+
+        # todo file identifyer is kind_....
+        # todo this function should return the suggeted number of clusters for a given chain, i.e. save the scores to a file and read from that file
+
         # todo implementation missing
+        raise NotImplemented("Currently WIP")
+
+    def get_best_bic_cluster(self, max_cluster=5, local_norm=False):
+        # todo add overwrite option and saving this to a file so that it can be read
+        #  maybe just save all the bic scores to a file and then create the plot based on that
+        #  doing that would make the plot easier?
+        best_cluster = 0
+        best_bic = None
+        for cur_cluster in range(max_cluster):
+            bic, mnd_cluster = BIC(treeset=self.trees, matrix=self.pwd_matrix(),
+                                k=cur_cluster+1, local_norm=local_norm,
+                                working_folder=self.working_dir,
+                                _overwrite=False,
+                                random_shuffle=False,
+                                chain_id=self.name
+                                )
+            # todo at some point add check of mnd where the total sum should decrease and
+            #  an increase indicates that nothing more will be useful
+            if best_bic is None or bic < best_bic:
+                    best_cluster = cur_cluster + 1
+                    best_bic = bic
+        return best_cluster
+
+    def get_best_silhouette_cluster(self):
         return 0
