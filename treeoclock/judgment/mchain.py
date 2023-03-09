@@ -125,15 +125,15 @@ class coupled_MChains():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def _extract_cutoff(self, i, start, end, ess, compare_to, subsample=False, _overwrite=False):
+    def _extract_cutoff(self, i, start, end, ess, smoothing, boundary, compare_to, smoothing_average, subsample=False, _overwrite=False):
         # todo should be its own script, also rename all the parameters given
         try:
             os.mkdir(f"{self.working_dir}/cutoff_files")
         except FileExistsError:
             pass
 
-        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_ess-{ess}'}{f'_subsample-{subsample}' if subsample else ''}.trees"
-        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_ess-{ess}'}{f'_subsample-{subsample}' if subsample else ''}.log"
+        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_ess-{ess}'}{f'_subsample-{subsample}' if subsample else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{boundary}.trees"
+        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_ess-{ess}'}{f'_subsample-{subsample}' if subsample else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{boundary}.log"
 
         if _overwrite:
             try:
@@ -422,7 +422,7 @@ class MChain:
             if len(cur_treeset) != 0:
                 if os.path.exists(f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}.trees"):
                     raise ValueError("Tree file already exists!")
-                cur_treeset.write_nexus(file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}.trees")
+                cur_treeset.write_nexus(file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
 
     def get_pseudo_ess(self, **kwargs):
         lower_i = 0
