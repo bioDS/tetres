@@ -95,6 +95,39 @@ def five_taxa_nexus_string():
 
 
 @pytest.fixture
+def five_taxa_nexus_string_units():
+    return ("#NEXUS\n"
+            "BEGIN TAXA;\n"
+            "\tDIMENSIONS NTAX = 5;\n"
+            "\tTAXLABELS\n"
+            "\t\tt1\n"
+            "\t\tt5\n"
+            "\t\tt4\n"
+            "\t\tt3\n"
+            "\t\tt2\n"
+            "\t;\n"
+            "END;\n"
+            "BEGIN TREES;\n"
+            "\tTRANSLATE\n"
+            "\t1	t1,\n"
+            "\t2	t5,\n"
+            "\t3	t4,\n"
+            "\t4	t3,\n"
+            "\t5	t2\n"
+            "\t;\n"
+            "\tTREE * t1 = [&R] ((1:5,2:3):3,(3:4,(4:3,5:3):1):4);\n"
+            "\tTREE * t2 = [&R] ((1:4,2:4):5,(3:5,(4:3,5:2):2):4);\n"
+            "\tTREE * t3 = [&R] ((1:4,2:4):2,(4:4,(3:3,5:3):3):1);\n"
+            "END;\n").encode()
+
+
+@pytest.fixture
+def five_taxa_tts_units(dir, five_taxa_nexus_string_units):
+    dir.write("test.nex", five_taxa_nexus_string_units)
+    return TimeTreeSet(f'{dir.path}/test.nex')
+
+
+@pytest.fixture
 def seventeen_taxa_tree_newick():
     return "((((5:9,4:9):1,(((8:5,3:5):1,(6:3,(1:2,(7:1,2:1):1):1):3):1,(13:4,14:4):3):3):5," \
            "((12:13,(17:8,16:8):5):1,(9:12,(11:11,10:11):1):2):1):1,15:16); "
