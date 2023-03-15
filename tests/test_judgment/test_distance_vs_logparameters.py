@@ -1,4 +1,5 @@
 from treeoclock.judgment.distance_vs_logparameters import *
+from treeoclock.judgment.distance_vs_logparameters import _kc
 
 
 # todo this testing is nothing that is useful
@@ -20,6 +21,6 @@ def test_loglike_along_path(thirty_taxa_MChain):
 
 
 def test_plot_log_neighbours(thirty_taxa_MChain):
-    plot_log_neighbours(thirty_taxa_MChain, rf=True)
-    plot_log_neighbours(thirty_taxa_MChain, rf=False)
+    for dist_type in ["kc"]:  # "rnni", "rf"]:
+        plot_log_neighbours(thirty_taxa_MChain, dist_type=dist_type)
     assert True

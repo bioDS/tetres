@@ -2,7 +2,11 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-# todo make this a more elaborate thing in the future?
+# pip install git+https://github.com/widmi/multiprocess-shared-numpy-arrays
+from share_array.share_array import get_shared_array, make_shared_array
+from multiprocessing import Pool
+import itertools
+from rpy2.robjects.packages import importr
 
 
 def plot_distance_posteroir_comparison(mchain):
@@ -97,15 +101,45 @@ def plot_loglik_along_path(mchain):
     return 0
 
 
-def plot_log_neighbours(mchain, rf=False):
+def _kc(t1, t2, i, j):
+    matrix = get_shared_array('distances')
+    ape = importr("ape")
+    TreeDist = importr("TreeDist")
+    distance = TreeDist.KendallColijn(ape.read_tree(text = t1), ape.read_tree(text = t2))[0]
+    matrix[i, j] = distance
+    return 0
 
-    # tODO Rewrite function to use more distances, from a list
-    #  then all boxplots next to each other in different subplots
-    #  BHV distance is important, maybe some other distances also?!
+
+def get_kc_matrix(trees):
+    n = len(trees)
+    distances = np.zeros((n, n))
+    make_shared_array(distances, name='distances')  # create shared memory array from numpy array
+    # shared_array = get_shared_array('distances')  # get shared memory array as numpy array
+    with Pool(None) as p:
+        p.starmap(_kc, [(trees[i].get_newick(), trees[j].get_newick(), i, j) for i, j in itertools.combinations(range(n), 2)])
+    distances = get_shared_array('distances')
+    try:
+        del globals()['distances']
+    except KeyError:
+        pass
+    return distances
+
+
+def plot_log_neighbours(mchain, dist_type = "rnni"):
+
+    if dist_type not in ["rnni", "rf", "kc"]:
+        raise ValueError(f"Distance {dist_type} not supported!")
 
     df = []
     for log_key in ["posterior", "likelihood"]:
-        distances = mchain.pwd_matrix(rf=rf)
+        if dist_type == "rf":
+            distances = mchain.pwd_matrix(rf=True)
+        elif dist_type == "rnni":
+            distances = mchain.pwd_matrix(rf=False)
+        elif dist_type == "kc":
+            distances = get_kc_matrix(mchain.trees)
+            # todo
+
         log_values = mchain.log_data[log_key]
 
         if distances.shape[0] < log_values.shape[0] and (mchain.tree_sampling_interval % mchain.log_sampling_interval == 0):
@@ -120,7 +154,7 @@ def plot_log_neighbours(mchain, rf=False):
         max_d = np.max(distances)
 
         import random
-        samples = random.sample(range(distances.shape[0]), 100)
+        # samples = random.sample(range(distances.shape[0]), 100)
 
         for i in range(distances.shape[0]):
         # for i in samples:
@@ -162,7 +196,7 @@ def plot_log_neighbours(mchain, rf=False):
     # plt.suptitle(f"Smoothness - {'Robinson-Foulds' if rf else 'RNNI'} space", fontsize=20)
 
     plt.ylabel("Diff. of log parameter\n (relative)", fontsize=16)
-    plt.xlabel(f"{'RF' if rf else 'RNNI'} distance (relative)", fontsize=16)
+    plt.xlabel(f"{dist_type} distance (relative)", fontsize=16)
 
     # # sns.violinplot(data=df, x="Value", y="Parameter", inner="stick", cut=0)
     # sns.boxplot(data=df, y="Value", x="Parameter", hue="Offset")
@@ -178,9 +212,10 @@ def plot_log_neighbours(mchain, rf=False):
     plt.tick_params(labelsize=14)
     plt.tight_layout()
     #
-    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}_new.eps", format="eps", dpi=400, bbox_inches="tight")
 
-    # plt.show()
+    # plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}_new.eps", format="eps", dpi=400, bbox_inches="tight")
+
+    plt.show()
     plt.clf()
     plt.close()
     return 0
