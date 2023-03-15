@@ -153,29 +153,7 @@ def plot_log_neighbours(mchain, dist_type = "rnni"):
         max_diff = abs(np.max(log_values) - np.min(log_values))
         max_d = np.max(distances)
 
-        import random
-        # samples = random.sample(range(distances.shape[0]), 100)
-
         for i in range(distances.shape[0]):
-        # for i in samples:
-            # # low distances
-            # l1 = np.where((distances[i, :] < int(0.25*max_d)) & (distances[i, :] > 0))[0]
-            # # l1 = np.append(l1, np.where(distances[:, i] == 1)[0])
-            # if np.all(distances[:(i-1), i]):
-            #     for x in l1:
-            #         if np.all(distances[:(x-1), x]):
-            #             # df.append([log_values[i], log_values[x]])
-            #             df.append([abs(log_values[i] - log_values[x])/max_diff, log_key, f"0-{int(0.25*max_d)}"])
-            #             # df.append([abs(log_values[i] - log_values[x]), log_key, f"0-{int(0.25*max_d)}"])
-            # # high distances
-            # l1 = np.where((distances[i, :] < max_d) & (distances[i, :] > int(0.75*max_d)))[0]
-            # # l1 = np.append(l1, np.where(distances[:, i] == 1)[0])
-            # if np.all(distances[:(i-1), i]):
-            #     for x in l1:
-            #         if np.all(distances[:(x-1), x]):
-            #             # df.append([log_values[i], log_values[x]])
-            #             df.append([abs(log_values[i] - log_values[x])/max_diff, log_key, f"{int(0.75*max_d)}-{max_d}"])
-            #             # df.append([abs(log_values[i] - log_values[x]), log_key, f"{int(0.75*max_d)}-{max_d}"])
             l1 = range(i+1, distances.shape[0])
             # l1 = np.where((distances[i, :] < int(0.25 * max_d)) | (distances[i, :] > int(0.75 * max_d)))[0]
             for x in l1:
@@ -185,37 +163,20 @@ def plot_log_neighbours(mchain, dist_type = "rnni"):
                             if round(distances[i, x]/max_d, 7) != 0:
                                 df.append([abs(log_values[i] - log_values[x])/max_diff, log_key, round(distances[i, x]/max_d, 7)])
 
-    # todo test new line plot for smoothness
 
     df = pd.DataFrame(df, columns=["Value", "Parameter", "Offset"])
     print("Plotting")
     sns.lineplot(data=df, y="Value", x="Offset", hue="Parameter")
     print("Finished")
 
-    # plt.suptitle(f"Smoothness of log parameters in the {'Robinson-Foulds' if rf else 'RNNI'} space", fontsize=20)
-    # plt.suptitle(f"Smoothness - {'Robinson-Foulds' if rf else 'RNNI'} space", fontsize=20)
-
     plt.ylabel("Diff. of log parameter\n (relative)", fontsize=16)
     plt.xlabel(f"{dist_type} distance (relative)", fontsize=16)
 
-    # # sns.violinplot(data=df, x="Value", y="Parameter", inner="stick", cut=0)
-    # sns.boxplot(data=df, y="Value", x="Parameter", hue="Offset")
-    # # plt.xlim(0, 1)
-    # plt.xlabel("")
-    # plt.xticks(ticks=[0, 1], labels=["posterior", "log-likelihood"])
-    # plt.ylabel("Absolute normalized difference\nof log-value", fontsize=20)
-    # low_samples = len(df[(df["Offset"] == f"0-{int(0.25*max_d)}") & (df["Parameter"] == "likelihood")])
-    # high_samples = len(df[(df["Offset"] == f"{int(0.75*max_d)}-{max_d}") & (df["Parameter"] == "likelihood")])
-    # # plt.suptitle(f"Comparing log parameters for {samples} trees with distance < {threshold}")
-    # plt.title(f"10% lowest distances ({low_samples}) vs. 10% highest distances ({high_samples})",
-    #              fontsize=20, y=-0.25)
     plt.tick_params(labelsize=14)
     plt.tight_layout()
-    #
 
-    # plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}_new.eps", format="eps", dpi=400, bbox_inches="tight")
-
-    plt.show()
+    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}_new.eps", format="eps", dpi=400, bbox_inches="tight")
+    # plt.show()
     plt.clf()
     plt.close()
     return 0
