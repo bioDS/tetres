@@ -221,7 +221,8 @@ class coupled_MChains():
                                                   ess_threshold=ess_threshold,
                                                   pseudo_ess_range=pseudo_ess_range,
                                                   smoothing_average=smoothing_average,
-                                                  _subsampling=_subsampling)
+                                                  _subsampling=_subsampling,
+                                                  _gr_boundary=_gr_boundary)
         # Write the cutoff boundaries to a file, if it already exists skip this part
         if _subsampling:
             for _ in range(_subsampling):
@@ -515,7 +516,6 @@ class MChain:
     def get_best_bic_cluster(self, max_cluster=5, local_norm=False):
         # todo add overwrite option and saving this to a file so that it can be read
         #  maybe just save all the bic scores to a file and then create the plot based on that
-        #  doing that would make the plot easier?
         best_cluster = 0
         best_bic = None
         for cur_cluster in range(max_cluster):
@@ -527,7 +527,7 @@ class MChain:
                                 chain_id=self.name
                                 )
             # todo at some point add check of mnd where the total sum should decrease and
-            #  an increase indicates that nothing more will be useful
+            #  an increase indicates that this is not useful any longer
             if best_bic is None or bic < best_bic:
                     best_cluster = cur_cluster + 1
                     best_bic = bic
