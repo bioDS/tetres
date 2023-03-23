@@ -186,3 +186,7 @@ def test_cMChain_split_all_trees(ten_taxa_cMChain):
     # todo this test should first remove the files and then run the test
     # todo this is currently not implemented for rf option !!!
     assert True
+
+def test_get_best_bic_cluster(ten_taxa_cMChain):
+    best_bic = ten_taxa_cMChain[0].get_best_bic_cluster()
+    assert best_bic == 5, "Get best bic Mchain function failed"
