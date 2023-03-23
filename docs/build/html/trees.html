@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Working with time trees &#8212; treeoclock 1.0.0 documentation</title>
+    <title>Working with time trees &#8212; tetres 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     
@@ -18,7 +18,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Summarizing trees" href="summary.html" />
-    <link rel="prev" title="Welcome to treeoclock’s documentation!" href="index.html" />
+    <link rel="prev" title="Welcome to tetres’s documentation!" href="index.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
@@ -34,9 +34,9 @@
           <a href="summary.html" title="Summarizing trees"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to treeoclock’s documentation!"
+          <a href="index.html" title="Welcome to tetres’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tetres 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Working with time trees</a></li> 
       </ul>
     </div>  
@@ -137,7 +137,7 @@ Additionally, a <code class="xref py py-class docutils literal notranslate"><spa
 </tbody>
 </table>
 <p>This is an example of how to access the different attributes of a TimeTree object:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTree</span><span class="p">,</span> <span class="n">free_tree_list</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tetres.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTree</span><span class="p">,</span> <span class="n">free_tree_list</span>
 
 
 <span class="c1"># Initialize a time tree from a newick string</span>
@@ -174,7 +174,7 @@ Additionally, a <code class="xref py py-class docutils literal notranslate"><spa
 <h3><a class="toc-backref" href="#id6">ete3 functionalities</a><a class="headerlink" href="#ete3-functionalities" title="Permalink to this headline">¶</a></h3>
 <p>Via the <code class="xref py py-class docutils literal notranslate"><span class="pre">ete3.Tree</span></code> object the respective function of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">ete3</span></code> package are available for a <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeTree</span></code> object.
 For example drawing and saving a tree to a file:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTree</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tetres.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTree</span>
 
 <span class="n">tt</span> <span class="o">=</span> <span class="n">TimeTree</span><span class="p">(</span><span class="s2">&quot;((1:3,5:3):1,(4:2,(3:1,2:1):1):2);&quot;</span><span class="p">)</span>
 
@@ -251,7 +251,7 @@ For example drawing and saving a tree to a file:</p>
 <div class="section" id="reading-trees">
 <h3><a class="toc-backref" href="#id8">Reading Trees</a><a class="headerlink" href="#reading-trees" title="Permalink to this headline">¶</a></h3>
 <p>A TimeTreeSet object can be initialized with a path to a nexus file.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span><span class="p">,</span> <span class="n">free_tree_list</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tetres.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span><span class="p">,</span> <span class="n">free_tree_list</span>
 
 
 <span class="c1"># Initializing with a path to a nexus tree file</span>
@@ -277,7 +277,7 @@ For example drawing and saving a tree to a file:</p>
 </div>
 <div class="section" id="general-functions">
 <h2><a class="toc-backref" href="#id9">General Functions</a><a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h2>
-<p>A list of the functions available from the module ‘treeoclock.trees.time_trees’.</p>
+<p>A list of the functions available from the module ‘tetres.trees.time_trees’.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 30%" />
@@ -327,7 +327,7 @@ This memory needs to be freed with the <code class="xref py py-attr docutils lit
 <p>When using the <code class="xref py py-attr docutils literal notranslate"><span class="pre">time_trees.findpath_path(t1,</span> <span class="pre">t2)</span></code> implementation it is important to free the memory of the
 returned <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE_LIST</span></code> object. When calling the function the package will also throw a UserWarning indicating this.
 Below are some examples of how to use the findpath_path implementation and the underlying class <code class="xref py py-class docutils literal notranslate"><span class="pre">TREE_LIST</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span><span class="p">,</span> <span class="n">free_tree_list</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tetres.trees.time_trees</span> <span class="kn">import</span> <span class="n">TimeTreeSet</span><span class="p">,</span> <span class="n">free_tree_list</span>
 
 <span class="n">t1</span> <span class="o">=</span> <span class="n">TimeTree</span><span class="p">()</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">TimeTree</span><span class="p">()</span>
@@ -346,8 +346,8 @@ Below are some examples of how to use the findpath_path implementation and the u
 
 <span class="c1"># Use the c code to free the memory</span>
 <span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">CDLL</span>
-<span class="kn">from</span> <span class="nn">treeoclock.trees._ctrees</span> <span class="kn">import</span> <span class="n">TREE_LIST</span>
-<span class="n">lib</span> <span class="o">=</span> <span class="n">CDLL</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.../treeoclock/trees/findpath.so&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tetres.trees._ctrees</span> <span class="kn">import</span> <span class="n">TREE_LIST</span>
+<span class="n">lib</span> <span class="o">=</span> <span class="n">CDLL</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.../tetres/trees/findpath.so&quot;</span><span class="p">)</span>
 <span class="n">lib</span><span class="o">.</span><span class="n">free_treelist</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">TREE_LIST</span><span class="p">]</span>
 <span class="n">lib</span><span class="o">.</span><span class="n">free_treelist</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </pre></div>
@@ -452,7 +452,7 @@ When converting a ctree to an ete3 Tree the branch lengths are discrete integers
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
-                        title="previous chapter">Welcome to treeoclock’s documentation!</a></p>
+                        title="previous chapter">Welcome to tetres’s documentation!</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="summary.html"
                         title="next chapter">Summarizing trees</a></p>
@@ -487,9 +487,9 @@ When converting a ctree to an ete3 Tree the branch lengths are discrete integers
           <a href="summary.html" title="Summarizing trees"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to treeoclock’s documentation!"
+          <a href="index.html" title="Welcome to tetres’s documentation!"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tetres 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Working with time trees</a></li> 
       </ul>
     </div>

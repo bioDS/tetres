@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Summarizing trees &#8212; treeoclock 1.0.0 documentation</title>
+    <title>Summarizing trees &#8212; tetres 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     
@@ -32,7 +32,7 @@
         <li class="right" >
           <a href="trees.html" title="Working with time trees"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tetres 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Summarizing trees</a></li> 
       </ul>
     </div>  
@@ -78,7 +78,7 @@
 </div>
 <div class="section" id="the-centroid-class">
 <h2><a class="toc-backref" href="#id2">The Centroid class</a><a class="headerlink" href="#the-centroid-class" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy_omp&quot;</span><span class="p">,</span> <span class="n">n_cores</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s1">&#39;FM&#39;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy_omp&quot;</span><span class="p">,</span> <span class="n">n_cores</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s1">&#39;FM&#39;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
              <span class="n">tree_log_file</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -122,8 +122,8 @@
 </table>
 <div class="section" id="greedy">
 <span id="var-greedy"></span><h4><a class="toc-backref" href="#id4">Greedy</a><a class="headerlink" href="#greedy" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy_omp&quot;</span><span class="p">)</span>  <span class="c1"># default, using multiple processes in c!</span>
-<span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">)</span>  <span class="c1"># pure python version</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy_omp&quot;</span><span class="p">)</span>  <span class="c1"># default, using multiple processes in c!</span>
+<span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">)</span>  <span class="c1"># pure python version</span>
 </pre></div>
 </div>
 </div>
@@ -133,7 +133,7 @@
 The parameter max_iterations defines the number of iterations, if it is None the regular break is defined whenever an
 iteration is not successful at improving the previous centroid.
 If it is an integer then it defines the number of iterations that will subsample, if it is 0 the start tree will be returned.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;inc_sub&quot;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;inc_sub&quot;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -143,35 +143,35 @@ If it is an integer then it defines the number of iterations that will subsample
 The parameter max_iterations defines the number of iterations, if it is None the regular break is defined whenever an
 iteration is not successful at improving the previous centroid.
 If it is an integer then it defines the number of iterations that will subsample, if it is 0 the start tree will be returned.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;iter_sub&quot;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;iter_sub&quot;</span><span class="p">,</span> <span class="n">subsample_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="separate">
 <span id="var-separate"></span><h4><a class="toc-backref" href="#id7">Separate</a><a class="headerlink" href="#separate" title="Permalink to this headline">¶</a></h4>
 <p>Will only use one move, current implementation is for NNI moves only, needs to be switched in source code (_variations.py, line 147).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;separate&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;separate&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="onlyone">
 <span id="var-onlyone"></span><h4><a class="toc-backref" href="#id8">Onlyone</a><a class="headerlink" href="#onlyone" title="Permalink to this headline">¶</a></h4>
 <p>Will always do one move (starting with rank moves as of current implementation) and switch the move type whenever a local optimum is found.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;onlyone&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;onlyone&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="update-with-one">
 <span id="var-update-with-one"></span><h4><a class="toc-backref" href="#id9">update-with-one</a><a class="headerlink" href="#update-with-one" title="Permalink to this headline">¶</a></h4>
 <p>Similar to the inc-sub variation but only one new tree is added in each iteration.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;update_with_one&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;update_with_one&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="online">
 <span id="var-online"></span><h4><a class="toc-backref" href="#id10">Online</a><a class="headerlink" href="#online" title="Permalink to this headline">¶</a></h4>
 <p>Mimicks an online approach where the trees arrive one by one in the given order.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">treeoclock</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;online&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tetres</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;online&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -217,7 +217,7 @@ This results in much smaller log files.</p>
 <h2><a class="toc-backref" href="#id17">Annotation of a centroid</a><a class="headerlink" href="#annotation-of-a-centroid" title="Permalink to this headline">¶</a></h2>
 <p>To keep the discrete ranks of a centroid use this annotation method.
 Each rank get assigned the average height of that rank in the given tree set, guaranteed to keep the same ranked tree after the annotation.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.summary.annotate_centroid</span> <span class="kn">import</span> <span class="n">annotate_centroid</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tetres.summary.annotate_centroid</span> <span class="kn">import</span> <span class="n">annotate_centroid</span>
 <span class="n">cen</span><span class="p">,</span> <span class="n">sos</span> <span class="o">=</span> <span class="n">Centroid</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s2">&quot;greedy&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">compute_centroid</span><span class="p">(</span><span class="n">my_tts</span><span class="p">)</span>  <span class="c1"># centroid of the TimeTreeSet my_tts</span>
 <span class="n">annotated_cen</span> <span class="o">=</span> <span class="n">annotate_centroid</span><span class="p">(</span><span class="n">cen</span><span class="p">,</span> <span class="n">my_tts</span><span class="p">)</span>  <span class="c1"># Annotation with the branch lengths from the TimeTreeSet my_tts</span>
 <span class="c1"># the annotated_cen is a TimeTree object for further use such as writing the newick to a file</span>
@@ -227,7 +227,7 @@ Each rank get assigned the average height of that rank in the given tree set, gu
 <div class="section" id="frechet-mean">
 <h2><a class="toc-backref" href="#id18">Frechet Mean</a><a class="headerlink" href="#frechet-mean" title="Permalink to this headline">¶</a></h2>
 <p>A version of Sturms algorithm adapted to the RNNI tree space, based on computing shortest paths with the findpath algorithm.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">treeoclock.summary.frechet_mean</span> <span class="kn">import</span> <span class="n">frechet_mean</span><span class="p">,</span> <span class="n">frechet_mean_sort</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tetres.summary.frechet_mean</span> <span class="kn">import</span> <span class="n">frechet_mean</span><span class="p">,</span> <span class="n">frechet_mean_sort</span>
 <span class="n">fm</span> <span class="o">=</span> <span class="n">frechet_mean</span><span class="p">(</span><span class="n">my_tts</span><span class="p">)</span>  <span class="c1"># random selection of trees</span>
 <span class="n">fm_sort</span> <span class="o">=</span> <span class="n">frechet_mean_sort</span><span class="p">(</span><span class="n">my_tts</span><span class="p">)</span>  <span class="c1"># trees are sorted from highest to lowest Sum of squared distances</span>
 <span class="c1"># The idea is that tres with low sum of squared distances are used in the end of the algorithm to refine the tree</span>
@@ -304,7 +304,7 @@ Each rank get assigned the average height of that rank in the given tree set, gu
         <li class="right" >
           <a href="trees.html" title="Working with time trees"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">treeoclock 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tetres 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Summarizing trees</a></li> 
       </ul>
     </div>

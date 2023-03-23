@@ -9,7 +9,7 @@ The Centroid class
 
 .. code-block:: python
 
-    class treeoclock.summary.Centroid(variation="greedy_omp", n_cores=None, select='random', start='FM', subsample_size=200,
+    class tetres.summary.Centroid(variation="greedy_omp", n_cores=None, select='random', start='FM', subsample_size=200,
                  tree_log_file="", max_iterations=None)
 
 
@@ -42,8 +42,8 @@ Greedy
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="greedy_omp")  # default, using multiple processes in c!
-    treeoclock.summary.Centroid(variation="greedy")  # pure python version
+    tetres.summary.Centroid(variation="greedy_omp")  # default, using multiple processes in c!
+    tetres.summary.Centroid(variation="greedy")  # pure python version
 
 
 .. _var incsub:
@@ -57,7 +57,7 @@ If it is an integer then it defines the number of iterations that will subsample
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="inc_sub", subsample_size=500, max_iterations=None)
+    tetres.summary.Centroid(variation="inc_sub", subsample_size=500, max_iterations=None)
 
 
 .. _var itersub:
@@ -73,7 +73,7 @@ If it is an integer then it defines the number of iterations that will subsample
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="iter_sub", subsample_size=500, max_iterations=None)
+    tetres.summary.Centroid(variation="iter_sub", subsample_size=500, max_iterations=None)
 
 
 .. _var separate:
@@ -85,7 +85,7 @@ Will only use one move, current implementation is for NNI moves only, needs to b
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="separate")
+    tetres.summary.Centroid(variation="separate")
 
 
 
@@ -98,7 +98,7 @@ Will always do one move (starting with rank moves as of current implementation) 
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="onlyone")
+    tetres.summary.Centroid(variation="onlyone")
 
 
 .. _var update-with-one:
@@ -110,7 +110,7 @@ Similar to the inc-sub variation but only one new tree is added in each iteratio
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="update_with_one")
+    tetres.summary.Centroid(variation="update_with_one")
 
 
 .. _var online:
@@ -122,7 +122,7 @@ Mimicks an online approach where the trees arrive one by one in the given order.
 
 .. code-block:: python
 
-    treeoclock.summary.Centroid(variation="online")
+    tetres.summary.Centroid(variation="online")
 
 
 
@@ -181,7 +181,7 @@ Each rank get assigned the average height of that rank in the given tree set, gu
 
 .. code-block:: python
 
-    from treeoclock.summary.annotate_centroid import annotate_centroid
+    from tetres.summary.annotate_centroid import annotate_centroid
     cen, sos = Centroid(variation="greedy").compute_centroid(my_tts)  # centroid of the TimeTreeSet my_tts
     annotated_cen = annotate_centroid(cen, my_tts)  # Annotation with the branch lengths from the TimeTreeSet my_tts
     # the annotated_cen is a TimeTree object for further use such as writing the newick to a file
@@ -195,7 +195,7 @@ A version of Sturms algorithm adapted to the RNNI tree space, based on computing
 
 .. code-block:: python
 
-    from treeoclock.summary.frechet_mean import frechet_mean, frechet_mean_sort
+    from tetres.summary.frechet_mean import frechet_mean, frechet_mean_sort
     fm = frechet_mean(my_tts)  # random selection of trees
     fm_sort = frechet_mean_sort(my_tts)  # trees are sorted from highest to lowest Sum of squared distances
     # The idea is that tres with low sum of squared distances are used in the end of the algorithm to refine the tree

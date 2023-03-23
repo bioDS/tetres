@@ -40,7 +40,7 @@ This is an example of how to access the different attributes of a TimeTree objec
 
 .. code-block:: python
 
-    from treeoclock.trees.time_trees import TimeTree, free_tree_list
+    from tetres.trees.time_trees import TimeTree, free_tree_list
 
 
     # Initialize a time tree from a newick string
@@ -80,7 +80,7 @@ For example drawing and saving a tree to a file:
 
 .. code-block:: python
 
-    from treeoclock.trees.time_trees import TimeTree
+    from tetres.trees.time_trees import TimeTree
 
     tt = TimeTree("((1:3,5:3):1,(4:2,(3:1,2:1):1):2);")
 
@@ -135,7 +135,7 @@ A TimeTreeSet object can be initialized with a path to a nexus file.
 
 .. code-block:: python
 
-    from treeoclock.trees.time_trees import TimeTreeSet, free_tree_list
+    from tetres.trees.time_trees import TimeTreeSet, free_tree_list
 
 
     # Initializing with a path to a nexus tree file
@@ -160,7 +160,7 @@ A TimeTreeSet object can be initialized with a path to a nexus file.
 General Functions
 =================
 
-A list of the functions available from the module 'treeoclock.trees.time_trees'.
+A list of the functions available from the module 'tetres.trees.time_trees'.
 
 =============================================    =====================================================================================
    Function                                       Description
@@ -190,7 +190,7 @@ Below are some examples of how to use the findpath_path implementation and the u
 
 .. code-block:: python
 
-    from treeoclock.trees.time_trees import TimeTreeSet, free_tree_list
+    from tetres.trees.time_trees import TimeTreeSet, free_tree_list
 
     t1 = TimeTree()
     t2 = TimeTree()
@@ -209,8 +209,8 @@ Below are some examples of how to use the findpath_path implementation and the u
 
     # Use the c code to free the memory
     from ctypes import CDLL
-    from treeoclock.trees._ctrees import TREE_LIST
-    lib = CDLL(f".../treeoclock/trees/findpath.so")
+    from tetres.trees._ctrees import TREE_LIST
+    lib = CDLL(f".../tetres/trees/findpath.so")
     lib.free_treelist.argtypes = [TREE_LIST]
     lib.free_treelist(path)
 
