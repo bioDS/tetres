@@ -190,3 +190,8 @@ def test_cMChain_split_all_trees(ten_taxa_cMChain):
 def test_get_best_bic_cluster(ten_taxa_cMChain):
     best_bic = ten_taxa_cMChain[0].get_best_bic_cluster()
     assert best_bic == 5, "Get best bic Mchain function failed"
+
+
+def test_get_best_silhouette_cluster(ten_taxa_cMChain):
+    best_sil = ten_taxa_cMChain[0].get_best_silhouette_cluster()
+    assert best_sil == 5, "Get best silhouette cluster evaluation failed"

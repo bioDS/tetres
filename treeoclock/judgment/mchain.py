@@ -22,6 +22,7 @@ from treeoclock.summary.annotate_centroid import annotate_centroid
 from treeoclock.judgment.ess import autocorr_ess, pseudo_ess
 from treeoclock.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
 from treeoclock.clustree.bic import BIC
+from treeoclock.clustree.silhouette_score import silhouette_score
 
 from rpy2.robjects.packages import importr
 phytools = importr("phytools")
@@ -533,5 +534,19 @@ class MChain:
                     best_bic = bic
         return best_cluster
 
-    def get_best_silhouette_cluster(self):
-        return 0
+    def get_best_silhouette_cluster(self, max_cluster=5, local_norm=False):
+        best_cluster = 0
+        best_sil = None
+        for cur_cluster in range(2, max_cluster+1):
+            cur_s = silhouette_score(matrix=self.pwd_matrix(),
+                                     k=cur_cluster,
+                                     local_norm=local_norm,
+                                     working_folder=self.working_dir,
+                                     random_shuffle=False,
+                                     chain_id=self.name)
+
+            if best_sil is None or cur_s < best_sil:
+                best_cluster = cur_cluster + 1
+                best_sil = cur_s
+        return best_cluster
+
