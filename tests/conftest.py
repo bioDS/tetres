@@ -2,8 +2,8 @@ import pytest
 
 from pathlib import Path
 from testfixtures import TempDirectory
-from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.judgment.mchain import MChain, coupled_MChains
+from tetres.trees.time_trees import TimeTreeSet
+from tetres.judgment.mchain import MChain, coupled_MChains
 import pandas as pd
 
 

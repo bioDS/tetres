@@ -1,4 +1,4 @@
-from treeoclock.judgment.conditional_ranked_clade_distribution import get_rank_maps, get_rank_tree_probability
+from tetres.judgment.conditional_ranked_clade_distribution import get_rank_maps, get_rank_tree_probability
 from collections import Counter
 
 

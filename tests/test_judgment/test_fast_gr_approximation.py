@@ -1,7 +1,7 @@
 import pytest
-from treeoclock.judgment.mchain import coupled_MChains
-from treeoclock.judgment._gelman_rubin_diag import gelman_rubin_cut
-from treeoclock.judgment._fast_gr_approximation import fast_grd_cut, gelman_rubin_fast_approx_parameter_choice_plot\
+from tetres.judgment.mchain import coupled_MChains
+from tetres.judgment._gelman_rubin_diag import gelman_rubin_cut
+from tetres.judgment._fast_gr_approximation import fast_grd_cut, gelman_rubin_fast_approx_parameter_choice_plot\
     , fast_approx_fix_fraction_plot
 import os
 import random

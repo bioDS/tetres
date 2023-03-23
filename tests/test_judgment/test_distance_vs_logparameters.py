@@ -1,5 +1,5 @@
-from treeoclock.judgment.distance_vs_logparameters import *
-from treeoclock.judgment.distance_vs_logparameters import _kc
+from tetres.judgment.distance_vs_logparameters import *
+from tetres.judgment.distance_vs_logparameters import _kc
 
 
 # todo this testing is nothing that is useful

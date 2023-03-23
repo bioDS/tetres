@@ -1,6 +1,6 @@
-from treeoclock.trees.time_trees import TimeTree, findpath_distance
-from treeoclock.summary.frechet_mean import frechet_mean, frechet_mean_sort
-from treeoclock.summary.compute_sos import compute_sos_mt
+from tetres.trees.time_trees import TimeTree, findpath_distance
+from tetres.summary.frechet_mean import frechet_mean, frechet_mean_sort
+from tetres.summary.compute_sos import compute_sos_mt
 
 import random
 

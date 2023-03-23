@@ -1,6 +1,6 @@
-from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
-from treeoclock.summary.compute_sos import compute_sos_mt
-from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, \
+from tetres.trees.time_trees import TimeTreeSet, TimeTree
+from tetres.summary.compute_sos import compute_sos_mt
+from tetres.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, \
     search_neighbourhood_separate, search_neighbourhood_greedy_omp
 
 import random

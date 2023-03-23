@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from treeoclock.trees.time_trees import TimeTreeSet
+from tetres.trees.time_trees import TimeTreeSet
 
 
 def discrete_cladeset_comparator(tree_set_i, tree_set_j, plot=True, burnin=0, file=""):

@@ -1,4 +1,4 @@
-from treeoclock.judgment.ess import pseudo_ess, autocorr_ess
+from tetres.judgment.ess import pseudo_ess, autocorr_ess
 import random
 
 

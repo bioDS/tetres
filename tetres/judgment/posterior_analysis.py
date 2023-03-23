@@ -1,7 +1,7 @@
 # Analysis of tree sets that are interpreted as a true posteior or an estimate of that
 
-from treeoclock.judgment.mchain import MChain
-from treeoclock.visualize.graphs import visualize_matrix, extract_largest_cc_indices
+from tetres.judgment.mchain import MChain
+# from tetres.visualize.graphs import visualize_matrix, extract_largest_cc_indices
 
 import os
 
@@ -64,7 +64,7 @@ def distance_distribution_matrix(d_matrix, diam, indexes=None):
     if indexes is not None:
         d_matrix = d_matrix[np.ix_(indexes, indexes)]
     values = d_matrix[d_matrix > 0]
-    sns.histplot(values, stat="density", discrete=True)
+    sns.histplot(values, stat="count", discrete=True)
     plt.axvline(x=diam, color="red", linestyle="--")
     plt.axvline(x=np.mean(values), color="purple", linestyle="-.")
     plt.show()

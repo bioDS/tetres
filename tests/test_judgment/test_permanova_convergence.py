@@ -1,5 +1,5 @@
 import pytest
-from treeoclock.judgment.permanova_convergence import *
+from tetres.judgment.permanova_convergence import *
 import os
 
 

@@ -1,4 +1,4 @@
-from treeoclock.beast_helper.treeannotator import run_treeannotator
+from tetres.beast_helper.treeannotator import run_treeannotator
 from pathlib import Path
 import os
 

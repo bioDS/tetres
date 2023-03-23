@@ -1,4 +1,4 @@
-from treeoclock.clustree.silhouette_score import plot_silhouette, silhouette_score
+from tetres.clustree.silhouette_score import plot_silhouette, silhouette_score
 
 
 def test_silhouette_score(ten_taxa_cMChain):

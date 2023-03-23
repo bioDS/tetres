@@ -1,4 +1,4 @@
-from treeoclock.beast_helper.beast import run_beast
+from tetres.beast_helper.beast import run_beast
 from pathlib import Path
 import os
 

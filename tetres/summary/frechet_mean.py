@@ -1,7 +1,7 @@
-from treeoclock.trees._ctrees import TREE_LIST, TREE
-from treeoclock.trees.time_trees import TimeTreeSet, findpath_path, TimeTree
-from treeoclock.trees._converter import ctree_to_ete3
-from treeoclock.summary.compute_sos import compute_sos_mt
+from tetres.trees._ctrees import TREE_LIST, TREE
+from tetres.trees.time_trees import TimeTreeSet, findpath_path, TimeTree
+from tetres.trees._converter import ctree_to_ete3
+from tetres.summary.compute_sos import compute_sos_mt
 from multiprocessing.pool import ThreadPool as Pool
 
 from random import shuffle

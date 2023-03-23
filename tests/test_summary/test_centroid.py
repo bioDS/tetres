@@ -4,8 +4,8 @@ import random
 
 from pathlib import Path
 
-from treeoclock.summary.centroid import Centroid
-from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
+from tetres.summary.centroid import Centroid
+from tetres.trees.time_trees import TimeTreeSet, TimeTree
 
 
 def test_centroid_construction_empty():

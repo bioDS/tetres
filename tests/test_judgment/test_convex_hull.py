@@ -1,6 +1,6 @@
 import pytest
 import os
-from treeoclock.judgment.convex_hull import *
+from tetres.judgment.convex_hull import *
 
 
 def test_find_convex_hull(ten_taxa_cMChain):

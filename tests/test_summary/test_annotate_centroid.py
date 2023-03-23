@@ -1,7 +1,7 @@
 import pytest
-from treeoclock.summary.centroid import Centroid
-from treeoclock.summary.annotate_centroid import annotate_centroid
-from treeoclock.trees.time_trees import TimeTree
+from tetres.summary.centroid import Centroid
+from tetres.summary.annotate_centroid import annotate_centroid
+from tetres.trees.time_trees import TimeTree
 
 
 def test_annotate_centroid(twelve_taxa_tts):

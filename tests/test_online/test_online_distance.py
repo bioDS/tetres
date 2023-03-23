@@ -1,5 +1,5 @@
 
-from treeoclock.online.online_distance import online_distance_neighbourhood
+from tetres.online.online_distance import online_distance_neighbourhood
 
 
 def test_online_distance_neighbourhood(twelve_taxa_tts):

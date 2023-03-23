@@ -1,6 +1,6 @@
 import pytest
 import os
-from treeoclock.visualize.open_book import *
+from tetres.visualize.open_book import *
 import matplotlib.pyplot as plt
 
 

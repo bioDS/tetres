@@ -1,9 +1,9 @@
-from treeoclock.summary.centroid import Centroid
+from tetres.summary.centroid import Centroid
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sympy import Sum, Product
 from sympy.abc import x, i, m
-from treeoclock.judgment.conditional_clade_distribution import get_tree_probability, get_maps, add_centroid
+from tetres.judgment.conditional_clade_distribution import get_tree_probability, get_maps, add_centroid
 import pandas as pd
 import numpy as np
 import scipy.stats as st

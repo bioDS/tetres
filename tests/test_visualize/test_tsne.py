@@ -1,4 +1,4 @@
-from treeoclock.visualize.tsne import tsne_coords_from_mchain
+from tetres.visualize.tsne import tsne_coords_from_mchain
 
 
 def test_tsne_from_mchain_2d(ten_taxa_cMChain):

@@ -6,8 +6,8 @@ import ete3
 import numpy as np
 
 from ctypes import POINTER, CDLL, c_long, c_int
-from treeoclock.trees._converter import ete3_to_ctree, ctree_to_ete3
-from treeoclock.trees._ctrees import TREE, TREE_LIST
+from tetres.trees._converter import ete3_to_ctree, ctree_to_ete3
+from tetres.trees._ctrees import TREE, TREE_LIST
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/findpath.so')
 

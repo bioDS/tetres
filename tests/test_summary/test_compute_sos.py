@@ -1,6 +1,6 @@
 
-from treeoclock.summary.compute_sos import compute_sos, compute_sos_mt, compute_sos_omp
-from treeoclock.trees.time_trees import TimeTreeSet
+from tetres.summary.compute_sos import compute_sos, compute_sos_mt, compute_sos_omp
+from tetres.trees.time_trees import TimeTreeSet
 
 
 def test_compute_sos_one_core(dir, five_taxa_nexus_string):

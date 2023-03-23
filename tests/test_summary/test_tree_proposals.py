@@ -1,7 +1,7 @@
 import pytest
 
-from treeoclock.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, search_neighbourhood_greedy_omp
-from treeoclock.trees.time_trees import TimeTree
+from tetres.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, search_neighbourhood_greedy_omp
+from tetres.trees.time_trees import TimeTree
 
 
 def test_search_neighbourhood_greedy_ncorenone(five_taxa_tts):

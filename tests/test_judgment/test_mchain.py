@@ -2,8 +2,8 @@ import pytest
 import random
 import matplotlib.pyplot as plt
 from pathlib import Path
-from treeoclock.judgment.mchain import MChain, coupled_MChains
-import treeoclock.judgment.ess as ess
+from tetres.judgment.mchain import MChain, coupled_MChains
+import tetres.judgment.ess as ess
 import os
 
 

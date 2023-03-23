@@ -1,4 +1,4 @@
-from treeoclock.beast_helper.beter import process_template, _init_R
+from tetres.beast_helper.beter import process_template, _init_R
 from pathlib import Path
 import pytest
 import os

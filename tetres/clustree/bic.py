@@ -1,8 +1,8 @@
 __author__ = "Lars Berling"
 
-from treeoclock.clustree.spectral_clustree import spectral_clustree_dm
-from treeoclock.summary.centroid import Centroid
-from treeoclock.trees.time_trees import TimeTreeSet
+from tetres.clustree.spectral_clustree import spectral_clustree_dm
+from tetres.summary.centroid import Centroid
+from tetres.trees.time_trees import TimeTreeSet
 
 import numpy as np
 import matplotlib.pyplot as plt

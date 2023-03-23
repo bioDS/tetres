@@ -1,4 +1,4 @@
-from treeoclock.clustree.spectral_clustree import spectral_clustree_dm
+from tetres.clustree.spectral_clustree import spectral_clustree_dm
 
 
 def test_spectral_clustree(ten_taxa_cMChain):

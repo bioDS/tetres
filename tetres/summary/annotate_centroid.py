@@ -1,4 +1,4 @@
-from treeoclock.trees.time_trees import TimeTreeSet, TimeTree
+from tetres.trees.time_trees import TimeTreeSet, TimeTree
 import numpy as np
 import ete3
 
@@ -37,7 +37,7 @@ def annotate_centroid(tree: TimeTree, tree_set: TimeTreeSet):
 
 
 def _ctree_to_ete3_annotation(ctree, branch_lengths):
-    # adapted recursion from treeoclock.trees._converter using the float branch lengths instead of integers
+    # adapted recursion from tetres.trees._converter using the float branch lengths instead of integers
 
     nl = ctree.num_leaves
     nn = (nl * 2) - 2  # number of nodes - 1, max index in ctree.tree

@@ -1,4 +1,4 @@
-from treeoclock.judgment.conditional_clade_distribution import get_maps, get_tree_probability
+from tetres.judgment.conditional_clade_distribution import get_maps, get_tree_probability
 from collections import Counter
 from decimal import *
 

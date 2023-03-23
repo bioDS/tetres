@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from treeoclock.judgment.mchain import coupled_MChains
+from tetres.judgment.mchain import coupled_MChains
 import os
 
 

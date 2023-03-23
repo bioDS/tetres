@@ -1,6 +1,6 @@
 import sys
 import ete3
-from treeoclock.trees._ctrees import NODE, TREE
+from tetres.trees._ctrees import NODE, TREE
 
 # TODO Documentation
 

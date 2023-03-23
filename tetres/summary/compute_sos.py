@@ -2,8 +2,8 @@ from multiprocessing.pool import ThreadPool as Pool
 import ctypes, os
 from ctypes import CDLL, POINTER
 
-from treeoclock.trees._ctrees import TREE_LIST, TREE
-from treeoclock.trees.time_trees import TimeTree, TimeTreeSet, findpath_distance
+from tetres.trees._ctrees import TREE_LIST, TREE
+from tetres.trees.time_trees import TimeTree, TimeTreeSet, findpath_distance
 
 
 def compute_sos_mt(t: TimeTree, trees: TimeTreeSet, n_cores: int = None, norm=False) -> int:

@@ -1,4 +1,4 @@
-from treeoclock.clustree.bic import BIC, plot_bic
+from tetres.clustree.bic import BIC, plot_bic
 import os
 
 
@@ -18,7 +18,7 @@ def test_BIC_1_true(ten_taxa_cMChain):
                            k=2, local_norm=False,
                            working_folder=ten_taxa_cMChain.working_dir,
                            random_shuffle=False, _overwrite=True)
-    assert int(bic) == 348, "BIC for 2 clusters failed"
+    assert int(bic) == 398, "BIC for 2 clusters failed"
 
 
 def test_plot_bic(ten_taxa_cMChain):

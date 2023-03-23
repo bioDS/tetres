@@ -1,4 +1,4 @@
-from treeoclock.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree, get_greedy_relaxed_pp_tree, are_compatible, convert_to_relaxed_partition_dict
+from tetres.judgment.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree, get_greedy_relaxed_pp_tree, are_compatible, convert_to_relaxed_partition_dict
 
 
 def test_get_conditional_partitions(ten_taxa_cMChain):

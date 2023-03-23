@@ -1,6 +1,6 @@
 import pytest
 import os
-from treeoclock.judgment.tree_distribution import get_coefficients,\
+from tetres.judgment.tree_distribution import get_coefficients,\
     _get_approx_orbits, plot_tree_density_distribution, \
     plot_CCD_vs_centroid_distance, get_sample_treespace_coverage, \
     get_corr_p_coverage

@@ -4,9 +4,9 @@ import warnings
 import os
 from pathlib import Path
 
-from treeoclock.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
+from tetres.trees.time_trees import TimeTree, findpath_distance, findpath_path, get_mapping_dict,\
     TimeTreeSet, get_rank_neighbours, get_nni_neighbours, neighbourhood, nwk_to_cluster, DifferentNbrTaxa, free_tree_list
-from treeoclock.trees._converter import ete3_to_ctree
+from tetres.trees._converter import ete3_to_ctree
 
 
 def test_timetree_construction(five_taxa_newick_list):

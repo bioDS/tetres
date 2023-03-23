@@ -1,4 +1,4 @@
-from treeoclock.beast_helper.cladesetcomparator import run_cladesetcomparator
+from tetres.beast_helper.cladesetcomparator import run_cladesetcomparator
 from pathlib import Path
 import os
 

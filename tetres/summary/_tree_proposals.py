@@ -1,7 +1,7 @@
-from treeoclock.trees.time_trees import TimeTree, TimeTreeSet
-from treeoclock.summary.compute_sos import compute_sos_mt
-from treeoclock.summary._constants import SELECT_LIST
-from treeoclock.trees._ctrees import TREE_LIST, TREE, PAIR
+from tetres.trees.time_trees import TimeTree, TimeTreeSet
+from tetres.summary.compute_sos import compute_sos_mt
+from tetres.summary._constants import SELECT_LIST
+from tetres.trees._ctrees import TREE_LIST, TREE, PAIR
 
 import ctypes, os
 from ctypes import CDLL, POINTER

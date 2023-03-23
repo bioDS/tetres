@@ -9,20 +9,20 @@ import linecache
 import re
 import warnings
 
-from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.summary.compute_sos import compute_sos_mt
-from treeoclock.summary.frechet_mean import frechet_mean
-from treeoclock.trees._converter import ctree_to_ete3
-from treeoclock.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
-from treeoclock.judgment import _gelman_rubin_diag as grd
-from treeoclock.judgment import _cladesetcomparator as csc
-from treeoclock.clustree.spectral_clustree import _spectral_clustree
-from treeoclock.summary.centroid import Centroid
-from treeoclock.summary.annotate_centroid import annotate_centroid
-from treeoclock.judgment.ess import autocorr_ess, pseudo_ess
-from treeoclock.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
-from treeoclock.clustree.bic import BIC
-from treeoclock.clustree.silhouette_score import silhouette_score
+from tetres.trees.time_trees import TimeTreeSet
+from tetres.summary.compute_sos import compute_sos_mt
+from tetres.summary.frechet_mean import frechet_mean
+from tetres.trees._converter import ctree_to_ete3
+from tetres.judgment._pairwise_distance_matrix import calc_pw_distances, calc_pw_distances_two_sets
+from tetres.judgment import _gelman_rubin_diag as grd
+from tetres.judgment import _cladesetcomparator as csc
+from tetres.clustree.spectral_clustree import _spectral_clustree
+from tetres.summary.centroid import Centroid
+from tetres.summary.annotate_centroid import annotate_centroid
+from tetres.judgment.ess import autocorr_ess, pseudo_ess
+from tetres.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
+from tetres.clustree.bic import BIC
+from tetres.clustree.silhouette_score import silhouette_score
 
 from rpy2.robjects.packages import importr
 phytools = importr("phytools")

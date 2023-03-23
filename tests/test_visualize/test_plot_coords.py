@@ -1,5 +1,5 @@
-from treeoclock.visualize.tsne import tsne_coords_from_mchain
-from treeoclock.visualize.plot_coords import plot_coords, plot_density_over_coordinates, plot_all_chains_tsne
+from tetres.visualize.tsne import tsne_coords_from_mchain
+from tetres.visualize.plot_coords import plot_coords, plot_density_over_coordinates, plot_all_chains_tsne
 
 import numpy as np
 

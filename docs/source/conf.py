@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'treeoclock'
+project = 'tetres'
 copyright = '2022, Lars Berling'
 author = 'Lars Berling'
 

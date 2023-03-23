@@ -101,6 +101,7 @@ def plot_loglik_along_path(mchain):
     return 0
 
 
+# todo add to the pairwise distance matrix code with saving and all that instead of here ....
 def _kc(t1, t2, i, j):
     matrix = get_shared_array('distances')
     ape = importr("ape")
@@ -115,7 +116,7 @@ def get_kc_matrix(trees):
     distances = np.zeros((n, n))
     make_shared_array(distances, name='distances')  # create shared memory array from numpy array
     # shared_array = get_shared_array('distances')  # get shared memory array as numpy array
-    with Pool(None) as p:
+    with Pool(60) as p:
         p.starmap(_kc, [(trees[i].get_newick(), trees[j].get_newick(), i, j) for i, j in itertools.combinations(range(n), 2)])
     distances = get_shared_array('distances')
     try:
@@ -175,7 +176,7 @@ def plot_log_neighbours(mchain, dist_type = "rnni"):
     plt.tick_params(labelsize=14)
     plt.tight_layout()
 
-    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot{'_rf' if rf else ''}_new.eps", format="eps", dpi=400, bbox_inches="tight")
+    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot_{dist_type}_new.eps", format="eps", dpi=400, bbox_inches="tight")
     # plt.show()
     plt.clf()
     plt.close()

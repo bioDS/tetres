@@ -98,11 +98,11 @@ def split_all_trees(self, n_clus, beta=1, burn_in=5):
     return 0
 
 
-from treeoclock.clustree.spectral_clustree import _spectral_clustree
+from tetres.clustree.spectral_clustree import _spectral_clustree
 import numpy as np
 import os
-from treeoclock.visualize.plot_coords import plot_coords
-from treeoclock.trees.time_trees import TimeTreeSet
+from tetres.visualize.plot_coords import plot_coords
+from tetres.trees.time_trees import TimeTreeSet
 
 
 # todo include the plot all chains tsne funciton here at some point!

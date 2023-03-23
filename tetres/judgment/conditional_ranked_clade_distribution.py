@@ -1,7 +1,7 @@
 # algorithm for condiditonal clade distrbitution by Bret Larget
 from collections import defaultdict
 from decimal import *
-from treeoclock.trees._converter import ctree_to_ete3
+from tetres.trees._converter import ctree_to_ete3
 
 
 def get_rank_maps(trees):

@@ -1,5 +1,5 @@
-from treeoclock.trees._converter import ctree_to_ete3
-from treeoclock.trees.time_trees import TimeTree
+from tetres.trees._converter import ctree_to_ete3
+from tetres.trees.time_trees import TimeTree
 import re
 import ete3
 import numpy as np
@@ -156,7 +156,6 @@ def get_greedy_relaxed_pp_tree(dict_partitions, n_taxa):
                                 cur_dict[sub_other_k] = dict_partitions[other_k][sub_other_k]
         # todo this is not relevant here, but I need this for the calculation of probabilities so the datastructure needs to be adapted for these relaxed probabilities
         #  probably just calculate the dicitonary like this in the first place so that i can use the same greedy choice algorithm than before?
-        sum_counts = 1
         highest = 0
         h_v = 0
         for k in cur_dict:

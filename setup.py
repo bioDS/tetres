@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
-setup(name='treeoclock',
+setup(name='tetres',
       version='1.0.0',
-      description='A package for discrete time trees',
+      description='Time Tree Statistics package',
       # url='http://github.com/storborg/funniest',  # todo
       author='Lars Berling',
       # author_email='flyingcircus@example.com',

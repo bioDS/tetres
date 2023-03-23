@@ -1,5 +1,5 @@
 from ctypes import CDLL, POINTER, c_long
-from treeoclock.trees._ctrees import TREE_LIST, TREE
+from tetres.trees._ctrees import TREE_LIST, TREE
 import os
 import numpy as np
 from multiprocessing import Pool

@@ -1,6 +1,6 @@
 __author__ = "Lars Berling"
 
-from treeoclock.clustree.spectral_clustree import spectral_clustree_dm
+from tetres.clustree.spectral_clustree import spectral_clustree_dm
 import numpy as np
 import matplotlib.pyplot as plt
 import random

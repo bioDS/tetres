@@ -1,7 +1,7 @@
-from treeoclock.summary import _variations
-from treeoclock.summary._constants import SELECT_LIST, START_LIST
-from treeoclock.trees.time_trees import TimeTreeSet
-from treeoclock.summary.frechet_mean import frechet_mean, frechet_mean_sort
+from tetres.summary import _variations
+from tetres.summary._constants import SELECT_LIST, START_LIST
+from tetres.trees.time_trees import TimeTreeSet
+from tetres.summary.frechet_mean import frechet_mean, frechet_mean_sort
 
 import os
 import random

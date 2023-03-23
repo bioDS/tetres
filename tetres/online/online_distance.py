@@ -1,7 +1,7 @@
-from treeoclock.trees.time_trees import TimeTree, TimeTreeSet
-from treeoclock.trees._ctrees import TREE
+from tetres.trees.time_trees import TimeTree, TimeTreeSet
+from tetres.trees._ctrees import TREE
 
-from treeoclock.online._cstructures import PRECOMP, UPDATE
+from tetres.online._cstructures import PRECOMP, UPDATE
 
 from ctypes import CDLL, POINTER, c_long, cast
 import os, sys

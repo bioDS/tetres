@@ -3,26 +3,26 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
-def ess_stripplot(cmchain):
-    # todo why/where do i need this?
-    burnin = 0
-
-    df = _ess_df(cmchain, chain_indeces=range(cmchain.m_MChains))
-
-    ax = sns.stripplot(data=df, x="Key", y="Value", hue="Chain")
-
-    for label in ax.get_xticklabels():
-        label.set_rotation(90)
-    plt.xlabel("")
-    plt.ylabel("ESS")
-    plt.suptitle(f"Number of samples: {len(cmchain[-1].trees)}, burn-in={burnin*100}%")
-    plt.tight_layout()
-    # plt.show()
-
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_ess_comparison.png", dpi=400)
-    plt.clf()
-    plt.close()
+#
+# def ess_stripplot(cmchain):
+#     # todo why/where do i need this?
+#     burnin = 0
+#
+#     df = _ess_df(cmchain, chain_indeces=range(cmchain.m_MChains))
+#
+#     ax = sns.stripplot(data=df, x="Key", y="Value", hue="Chain")
+#
+#     for label in ax.get_xticklabels():
+#         label.set_rotation(90)
+#     plt.xlabel("")
+#     plt.ylabel("ESS")
+#     plt.suptitle(f"Number of samples: {len(cmchain[-1].trees)}, burn-in={burnin*100}%")
+#     plt.tight_layout()
+#     # plt.show()
+#
+#     plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_ess_comparison.png", dpi=400)
+#     plt.clf()
+#     plt.close()
 
 
 def _ess_df(cmchain, chain_indeces, start=-1, end=-1):

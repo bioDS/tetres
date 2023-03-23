@@ -1,4 +1,4 @@
-from treeoclock.summary.frechet_mean import frechet_mean
+from tetres.summary.frechet_mean import frechet_mean
 
 
 def find_convex_hull_trees(chain, i):

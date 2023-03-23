@@ -1,8 +1,8 @@
 import pytest
 from pathlib import Path
-from treeoclock.judgment.mchain import coupled_MChains
+from tetres.judgment.mchain import coupled_MChains
 import os
-from treeoclock.visualize.graphs import *
+from tetres.visualize.graphs import *
 
 
 def test_visualize_matrix(ten_taxa_cMChain):

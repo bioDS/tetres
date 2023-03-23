@@ -54,7 +54,7 @@ def plot_coords(coords, filename=None, colors=None, colorbar=False, centers=Fals
     if filename is None:
         plt.show()
     else:
-        plt.savefig(filename, dpi=400, format="png")
+        plt.savefig(filename, format="eps", bbox_inches="tight")
     plt.clf()
     plt.close()
 
@@ -136,7 +136,7 @@ def plot_all_chains_tsne(mchain, names=None, rf: bool = False):
     #  like metric MDS ! 
     # calling tsne for coordinate computaion
     # todo ideally this should be outsorced and possible with tsne recognizing the input differently maybe
-    from treeoclock.visualize.tsne import _tsne_coords_from_pwd
+    from tetres.visualize.tsne import _tsne_coords_from_pwd
     # todo it is totally fine to run tsne 10 times and select the solutin with the lowest KL divergence
     # todo the coords should be saved! and then loaded if called again!
     coords, kl_divergence = _tsne_coords_from_pwd(pwd_matrix=combined_matrix, dim=2)  # todo dimension

@@ -1,5 +1,5 @@
 from ctypes import Structure, POINTER, c_long
-from treeoclock.trees._ctrees import TREE
+from tetres.trees._ctrees import TREE
 
 
 class PRECOMP(Structure):

@@ -1,5 +1,5 @@
 import pytest
-from treeoclock.judgment.mchain import coupled_MChains
+from tetres.judgment.mchain import coupled_MChains
 import os
 
 
