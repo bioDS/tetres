@@ -23,12 +23,12 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
+def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
     # this function will return the cut.start and cut.end values calculated for the given full chain
 
-    dm_i = cmchain.pwd_matrix(i)
-    dm_j = cmchain.pwd_matrix(j)
-    dm_ij = cmchain.pwd_matrix(i, j)
+    dm_i = multichain.pwd_matrix(i)
+    dm_j = multichain.pwd_matrix(j)
+    dm_ij = multichain.pwd_matrix(i, j)
     dm_ji = np.transpose(dm_ij)
 
     if dm_i.shape != dm_j.shape:
@@ -73,9 +73,9 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_ran
             consecutive += 1
             if cutoff_end == -1 and consecutive >= ess_threshold:
                     # todo change to calculate the pseudo ess with the already existing distance matrix
-                    if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                    if (multichain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
                             and \
-                            (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                            (multichain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
                         cutoff_end = cur_sample
                         cutoff_start = cur_sample - consecutive
                         return cutoff_start, cutoff_end
@@ -85,12 +85,12 @@ def gelman_rubin_cut(cmchain, i, j, smoothing, ess_threshold=200, pseudo_ess_ran
     return -1, -1
 
 
-def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median", _subsampling=False, _gr_boundary=0.02):
+def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median", _subsampling=False, _gr_boundary=0.02):
     # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
 
-    dm_i = cmchain.pwd_matrix(i)
-    dm_j = cmchain.pwd_matrix(j)
-    dm_ij = cmchain.pwd_matrix(i, j)
+    dm_i = multichain.pwd_matrix(i)
+    dm_j = multichain.pwd_matrix(j)
+    dm_ij = multichain.pwd_matrix(i, j)
     dm_ji = np.transpose(dm_ij)
     
     if dm_i.shape != dm_j.shape:
@@ -141,9 +141,9 @@ def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold
             for ess_threshold in cutoff_end.keys():
                 if cutoff_end[ess_threshold] == -1 and consecutive >= ess_threshold:
                     # todo change to calculate the pseudo ess with the already existing distance matrix
-                    if (cmchain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                    if (multichain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
                             and \
-                            (cmchain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                            (multichain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
                         cutoff_end[ess_threshold] = cur_sample
                         cutoff_start[ess_threshold] = cur_sample - consecutive
         else:
@@ -152,7 +152,7 @@ def gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing, ess_threshold
     return pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"]), cutoff_start, cutoff_end
 
 
-def gelman_rubin_parameter_choice_plot(cmchain, i, j, _subsampling=False):
+def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False):
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
     # TODO WIP for clean up and rename!
     _gr_boundary = 0.02  # todo not implemented for now
@@ -169,7 +169,7 @@ def gelman_rubin_parameter_choice_plot(cmchain, i, j, _subsampling=False):
                                 squeeze=False, sharex=True, sharey=True)
 
     for col in range(len(smoothing)):
-        df, cutoff_start, cutoff_end = gelman_rubin_ess_threshold_list_list(cmchain, i, j, smoothing=smoothing[col],
+        df, cutoff_start, cutoff_end = gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing=smoothing[col],
                                                                             ess_threshold_list=ess_threshold_list,
                                                                             smoothing_average=smoothing_function,
                                                                             _subsampling=_subsampling)
@@ -232,20 +232,20 @@ def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100
     return pd.DataFrame(data=psrf_like, columns=["Treeset", "PSRF_like"])
 
 
-def gelman_rubin_all_chains_density_plot(cMChain, samples: int = 100):
-    figure, axis = plt.subplots(nrows=cMChain.m_MChains, ncols=cMChain.m_MChains, constrained_layout=True,
+def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
+    figure, axis = plt.subplots(nrows=multichain.m_chains, ncols=multichain.m_chains, constrained_layout=True,
                                 figsize=[9, 7])
 
     # initializing the scaled axis for the upper part of the plot:
     scaled_x_axis = np.arange(0.8, 1.7, 0.1)
     scaled_y_axis = np.arange(0, 120, 20)
 
-    for i in range(cMChain.m_MChains - 1):
-        for j in range(i + 1, cMChain.m_MChains):
-            cur_psrf_like = gelman_rubin_full_chain_subsample(cMChain.pwd_matrix(i),
-                                                                           cMChain.pwd_matrix(j),
-                                                                           cMChain.pwd_matrix(i, j),
-                                                                           samples=samples)
+    for i in range(multichain.m_chains - 1):
+        for j in range(i + 1, multichain.m_chains):
+            cur_psrf_like = gelman_rubin_full_chain_subsample(multichain.pwd_matrix(i),
+                                                              multichain.pwd_matrix(j),
+                                                              multichain.pwd_matrix(i, j),
+                                                              samples=samples)
 
             # upper triangle of plot
             sns.kdeplot(ax=axis[i, j], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False,
@@ -276,19 +276,19 @@ def gelman_rubin_all_chains_density_plot(cMChain, samples: int = 100):
             # sns.boxplot(ax=axis[j, i], data=cur_psrf_like, x="Treeset", y="PSRF_like")
 
         # putting geweke on diagonal of the plot
-        cur_geweke = cMChain.MChain_list[i].compute_geweke_distances(index=i, name=cMChain.name, add=False)
-        cur_sample = range(0, cMChain[i].chain_length + cMChain[i].tree_sampling_interval,
-                           cMChain[i].tree_sampling_interval)
+        cur_geweke = multichain.MChain_list[i].compute_geweke_distances(index=i, name=multichain.name, add=False)
+        cur_sample = range(0, multichain[i].chain_length + multichain[i].tree_sampling_interval,
+                           multichain[i].tree_sampling_interval)
         sns.lineplot(ax=axis[i, i], y=cur_geweke, x=cur_sample)
     # adding the last diagonal plot, because i will not run far enough
-    cur_geweke = cMChain[-1].compute_geweke_distances(index=cMChain.m_MChains - 1, name=cMChain.name, add=False)
-    cur_sample = range(0, cMChain[-1].chain_length + cMChain[-1].tree_sampling_interval,
-                       cMChain[-1].tree_sampling_interval)
-    sns.lineplot(ax=axis[cMChain.m_MChains - 1, cMChain.m_MChains - 1], y=cur_geweke, x=cur_sample)
+    cur_geweke = multichain[-1].compute_geweke_distances(index=multichain.m_chains - 1, name=multichain.name, add=False)
+    cur_sample = range(0, multichain[-1].chain_length + multichain[-1].tree_sampling_interval,
+                       multichain[-1].tree_sampling_interval)
+    sns.lineplot(ax=axis[multichain.m_chains - 1, multichain.m_chains - 1], y=cur_geweke, x=cur_sample)
 
     # Annotation of the plot
     pad = 5  # in points
-    cols = [f"chain{m}" for m in range(cMChain.m_MChains)]
+    cols = [f"chain{m}" for m in range(multichain.m_chains)]
     # Setting the col names
     for ax, col in zip(axis[0], cols):
         ax.annotate(col, xy=(0.5, 1), xytext=(0, pad),
@@ -302,7 +302,7 @@ def gelman_rubin_all_chains_density_plot(cMChain, samples: int = 100):
 
     # plt.show()
     plt.savefig(
-        fname=f"{cMChain.working_dir}/plots/{cMChain.name}_grd_density_full_chain_{'all' if samples == 'all' else f'subsampling_{samples}'}.png",
+        fname=f"{multichain.working_dir}/plots/{multichain.name}_grd_density_full_chain_{'all' if samples == 'all' else f'subsampling_{samples}'}.png",
         format="png", bbox_inches="tight", dpi=800)
     plt.clf()
     plt.close("all")
