@@ -216,7 +216,7 @@ def seventeen_taxa_nni_neighbours_newick():
 
 
 @pytest.fixture
-def thirty_taxa_MChain():
+def thirty_taxa_chain():
     return Chain(
         trees=f"30Taxa.trees",
         log_file=f"30Taxa_beast2.log",
@@ -227,8 +227,8 @@ def thirty_taxa_MChain():
 
 
 @pytest.fixture
-def ten_taxa_cMChain():
-    return MultiChain(m_MChains=3,
+def ten_taxa_multichain():
+    return MultiChain(m_chains=3,
                     trees=["chain0.trees", "chain0_1.trees", "chain0_2.trees"],
                     log_files=["chain0.log", "chain0_1.log", "chain0_2.log"],
                     working_dir=f"{Path(__file__).parent.absolute()}/data/cMChain",
@@ -242,7 +242,7 @@ def thirty_taxa_log_data():
 
 @pytest.fixture
 def threespace():
-    return MultiChain(m_MChains=1,
+    return MultiChain(m_chains=1,
                            trees=["3space.trees"], log_files=[None],
                            working_dir=f"{Path(__file__).parent.absolute()}/data/",
                            name="3Space"
@@ -251,7 +251,7 @@ def threespace():
 
 @pytest.fixture
 def fourspace():
-    return MultiChain(m_MChains=1,
+    return MultiChain(m_chains=1,
                            trees=["4space.trees"], log_files=[None],
                            working_dir=f"{Path(__file__).parent.absolute()}/data/",
                            name="4Space"
