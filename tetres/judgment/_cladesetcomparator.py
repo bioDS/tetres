@@ -5,7 +5,7 @@ from PIL import Image
 import shutil
 
 
-def _cladesetcomp(multichain, beast_applauncher, burnin=10):
+def cladesetcomp(multichain, beast_applauncher, burnin=10):
 
     img_list = []
     cwd = os.getcwd()  # Getting current Working directory

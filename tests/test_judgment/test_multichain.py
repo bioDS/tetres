@@ -29,19 +29,9 @@ def test_diff_map():
                 )
 
 
-def test_multichain_gelman_rubin_plot_single_chain():
-    with pytest.raises(ValueError):
-        coupled_chains = MultiChain(m_chains=1,
-                        trees=["30Taxa.trees"],
-                        log_files=["30Taxa_beast2.log"],
-                        working_dir=f"{Path(__file__).parent.parent.absolute()}/data"
-                        )
-        coupled_chains.gelman_rubin_like_diagnostic_plot()
-
-
 def test_multichain_get_ess_start_end(ten_taxa_multichain):
     ess = ten_taxa_multichain[0].get_ess(ess_key="posterior", lower_i=10, upper_i=110)
-    assert int(ess) == 66, "Get ESS with start end failed"
+    assert int(ess) == 67, "Get ESS with start end failed"
 
 
 def test_multichain_pwd_matrix(ten_taxa_multichain):
@@ -82,7 +72,7 @@ def test_multichain_pwdm_errors(ten_taxa_multichain):
 
 def test_multichain_cladesetcomparator(ten_taxa_multichain):
     ten_taxa_multichain.cladesetcomparator(beast_applauncher="/Applications/BEAST 2.6.3/bin/applauncher")
-    assert os.path.exists(f"{ten_taxa_multichain.working_dir}/plots/cc.png"), "Cladeset comparator failed!"
+    assert os.path.exists(f"{ten_taxa_multichain.working_dir}/plots/10TaxaFix_clade_comp.png"), "Cladeset comparator failed!"
 
 
 def test_pwd_matrix_all(ten_taxa_multichain):

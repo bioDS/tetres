@@ -85,7 +85,6 @@ class MultiChain():
                 else:
                     return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy")
 
-    # todo testing required
     def pwd_matrix_all(self, rf: bool = False):
         if not os.path.exists(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy"):
             combined_matrix = np.array([])
