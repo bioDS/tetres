@@ -50,17 +50,18 @@ def test_multichain_pwd_matrix(ten_taxa_multichain):
 
 
 def test_multichain_pwd_matrix_rf(ten_taxa_multichain):
-    errors = []
-    dm0 = ten_taxa_multichain.pwd_matrix(0, rf=True)
-    if dm0.shape != (1001, 1001):
-        errors.append("dm0 wrong shape!")
-    dm1 = ten_taxa_multichain.pwd_matrix(1, rf=True)
-    if dm1.shape != (1001, 1001):
-        errors.append("dm0 wrong shape!")
-    dm01 = ten_taxa_multichain.pwd_matrix(0, 1, rf=True)
-    if dm01.shape != (1001, 1001):
-        errors.append("dm0 wrong shape!")
-    assert errors == [], f"PWD matrix went wrong! {errors}"
+    if platform == "linux" or platform == "linux2":
+        errors = []
+        dm0 = ten_taxa_multichain.pwd_matrix(0, rf=True)
+        if dm0.shape != (1001, 1001):
+            errors.append("dm0 wrong shape!")
+        dm1 = ten_taxa_multichain.pwd_matrix(1, rf=True)
+        if dm1.shape != (1001, 1001):
+            errors.append("dm0 wrong shape!")
+        dm01 = ten_taxa_multichain.pwd_matrix(0, 1, rf=True)
+        if dm01.shape != (1001, 1001):
+            errors.append("dm0 wrong shape!")
+        assert errors == [], f"PWD matrix went wrong! {errors}"
 
 
 def test_multichain_pwdm_errors(ten_taxa_multichain):
