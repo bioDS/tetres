@@ -28,9 +28,9 @@ class Chain:
         else:
             raise ValueError("Working directory type not recognized!")
 
-        for dir in ["data", "plots"]:
+        for new_dir in ["data", "plots"]:
             try:
-                os.mkdir(f"{self.working_dir}/{dir}")
+                os.mkdir(f"{self.working_dir}/{new_dir}")
             except FileExistsError:
                 pass
 
@@ -86,7 +86,6 @@ class Chain:
         return len(self.trees)
 
     def pwd_matrix(self, csv: bool = False, index="", name="", rf=False):
-        # todo this should work natively with the name of coupled mchains now, without all these parameters?
         if not os.path.exists(
                 f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
             dm = calc_pw_distances(self.trees, rf=rf)
@@ -170,9 +169,6 @@ class Chain:
         no_zero = False
         if "no_zero" in kwargs:
             no_zero = kwargs["no_zero"]
-        # chain_lngth = 1
-        # if upper_i > 0:
-        #     chain_leength = (self.chain_length / (len(self.trees) - 1)) * ((upper_i - 1) - lower_i)
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                           dist=dist, sample_range=sample_range, no_zero=no_zero)
 
