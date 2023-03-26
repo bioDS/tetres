@@ -236,9 +236,12 @@ class MultiChain():
         csc.cladesetcomp(self, beast_applauncher, burnin=burnin)
 
     def cen_for_each_chain(self, repeat=5):
+        raise ValueError("Current Work in Progress and not supported for now.")
+        # todo should be its own script, adhering to the naming conventions to fit in with clustering
+        #  clustering stuff should use the output from this funciton for 1 clustering
         for _ in range(repeat):
             for chain in self.MChain_list:
-                cen = Centroid(variation="inc_sub")
+                cen = Centroid()
                 cen_tree, sos = cen.compute_centroid(chain.trees)
                 cen_tree = annotate_centroid(cen_tree, chain.trees)
                 try:

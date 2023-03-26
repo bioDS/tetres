@@ -92,10 +92,10 @@ def test_pwd_matrix_all_mac_warning(ten_taxa_multichain):
             ten_taxa_multichain.pwd_matrix_all(rf=True)
 
 
-def test_cen_for_each_chain(ten_taxa_multichain):
-    ten_taxa_multichain.cen_for_each_chain()
-    for chain in ten_taxa_multichain:
-        assert os.path.exists(f"{chain.working_dir}/{chain.name}_cen.tree"), "Failed to write centroid file!"
+# def test_cen_for_each_chain(ten_taxa_multichain):
+#     ten_taxa_multichain.cen_for_each_chain()
+#     for chain in ten_taxa_multichain:
+#         assert os.path.exists(f"{chain.working_dir}/{chain.name}_cen.tree"), "Failed to write centroid file!"
 
 
 def test_clade_set_comparison(ten_taxa_multichain):

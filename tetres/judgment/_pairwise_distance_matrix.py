@@ -20,7 +20,6 @@ def _rf(t1, t2, i, j):
 
 def calc_pw_distances(trees, rf: bool = False):
     # todo add a n_cores parameter to c function?
-
     n = len(trees)
     if not rf:
         lib.pairwise_distance.argtypes = [POINTER(TREE_LIST), c_long, POINTER((c_long * n) * n)]
