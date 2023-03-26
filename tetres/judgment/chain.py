@@ -28,10 +28,11 @@ class Chain:
         else:
             raise ValueError("Working directory type not recognized!")
 
-        for d in ["data", "plots"]:
-            if not os.path.isdir(f"{self.working_dir}/{d}"):
-                # todo this can probably be simplified
-                os.mkdir(f"{self.working_dir}/{d}")
+        for dir in ["data", "plots"]:
+            try:
+                os.mkdir(f"{self.working_dir}/{dir}")
+            except FileExistsError:
+                pass
 
         # Setting trees
         if type(trees) is TimeTreeSet:
