@@ -204,8 +204,6 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr
 
 def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100):
     # this could be a gelman_rubin_like postprocessing tool
-
-    # todo consider burnin as a parameter
     nt1 = pwts1.shape[0]
     nt2 = pwts2.shape[0]
     if not nt1 == nt2:
