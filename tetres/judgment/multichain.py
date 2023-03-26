@@ -190,7 +190,7 @@ class MultiChain():
                     f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}")
             except FileNotFoundError:
                 pass
-        # if the file still exists here then we do not need to compute anything
+        # IF no overwrite and the file exists simply read the values from the file
         if os.path.exists(f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}"):
             with open(
                     f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
@@ -198,7 +198,8 @@ class MultiChain():
                 cut_start = int(file.readline())
                 cut_end = int(file.readline())
             return cut_start, cut_end
-
+        # File did not exist or was deleted
+        # Computing start and end of the cut via the GRD function
         cut_start, cut_end = grd.gelman_rubin_cut(self, i=i, j=j,
                                                   smoothing=smoothing,
                                                   ess_threshold=ess_threshold,
@@ -208,15 +209,18 @@ class MultiChain():
                                                   _gr_boundary=_gr_boundary)
         # Write the cutoff boundaries to a file, if it already exists skip this part
         if _subsampling:
+            # If subsampling the start and end need to be adapted, each subsampling is dividing the chain length by 2
             for _ in range(_subsampling):
                 cut_start, cut_end = cut_start * 2, cut_end * 2
         try:
+            # Write the cut start and end to a file, if it exists raises an Error
             with open(
                     f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
                     "x") as f:
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
-            raise Exception("Something went wrong!")
+            raise Exception("The file for writing the GRD cut start and end exists already, this shouldn't happen here!")
+        # return the start and end values
         return cut_start, cut_end
 
     def __getitem__(self, index):
@@ -233,9 +237,11 @@ class MultiChain():
     def cladesetcomparator(self, beast_applauncher, burnin=10):
         if not self.tree_files:
             raise ValueError("Missing tree_files list!")
+        # Calling the BEAST applauncher cladesetcomparator function with a wrap for more than 2 chains
         csc.cladesetcomp(self, beast_applauncher, burnin=burnin)
 
     def discrete_cladesetcomparator(self, i, j, plot=True, burnin=0):
+        # Calling the discrete version of the cladesetcomparator, return the single value
         return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot, burnin=burnin,
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
 
