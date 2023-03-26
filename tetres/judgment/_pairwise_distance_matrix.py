@@ -6,6 +6,7 @@ from multiprocessing import Pool
 import itertools
 # pip install git+https://github.com/widmi/multiprocess-shared-numpy-arrays
 from share_array.share_array import get_shared_array, make_shared_array
+from sys import platform
 
 
 lib = CDLL(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))}/trees/findpath.so")
@@ -19,6 +20,7 @@ def _rf(t1, t2, i, j):
 
 def calc_pw_distances(trees, rf: bool = False):
     # todo add a n_cores parameter to c function?
+
     n = len(trees)
     if not rf:
         lib.pairwise_distance.argtypes = [POINTER(TREE_LIST), c_long, POINTER((c_long * n) * n)]
@@ -27,13 +29,15 @@ def calc_pw_distances(trees, rf: bool = False):
         lib.pairwise_distance(ctreelist, n, distances.ctypes.data_as(POINTER((c_long * n) * n)))
         return distances
     else:
+        if not platform == "linux" or not platform == "linux2":
+            raise ValueError("Using this implementation only works on Linux at the moment.")
+        # The shared_array package only works on Linux
         distances = np.zeros((n, n), dtype=c_long)
         etrees = [t.etree for t in trees]
         make_shared_array(distances, name='distances')  # create shared memory array from numpy array
-        # shared_array = get_shared_array('distances')  # get shared memory array as numpy array
         with Pool(None) as p:
-            p.starmap(_rf, [(etrees[i], etrees[j], i, j) for i,j in itertools.combinations(range(n), 2)])
-        distances =  get_shared_array('distances')
+            p.starmap(_rf, [(etrees[i], etrees[j], i, j) for i, j in itertools.combinations(range(n), 2)])
+        distances = get_shared_array('distances')
         try:
             del globals()['distances']
         except KeyError:

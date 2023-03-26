@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 from tetres.judgment.multichain import MultiChain
 import os
+from sys import platform
 
 
 def test_multichain():
@@ -76,9 +77,19 @@ def test_multichain_cladesetcomparator(ten_taxa_multichain):
 
 
 def test_pwd_matrix_all(ten_taxa_multichain):
-    for rf in [True, False]:
-        matrix = ten_taxa_multichain.pwd_matrix_all(rf=rf)
+    if platform == "linux" or platform == "linux2":
+        for rf in [True, False]:
+            matrix = ten_taxa_multichain.pwd_matrix_all(rf=rf)
+            assert matrix.shape == (3003, 3003), "PWD matrix all failed!"
+    else:
+        matrix = ten_taxa_multichain.pwd_matrix_all(rf=False)
         assert matrix.shape == (3003, 3003), "PWD matrix all failed!"
+
+
+def test_pwd_matrix_all_mac_warning(ten_taxa_multichain):
+    if platform == "darwin" or platform == "win32":
+        with pytest.raises(ValueError):
+            ten_taxa_multichain.pwd_matrix_all(rf=True)
 
 
 def test_cen_for_each_chain(ten_taxa_multichain):
