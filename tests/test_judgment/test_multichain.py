@@ -20,6 +20,15 @@ def test_multichain():
                            ), "Construction coupledMChain 2 with files failed!"
 
 
+def test_diff_map():
+    with pytest.raises(ValueError):
+        MultiChain(m_chains=2,
+                trees=["chain0.trees", "chain0_1_diff_map.trees"],
+                log_files=["chain0.log", "chain0_1.log"],
+                working_dir= f"{Path(__file__).parent.parent.absolute()}/data/cMChain", name="Diff"
+                )
+
+
 def test_multichain_gelman_rubin_plot_single_chain():
     with pytest.raises(ValueError):
         coupled_chains = MultiChain(m_chains=1,
