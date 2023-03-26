@@ -148,3 +148,23 @@ def test_grd_param_choice_plot(ten_taxa_multichain):
     ten_taxa_multichain.gelman_rubin_parameter_choice_plot(i, j, _gr_boundary=_gr_boundary, smoothing_average=smoothing_average)
     assert os.path.exists(f"{ten_taxa_multichain.working_dir}/plots/{ten_taxa_multichain.name}_{i}-{j}_grd_parameter_choices{f'_subsampling-{_subsampling}' if _subsampling else ''}_ess-list_{smoothing_average}_{_gr_boundary}.pdf"), \
         "Failed to create the GRD parameter choice plot!"
+
+
+def test_multichain_extract_cutoff(ten_taxa_multichain):
+    try:
+        os.remove(f"{ten_taxa_multichain.working_dir}/cutoff_files/10TaxaFix_0_10TaxaFix_1_ess-200_smoothing-0.6_mean_boundary-0.02.trees")
+    except FileNotFoundError:
+        pass
+    try:
+        os.remove(f"{ten_taxa_multichain.working_dir}/cutoff_files/10TaxaFix_0_10TaxaFix_1_ess-200_smoothing-0.6_mean_boundary-0.02.log")
+    except FileNotFoundError:
+        pass
+    ten_taxa_multichain._extract_cutoff(i=0, j=1)
+    assert os.path.exists(f"{ten_taxa_multichain.working_dir}/cutoff_files/10TaxaFix_0_10TaxaFix_1_ess-200_smoothing-0.6_mean_boundary-0.02.trees"), \
+        "Failed to create cutoff file"
+
+
+def test_multichain_extract_cutoff_error(ten_taxa_multichain):
+    with pytest.raises(ValueError):
+        # For this there was not cutoff found, ends in error
+        ten_taxa_multichain._extract_cutoff(i=1, j=0)

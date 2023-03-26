@@ -110,15 +110,19 @@ class MultiChain():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def _extract_cutoff(self, i, start, end, ess, smoothing, boundary, compare_to, smoothing_average, subsample=False, _overwrite=False):
+    def _extract_cutoff(self, i, j, ess_threshold=200, smoothing=0.6, gr_boundary=0.02, smoothing_average="mean", subsampling=False, _overwrite=False):
         # todo should be its own script, also rename all the parameters given
+
+        start, end = self.gelman_rubin_cut(i=i, j=j,smoothing=smoothing, ess_threshold=ess_threshold, smoothing_average=smoothing_average, _gr_boundary=gr_boundary, _subsampling=subsampling, _overwrite=_overwrite)
+        if start < 0 or end < 1:
+            raise ValueError("No cutoff exist, therefore no cutoff can be extracted!")
         try:
             os.mkdir(f"{self.working_dir}/cutoff_files")
         except FileExistsError:
             pass
 
-        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_ess-{ess}'}{f'_subsample-{subsample}' if subsample else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{boundary}.trees"
-        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[compare_to].name}{'' if ess == 0 else f'_ess-{ess}'}{f'_subsample-{subsample}' if subsample else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{boundary}.log"
+        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.trees"
+        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.log"
 
         if _overwrite:
             try:
@@ -154,8 +158,8 @@ class MultiChain():
 
         sample = 1
         chain_treefile = f"{self.working_dir}/{self.tree_files[i]}"
+        re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
         for index in range(start, end+1):
-            re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
             offset = 10 + (2 * self[i].trees[0].ctree.num_leaves)
 
             line = index + 1 + offset
@@ -180,7 +184,7 @@ class MultiChain():
     def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False, _gr_boundary=0.02, smoothing_average="mean"):
         return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, _gr_boundary=_gr_boundary, smoothing_average=smoothing_average)
 
-    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
+    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, _overwrite=False, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
         # First if overwrite delete previous computation file
         if _overwrite:
             try:
