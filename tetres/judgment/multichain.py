@@ -38,8 +38,6 @@ class MultiChain():
                 self.MChain_list.append(Chain(trees=trees[i], log_file=log_files[i],
                                               working_dir=working_dir, name=f"{self.name}_{i}"))
 
-        # todo check that the mappings are all the same for every chain if not change them to one!
-
         elif type(trees) is str:
             if not os.path.exists(f"{self.working_dir}/{trees}"):
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{trees} does not exist!")
@@ -52,6 +50,8 @@ class MultiChain():
                           working_dir=working_dir, name=f"{self.name}_{i}"))
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
+        if not all([self.MChain_list[0].trees.map == self.MChain_list[c].trees.map for c in range(1, self.m_chains)]):
+            raise ValueError("The taxon maps in the tree files are not the same, this can lead to problems! Fix before continue!")
 
     def pwd_matrix(self, index1, index2=None, csv: bool = False, rf: bool = False):
         if type(index1) is not int:
@@ -234,7 +234,7 @@ class MultiChain():
     def cladesetcomparator(self, beast_applauncher, burnin=10):
         if not self.tree_files:
             raise ValueError("Missing tree_files list!")
-        csc._cladesetcomp(self, beast_applauncher, burnin=burnin)
+        csc.cladesetcomp(self, beast_applauncher, burnin=burnin)
 
     def cen_for_each_chain(self, repeat=5):
         for _ in range(repeat):
