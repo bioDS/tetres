@@ -129,7 +129,7 @@ class Chain:
         else:
             raise ValueError("Not (yet) implemented!")
 
-    def split_trees_from_clustering(self, k):
+    def split_trees_from_clustering(self, k, _overwrite=False):
         if os.path.exists(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy"):
             clustering = np.load(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy")
         else:
@@ -140,7 +140,12 @@ class Chain:
             cur_treeset.map = self.trees.map
             cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if x == k_cluster]
             if len(cur_treeset) != 0:
-                if os.path.exists(f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}.trees"):
+                if _overwrite:
+                    try:
+                        os.remove(f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
+                    except FileNotFoundError:
+                        pass
+                if os.path.exists(f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees"):
                     raise ValueError("Tree file already exists!")
                 cur_treeset.write_nexus(file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
 

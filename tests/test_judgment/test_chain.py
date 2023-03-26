@@ -243,5 +243,6 @@ def test_MChain_get_simmatrix(thirty_taxa_chain):
 
 
 def test_MChain_split_trees_from_clustering(ten_taxa_multichain):
-    # todo throws error for already existing tree files
-    ten_taxa_multichain[0].split_trees_from_clustering(k=2)
+    k = 2
+    ten_taxa_multichain[0].split_trees_from_clustering(k=k, _overwrite=True)
+    assert all([os.path.exists(f"{ten_taxa_multichain.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{ten_taxa_multichain[0].name}.trees") for k_cluster in range(k)]), "Split trees from clustering failed!"
