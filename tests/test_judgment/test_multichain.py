@@ -122,3 +122,7 @@ def test_get_best_bic_cluster(ten_taxa_multichain):
 def test_get_best_silhouette_cluster(ten_taxa_multichain):
     best_sil = ten_taxa_multichain[0].get_best_silhouette_cluster()
     assert best_sil == 5, "Get best silhouette cluster evaluation failed"
+
+
+def test_grd_all_chains_density(ten_taxa_multichain):
+    ten_taxa_multichain.gelman_rubin_all_chains_density_plot()

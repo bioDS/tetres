@@ -233,8 +233,12 @@ def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100
 
 
 def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
-    figure, axis = plt.subplots(nrows=multichain.m_chains, ncols=multichain.m_chains, constrained_layout=True,
+    figure, axis = plt.subplots(nrows=multichain.m_chains, ncols=multichain.m_chains, layout="constrained",
                                 figsize=[9, 7])
+
+    # Diagonal Plots deleted as they are not used
+    for i in range(multichain.m_chains):
+        figure.delaxes(axis[i, i])
 
     # initializing the scaled axis for the upper part of the plot:
     scaled_x_axis = np.arange(0.8, 1.7, 0.1)
@@ -273,19 +277,6 @@ def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
                                               axis[j, i].get_xticks().max(),
                                               5))
 
-            # sns.boxplot(ax=axis[j, i], data=cur_psrf_like, x="Treeset", y="PSRF_like")
-
-        # putting geweke on diagonal of the plot
-        cur_geweke = multichain.MChain_list[i].compute_geweke_distances(index=i, name=multichain.name, add=False)
-        cur_sample = range(0, multichain[i].chain_length + multichain[i].tree_sampling_interval,
-                           multichain[i].tree_sampling_interval)
-        sns.lineplot(ax=axis[i, i], y=cur_geweke, x=cur_sample)
-    # adding the last diagonal plot, because i will not run far enough
-    cur_geweke = multichain[-1].compute_geweke_distances(index=multichain.m_chains - 1, name=multichain.name, add=False)
-    cur_sample = range(0, multichain[-1].chain_length + multichain[-1].tree_sampling_interval,
-                       multichain[-1].tree_sampling_interval)
-    sns.lineplot(ax=axis[multichain.m_chains - 1, multichain.m_chains - 1], y=cur_geweke, x=cur_sample)
-
     # Annotation of the plot
     pad = 5  # in points
     cols = [f"chain{m}" for m in range(multichain.m_chains)]
@@ -302,8 +293,8 @@ def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
 
     # plt.show()
     plt.savefig(
-        fname=f"{multichain.working_dir}/plots/{multichain.name}_grd_density_full_chain_{'all' if samples == 'all' else f'subsampling_{samples}'}.png",
-        format="png", bbox_inches="tight", dpi=800)
+        fname=f"{multichain.working_dir}/plots/{multichain.name}_grd_density_full_chain_{'all' if samples == 'all' else f'subsampling_{samples}'}.pdf",
+        format="pdf", bbox_inches="tight", dpi=1200)
     plt.clf()
     plt.close("all")
     gc.collect()
