@@ -227,11 +227,11 @@ def test_MChain_pwd_matrix(thirty_taxa_chain):
             "Similarity matrix computation failed!"
 
 
-def test_MChain_get_simmatrix(thirty_taxa_chain):
-    for beta in [1, 2, 0.5]:
-        thirty_taxa_chain.simmilarity_matrix(beta=beta)
-        assert os.path.exists(f"{thirty_taxa_chain.working_dir}/data/30TestFix_{'' if beta == 1 else f'{beta}_'}similarity.npy"),\
-            "Similarity matrix computation failed!"
+# def test_MChain_get_simmatrix(thirty_taxa_chain):
+#     for beta in [1, 2, 0.5]:
+#         thirty_taxa_chain.simmilarity_matrix(beta=beta)
+#         assert os.path.exists(f"{thirty_taxa_chain.working_dir}/data/30TestFix_{'' if beta == 1 else f'{beta}_'}similarity.npy"),\
+#             "Similarity matrix computation failed!"
 
 
 # Currently not supported feature, WIP

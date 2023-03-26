@@ -177,42 +177,6 @@ class Chain:
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                           dist=dist, sample_range=sample_range, no_zero=no_zero)
 
-    def simmilarity_matrix(self, index="", name="", beta=1):
-
-        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
-
-        # todo this matrix should also be in the clustering folder
-
-        if not os.path.exists(
-                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
-
-            matrix = self.pwd_matrix()
-            similarity = np.exp(-beta * matrix / matrix.std())
-            np.save(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy",
-                arr=similarity)
-            return similarity
-        else:
-            return np.load(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
-        raise NotImplemented("Currently WIP")
-
-    def evaluate_clustering(self, kind="silhouette", plot=True, _overwrite_plot=False, _overwrite_clustering=False):
-        if kind not in ["silhouette", "bic"]:
-            raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
-
-        # todo if _overwrite_plot delete plot and silhouette score
-        # todo if _recalculate_clsutering delete clustering and also the plot and save file for the scores
-
-
-        # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
-
-        # todo file identifyer is kind_....
-        # todo this function should return the suggeted number of clusters for a given chain, i.e. save the scores to a file and read from that file
-
-        # todo implementation missing
-        raise NotImplemented("Currently WIP")
-
     def get_best_bic_cluster(self, max_cluster=5, local_norm=False):
         # todo add overwrite option and saving this to a file so that it can be read
         #  maybe just save all the bic scores to a file and then create the plot based on that
@@ -268,3 +232,38 @@ class Chain:
         else:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
+
+    def evaluate_clustering(self, kind="silhouette", plot=True, _overwrite_plot=False, _overwrite_clustering=False):
+        if kind not in ["silhouette", "bic"]:
+            raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
+
+        # todo if _overwrite_plot delete plot and silhouette score
+        # todo if _recalculate_clsutering delete clustering and also the plot and save file for the scores
+
+
+        # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
+
+        # todo file identifyer is kind_....
+        # todo this function should return the suggeted number of clusters for a given chain, i.e. save the scores to a file and read from that file
+
+        # todo implementation missing
+        raise NotImplemented("Currently WIP")
+
+    def simmilarity_matrix(self, index="", name="", beta=1):
+        raise NotImplementedError("Currently WIP and not supported")
+        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
+        # todo this matrix should also be in the clustering folder
+
+        if not os.path.exists(
+                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
+
+            matrix = self.pwd_matrix()
+            similarity = np.exp(-beta * matrix / matrix.std())
+            np.save(
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy",
+                arr=similarity)
+            return similarity
+        else:
+            return np.load(
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
+        raise NotImplemented("Currently WIP")
