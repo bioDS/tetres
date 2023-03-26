@@ -246,3 +246,13 @@ def test_MChain_split_trees_from_clustering(ten_taxa_multichain):
     k = 2
     ten_taxa_multichain[0].split_trees_from_clustering(k=k, _overwrite=True)
     assert all([os.path.exists(f"{ten_taxa_multichain.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{ten_taxa_multichain[0].name}.trees") for k_cluster in range(k)]), "Split trees from clustering failed!"
+
+
+def test_get_best_bic_cluster(ten_taxa_multichain):
+    best_bic = ten_taxa_multichain[0].get_best_bic_cluster()
+    assert best_bic == 5, "Get best bic Mchain function failed"
+
+
+def test_get_best_silhouette_cluster(ten_taxa_multichain):
+    best_sil = ten_taxa_multichain[0].get_best_silhouette_cluster()
+    assert best_sil == 5, "Get best silhouette cluster evaluation failed"

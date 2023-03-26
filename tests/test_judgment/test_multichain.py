@@ -114,16 +114,6 @@ def test_clade_set_comparison_noplot(ten_taxa_multichain):
     assert v == 99.93756243756243, "Discrete clade set comparison without plot failed!"
 
 
-def test_get_best_bic_cluster(ten_taxa_multichain):
-    best_bic = ten_taxa_multichain[0].get_best_bic_cluster()
-    assert best_bic == 5, "Get best bic Mchain function failed"
-
-
-def test_get_best_silhouette_cluster(ten_taxa_multichain):
-    best_sil = ten_taxa_multichain[0].get_best_silhouette_cluster()
-    assert best_sil == 5, "Get best silhouette cluster evaluation failed"
-
-
 def test_grd_all_chains_density(ten_taxa_multichain):
     samples = 100
     try:
