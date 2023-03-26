@@ -10,6 +10,7 @@ from tetres.summary.annotate_centroid import annotate_centroid
 from tetres.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
 from tetres.judgment._extract_cutoff import _extract_cutoff
 
+
 class MultiChain():
     def __init__(self, m_chains, trees, log_files, working_dir, name="cMC"):
         # todo currently still missing the summary parameter of MChain, but its not really used at this point
@@ -43,7 +44,8 @@ class MultiChain():
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{trees} does not exist!")
             if not os.path.exists(f"{self.working_dir}/{log_files}"):
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{log_files} does not exist!")
-            self.MChain_list.append(Chain(trees=trees, log_file=log_files, working_dir=working_dir, name=f"{self.name}_{0}"))
+            self.MChain_list.append(
+                Chain(trees=trees, log_file=log_files, working_dir=working_dir, name=f"{self.name}_{0}"))
             for i in range(1, self.m_chains):
                 self.MChain_list.append(
                     Chain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}",
@@ -51,7 +53,8 @@ class MultiChain():
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
         if not all([self.MChain_list[0].trees.map == self.MChain_list[c].trees.map for c in range(1, self.m_chains)]):
-            raise ValueError("The taxon maps in the tree files are not the same, this can lead to problems! Fix before continue!")
+            raise ValueError(
+                "The taxon maps in the tree files are not the same, this can lead to problems! Fix before continue!")
 
     def pwd_matrix(self, index1, index2=None, csv: bool = False, rf: bool = False):
         if type(index1) is not int:
@@ -70,18 +73,23 @@ class MultiChain():
                 raise IndexError("Given Index out of range!")
             if index2 < index1:
                 index1, index2 = index2, index1
-            if not os.path.exists(f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
+            if not os.path.exists(
+                    f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
                 dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees, rf=rf)
                 if csv:
-                    np.savetxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz", X=dm, delimiter=',',
-                               fmt='%i')
+                    np.savetxt(
+                        fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz",
+                        X=dm, delimiter=',',
+                        fmt='%i')
                 else:
-                    np.save(file=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy", arr=dm)
+                    np.save(file=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy",
+                            arr=dm)
                 return dm
             else:
                 if csv:
-                    return np.genfromtxt(fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz",
-                                         delimiter=',', dtype=int)
+                    return np.genfromtxt(
+                        fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz",
+                        delimiter=',', dtype=int)
                 else:
                     return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy")
 
@@ -97,18 +105,21 @@ class MultiChain():
                                                  axis=1) if cur_row.size else self.pwd_matrix(i, j, rf=rf)
                     elif i > j:
                         cur_row = np.concatenate((cur_row, np.zeros((len(self[i].trees), len(self[j].trees)))),
-                                                 axis=1) if cur_row.size else np.zeros((len(self[i].trees), len(self[j].trees)))
+                                                 axis=1) if cur_row.size else np.zeros(
+                            (len(self[i].trees), len(self[j].trees)))
                     elif i == j:
                         cur_row = np.concatenate((cur_row, self.pwd_matrix(i, rf=rf)),
                                                  axis=1) if cur_row.size else self.pwd_matrix(i, rf=rf)
                     # print(cur_row.shape)
-                combined_matrix = np.concatenate((combined_matrix, cur_row), axis=0) if combined_matrix.size else cur_row
+                combined_matrix = np.concatenate((combined_matrix, cur_row),
+                                                 axis=0) if combined_matrix.size else cur_row
             np.save(file=f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy", arr=combined_matrix)
             return combined_matrix
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def extract_cutoff(self, i, j, ess_threshold=200, smoothing=0.6, gr_boundary=0.02, smoothing_average="mean", subsampling=False, _overwrite=False):
+    def extract_cutoff(self, i, j, ess_threshold=200, smoothing=0.6, gr_boundary=0.02, smoothing_average="mean",
+                       subsampling=False, _overwrite=False):
         # The tree and log file strings for storing the cutoff
         tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.trees"
         log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.log"
@@ -131,22 +142,23 @@ class MultiChain():
             pass
         # computing start and end from the current Multichain
         start, end = self.gelman_rubin_cut(i=i, j=j, smoothing=smoothing, ess_threshold=ess_threshold,
-                                                    smoothing_average=smoothing_average, _gr_boundary=gr_boundary,
-                                                    _subsampling=subsampling, _overwrite=_overwrite)
+                                           smoothing_average=smoothing_average, _gr_boundary=gr_boundary,
+                                           _subsampling=subsampling, _overwrite=_overwrite)
         # Check if no cutoff raise ValueError
         if start < 0 or end < 1:
             raise ValueError("No cutoff exist, therefore no cutoff can be extracted!")
 
         _extract_cutoff(multichain=self, i=i, start=start, end=end, tree_file=tree_file, log_file=log_file)
 
-
     def gelman_rubin_all_chains_density_plot(self, samples: int = 100):
         return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
 
     def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False, _gr_boundary=0.02, smoothing_average="mean"):
-        return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, _gr_boundary=_gr_boundary, smoothing_average=smoothing_average)
+        return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, _gr_boundary=_gr_boundary,
+                                                      smoothing_average=smoothing_average)
 
-    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, _overwrite=False, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
+    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, _overwrite=False,
+                         smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
         # First if overwrite delete previous computation file
         if _overwrite:
             try:
@@ -155,7 +167,8 @@ class MultiChain():
             except FileNotFoundError:
                 pass
         # IF no overwrite and the file exists simply read the values from the file
-        if os.path.exists(f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}"):
+        if os.path.exists(
+                f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}"):
             with open(
                     f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
                     "r") as file:
@@ -183,7 +196,8 @@ class MultiChain():
                     "x") as f:
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
-            raise Exception("The file for writing the GRD cut start and end exists already, this shouldn't happen here!")
+            raise Exception(
+                "The file for writing the GRD cut start and end exists already, this shouldn't happen here!")
         # return the start and end values
         return cut_start, cut_end
 
@@ -206,7 +220,8 @@ class MultiChain():
 
     def discrete_cladesetcomparator(self, i, j, plot=True, burnin=0):
         # Calling the discrete version of the cladesetcomparator, return the single value
-        return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot, burnin=burnin,
+        return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot,
+                                            burnin=burnin,
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
 
     def cen_for_each_chain(self, repeat=5):
@@ -224,7 +239,7 @@ class MultiChain():
                     file.close()
                 except FileNotFoundError:
                     # Setting cur_sos so that the folowing if will be Treu
-                    cur_sos = sos +1
+                    cur_sos = sos + 1
                 if sos < cur_sos:
                     print("found better centroid!")
                     # Removing the old sos file if exists
@@ -242,4 +257,5 @@ class MultiChain():
                     except FileNotFoundError:
                         pass
                     # writing the better centroid tree to the file
-                    cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
+                    cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree",
+                                         name=f"Cen_{chain.name}")
