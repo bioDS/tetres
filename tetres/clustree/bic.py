@@ -32,7 +32,7 @@ def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
     return mnd_cluster
 
 
-def BIC(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, chain_id='myChain', _overwrite=False):
+def bic(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, chain_id='myChain', _overwrite=False):
 
     # todo chnage this to only work on a given clustering, not reading anything as that is part of the MChain class!!!
 
@@ -155,7 +155,7 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
     random_bic = []
     rand_mnd_list = []
     for i in range(max_cluster):
-        bic, mnd_cluster = BIC(treeset=treeset,
+        bic, mnd_cluster = bic(treeset=treeset,
                                matrix=matrix,
                                k=i+1, local_norm=local_norm,
                                working_folder=working_folder,
@@ -165,7 +165,7 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
         bic_values.append(bic)
         mnd_list.append(mnd_cluster)
         if add_random:
-            rand_bic, rand_mnd = BIC(treeset=treeset,
+            rand_bic, rand_mnd = bic(treeset=treeset,
                                      matrix=matrix,
                                      k=i+1, local_norm=local_norm,
                                      working_folder=working_folder,

@@ -6,7 +6,7 @@ from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgment._pairwise_distance_matrix import calc_pw_distances
 from tetres.clustree.spectral_clustree import _spectral_clustree
 from tetres.judgment.ess import autocorr_ess, pseudo_ess
-from tetres.clustree.bic import BIC
+from tetres.clustree.bic import bic
 from tetres.clustree.silhouette_score import silhouette_score
 
 
@@ -183,13 +183,13 @@ class Chain:
         best_cluster = 0
         best_bic = None
         for cur_cluster in range(max_cluster):
-            bic, mnd_cluster = BIC(treeset=self.trees, matrix=self.pwd_matrix(),
-                                k=cur_cluster+1, local_norm=local_norm,
-                                working_folder=self.working_dir,
-                                _overwrite=False,
-                                random_shuffle=False,
-                                chain_id=self.name
-                                )
+            bic, mnd_cluster = bic(treeset=self.trees, matrix=self.pwd_matrix(),
+                                   k=cur_cluster+1, local_norm=local_norm,
+                                   working_folder=self.working_dir,
+                                   _overwrite=False,
+                                   random_shuffle=False,
+                                   chain_id=self.name
+                                   )
             # todo at some point add check of mnd where the total sum should decrease and
             #  an increase indicates that this is not useful any longer
             if best_bic is None or bic < best_bic:

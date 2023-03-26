@@ -1,10 +1,10 @@
-from tetres.clustree.bic import BIC, plot_bic
+from tetres.clustree.bic import bic, plot_bic
 import os
 
 
 def test_BIC_1_false(ten_taxa_cMChain):
 
-    bic, mnd_cluster = BIC(treeset=ten_taxa_cMChain[0].trees,
+    bic, mnd_cluster = bic(treeset=ten_taxa_cMChain[0].trees,
                            matrix=ten_taxa_cMChain.pwd_matrix(0),
                            k=1, local_norm=False,
                            working_folder=ten_taxa_cMChain.working_dir,
@@ -13,7 +13,7 @@ def test_BIC_1_false(ten_taxa_cMChain):
 
 
 def test_BIC_1_true(ten_taxa_cMChain):
-    bic, mnd_cluster = BIC(treeset=ten_taxa_cMChain[0].trees,
+    bic, mnd_cluster = bic(treeset=ten_taxa_cMChain[0].trees,
                            matrix=ten_taxa_cMChain.pwd_matrix(0),
                            k=2, local_norm=False,
                            working_folder=ten_taxa_cMChain.working_dir,
