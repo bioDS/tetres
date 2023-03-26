@@ -235,6 +235,10 @@ class MultiChain():
             raise ValueError("Missing tree_files list!")
         csc.cladesetcomp(self, beast_applauncher, burnin=burnin)
 
+    def discrete_cladesetcomparator(self, i, j, plot=True, burnin=0):
+        return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot, burnin=burnin,
+                                            file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
+
     def cen_for_each_chain(self, repeat=5):
         raise ValueError("Current Work in Progress and not supported for now.")
         # todo should be its own script, adhering to the naming conventions to fit in with clustering
@@ -269,7 +273,3 @@ class MultiChain():
                         pass
                     # writing the better centroid tree to the file
                     cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree", name=f"Cen_{chain.name}")
-
-    def clade_set_comparison(self, i, j, plot=True, burnin=0):
-        return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot, burnin=burnin,
-                                            file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")

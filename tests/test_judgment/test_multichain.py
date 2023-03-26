@@ -105,12 +105,12 @@ def test_clade_set_comparison(ten_taxa_multichain):
         os.remove(f"{ten_taxa_multichain.working_dir}/plots/{ten_taxa_multichain.name}_discrete_cc_0_1_burn-{burnin}.png")
     except FileNotFoundError:
         pass
-    ten_taxa_multichain.clade_set_comparison(i=0, j=1, burnin=burnin)
+    ten_taxa_multichain.discrete_cladesetcomparator(i=0, j=1, burnin=burnin)
     assert os.path.exists(f"{ten_taxa_multichain.working_dir}/plots/{ten_taxa_multichain.name}_discrete_cc_0_1_burn-{burnin}.png"), "Discrete clade set comparator failed!"
 
 
 def test_clade_set_comparison_noplot(ten_taxa_multichain):
-    v = ten_taxa_multichain.clade_set_comparison(i=0, j=1, plot=False)
+    v = ten_taxa_multichain.discrete_cladesetcomparator(i=0, j=1, plot=False)
     assert v == 99.93756243756243, "Discrete clade set comparison without plot failed!"
 
 
