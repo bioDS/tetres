@@ -159,7 +159,7 @@ def test_multichain_extract_cutoff(ten_taxa_multichain):
         os.remove(f"{ten_taxa_multichain.working_dir}/cutoff_files/10TaxaFix_0_10TaxaFix_1_ess-200_smoothing-0.6_mean_boundary-0.02.log")
     except FileNotFoundError:
         pass
-    ten_taxa_multichain._extract_cutoff(i=0, j=1)
+    ten_taxa_multichain.extract_cutoff(i=0, j=1)
     assert os.path.exists(f"{ten_taxa_multichain.working_dir}/cutoff_files/10TaxaFix_0_10TaxaFix_1_ess-200_smoothing-0.6_mean_boundary-0.02.trees"), \
         "Failed to create cutoff file"
 
@@ -167,4 +167,4 @@ def test_multichain_extract_cutoff(ten_taxa_multichain):
 def test_multichain_extract_cutoff_error(ten_taxa_multichain):
     with pytest.raises(ValueError):
         # For this there was not cutoff found, ends in error
-        ten_taxa_multichain._extract_cutoff(i=1, j=0)
+        ten_taxa_multichain.extract_cutoff(i=1, j=0)

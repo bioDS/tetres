@@ -1,7 +1,5 @@
 import os
 import numpy as np
-import linecache
-import re
 
 from tetres.judgment.chain import Chain
 from tetres.judgment._pairwise_distance_matrix import calc_pw_distances_two_sets
@@ -10,7 +8,7 @@ from tetres.judgment import _cladesetcomparator as csc
 from tetres.summary.centroid import Centroid
 from tetres.summary.annotate_centroid import annotate_centroid
 from tetres.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
-
+from tetres.judgment._extract_cutoff import _extract_cutoff
 
 class MultiChain():
     def __init__(self, m_chains, trees, log_files, working_dir, name="cMC"):
@@ -110,21 +108,14 @@ class MultiChain():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def _extract_cutoff(self, i, j, ess_threshold=200, smoothing=0.6, gr_boundary=0.02, smoothing_average="mean", subsampling=False, _overwrite=False):
-        # todo should be its own script, also rename all the parameters given
-
-        start, end = self.gelman_rubin_cut(i=i, j=j,smoothing=smoothing, ess_threshold=ess_threshold, smoothing_average=smoothing_average, _gr_boundary=gr_boundary, _subsampling=subsampling, _overwrite=_overwrite)
-        if start < 0 or end < 1:
-            raise ValueError("No cutoff exist, therefore no cutoff can be extracted!")
-        try:
-            os.mkdir(f"{self.working_dir}/cutoff_files")
-        except FileExistsError:
-            pass
-
+    def extract_cutoff(self, i, j, ess_threshold=200, smoothing=0.6, gr_boundary=0.02, smoothing_average="mean", subsampling=False, _overwrite=False):
+        # The tree and log file strings for storing the cutoff
         tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.trees"
         log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.log"
-
-        if _overwrite:
+        if os.path.exists(tree_file) and os.path.exists(log_file) and not _overwrite:
+            # Files have already been extracted, nothing will be done
+            return 0
+        else:
             try:
                 os.remove(tree_file)
             except FileNotFoundError:
@@ -133,50 +124,21 @@ class MultiChain():
                 os.remove(log_file)
             except FileNotFoundError:
                 pass
-
-        if self.log_files[i] is not None:
-            try:
-                with open(log_file, "x") as f:
-                    f.write("\t".join(v for v in list(self[i].log_data.keys())))
-                    f.write("\n")
-            except FileExistsError:
-                return 0  # assuming this was already done hence skipping this function
-
+        # Try creating the cutoff directory
         try:
-            with open(tree_file, "x") as f:
-                f.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self[i].trees[i].ctree.num_leaves};\n\t\tTaxlabels\n")
-                for taxa in range(1, self[i].trees[0].ctree.num_leaves + 1):
-                    f.write(f"\t\t\t{self[i].trees.map[taxa]}\n")
-                f.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
-                for taxa in range(1, self[i].trees[0].ctree.num_leaves):
-                    f.write(f"\t\t\t{taxa} {self[i].trees.map[taxa]},\n")
-                f.write(
-                    f"\t\t\t{self[i].trees[0].ctree.num_leaves} {self[i].trees.map[self[i].trees[0].ctree.num_leaves]}\n")
-                f.write(";\n")
+            os.mkdir(f"{self.working_dir}/cutoff_files")
         except FileExistsError:
-            return 0  # assuming it was already done, therefore end function
+            pass
+        # computing start and end from the current Multichain
+        start, end = self.gelman_rubin_cut(i=i, j=j, smoothing=smoothing, ess_threshold=ess_threshold,
+                                                    smoothing_average=smoothing_average, _gr_boundary=gr_boundary,
+                                                    _subsampling=subsampling, _overwrite=_overwrite)
+        # Check if no cutoff raise ValueError
+        if start < 0 or end < 1:
+            raise ValueError("No cutoff exist, therefore no cutoff can be extracted!")
 
-        sample = 1
-        chain_treefile = f"{self.working_dir}/{self.tree_files[i]}"
-        re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
-        for index in range(start, end+1):
-            offset = 10 + (2 * self[i].trees[0].ctree.num_leaves)
+        _extract_cutoff(multichain=self, i=i, start=start, end=end, tree_file=tree_file, log_file=log_file)
 
-            line = index + 1 + offset
-            cur_tree = linecache.getline(chain_treefile, line)
-            cur_tree = f'{re.split(re_tree, cur_tree)[1][:re.split(re_tree, cur_tree)[1].rfind(")") + 1]};'
-            with open(tree_file, "a") as tf:
-                tf.write(f"tree STATE_{sample} = {cur_tree}\n")
-
-            if self.log_files[i] is not None:
-                cur_values = [v for v in self[i].log_data.iloc[index]]
-                cur_values[0] = sample
-                with open(log_file, "a") as lf:
-                    lf.write("\t".join([str(v) for v in cur_values]))
-                    lf.write("\n")
-            sample += 1
-        with open(tree_file, "a") as tf:
-            tf.write("End;")
 
     def gelman_rubin_all_chains_density_plot(self, samples: int = 100):
         return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
