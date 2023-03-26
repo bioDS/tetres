@@ -16,6 +16,8 @@ class MultiChain():
     def __init__(self, m_chains, trees, log_files, working_dir, name="cMC"):
         # todo currently still missing the summary parameter of MChain, but its not really used at this point
         self.m_chains = m_chains
+        if self.m_chains < 2 or self.m_chains < 0:
+            raise ValueError("Wrong usage of MultiChain")
         self.name = name
 
         # if type(trees) != type(log_files):
@@ -173,13 +175,9 @@ class MultiChain():
             tf.write("End;")
 
     def gelman_rubin_all_chains_density_plot(self, samples: int = 100):
-        if len(self) < 2:
-            raise ValueError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
 
     def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False):
-        if len(self) < 2:
-            raise TypeError("Gelman Rubin only possible with multiple Chains!")
         return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling)
 
     def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
