@@ -192,27 +192,6 @@ class Chain:
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
         raise NotImplemented("Currently WIP")
 
-    def spectral_clustree(self, n_clus=2, beta=1):
-
-        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
-        try:
-            os.mkdir(os.path.join(self.working_dir, "clustering"))
-        except FileExistsError:
-            raise ValueError("Didn't work?!")
-
-        if not os.path.exists(
-                f"{self.working_dir}/clustering/sc-{n_clus}-{self.name}{'' if beta == 1 else f'-{beta}'}.npy"):
-
-            clustering = _spectral_clustree(self.simmilarity_matrix(beta=beta), n_clus=n_clus)
-            np.save(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy",
-                arr=clustering)
-            return clustering
-        else:
-            return np.load(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
-        raise NotImplemented("Currently WIP")
-
     def evaluate_clustering(self, kind="silhouette", plot=True, _overwrite_plot=False, _overwrite_clustering=False):
         if kind not in ["silhouette", "bic"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
@@ -264,3 +243,23 @@ class Chain:
                 best_cluster = cur_cluster + 1
                 best_sil = cur_s
         return best_cluster
+
+    def spectral_clustree(self, n_clus=2, beta=1):
+        raise NotImplementedError("Currently not supported and a WIP")
+        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
+        try:
+            os.mkdir(os.path.join(self.working_dir, "clustering"))
+        except FileExistsError:
+            raise ValueError("Didn't work?!")
+
+        if not os.path.exists(
+                f"{self.working_dir}/clustering/sc-{n_clus}-{self.name}{'' if beta == 1 else f'-{beta}'}.npy"):
+
+            clustering = _spectral_clustree(self.simmilarity_matrix(beta=beta), n_clus=n_clus)
+            np.save(
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy",
+                arr=clustering)
+            return clustering
+        else:
+            return np.load(
+                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")

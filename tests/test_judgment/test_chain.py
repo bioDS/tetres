@@ -234,11 +234,12 @@ def test_MChain_get_simmatrix(thirty_taxa_chain):
             "Similarity matrix computation failed!"
 
 
-def test_MChain_spectral_clustree(thirty_taxa_chain):
-    for beta in [1, 2, 0.5]:
-        thirty_taxa_chain.spectral_clustree(beta=beta)
-        assert os.path.exists(f"{thirty_taxa_chain.working_dir}/data/30TestFix_{'' if beta == 1 else f'{beta}_'}clustering.npy"),\
-            "Spectral clustering for mchain failed!"
+# Currently not supported feature, WIP
+# def test_MChain_spectral_clustree(thirty_taxa_chain):
+#     for beta in [1, 2, 0.5]:
+#         thirty_taxa_chain.spectral_clustree(beta=beta)
+#         assert os.path.exists(f"{thirty_taxa_chain.working_dir}/data/30TestFix_{'' if beta == 1 else f'{beta}_'}clustering.npy"),\
+#             "Spectral clustering for mchain failed!"
 
 
 def test_MChain_split_trees_from_clustering(ten_taxa_multichain):
