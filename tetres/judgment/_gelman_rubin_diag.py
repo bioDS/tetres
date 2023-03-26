@@ -4,6 +4,7 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
+import warnings
 
 
 def _psrf_like_value(dm_in, dm_bt, k, s, e):
@@ -152,14 +153,10 @@ def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_thresh
     return pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"]), cutoff_start, cutoff_end
 
 
-def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False):
+def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr_boundary=0.02, smoothing_average="mean"):
+    warnings.warn("This takes a long time and is not optimized, nor does it save anything other than the plot!")
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
-    # TODO WIP for clean up and rename!
-    _gr_boundary = 0.02  # todo not implemented for now
-    raise NotImplemented("_gr_boundary is not implemented here! WIP")
-    ess_threshold_list = np.sort([50, 200, 500])
-    smoothing_function = "mean"  # TODO
-
+    ess_threshold_list = np.sort([200, 500])
     smoothing = [0.3, 0.5, 0.6, 0.75, 0.9]
     smoothing = np.sort(smoothing)
 
@@ -171,8 +168,9 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False):
     for col in range(len(smoothing)):
         df, cutoff_start, cutoff_end = gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing=smoothing[col],
                                                                             ess_threshold_list=ess_threshold_list,
-                                                                            smoothing_average=smoothing_function,
-                                                                            _subsampling=_subsampling)
+                                                                            smoothing_average=smoothing_average,
+                                                                            _subsampling=_subsampling,
+                                                                            _gr_boundary=_gr_boundary)
         for row in range(len(ess_threshold_list)):
             axis[row, col].set_ylim([0.9, 1.1])
             sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
@@ -195,10 +193,10 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False):
             axis[row, col].set_xlabel(f"{smoothing[col]}", color="blue")
 
     figure.supylabel("Pseudo ESS threshold", color="green")
-    figure.supxlabel("Sample from last x-fraction of trees", color="blue")
+    figure.supxlabel("Smoothing fraction", color="blue")
 
-    plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_{i}-{j}_grd_parameter_choices{f'_subsampling-{_subsampling}' if _subsampling else ''}_ess-list_{smoothing_function}.png",
-                format="png", bbox_inches="tight", dpi=800)
+    plt.savefig(fname=f"{multichain.working_dir}/plots/{multichain.name}_{i}-{j}_grd_parameter_choices{f'_subsampling-{_subsampling}' if _subsampling else ''}_ess-list_{smoothing_average}_{_gr_boundary}.pdf",
+                format="pdf", bbox_inches="tight", dpi=1200)
     plt.clf()
     plt.close("all")
     gc.collect()
@@ -264,7 +262,6 @@ def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
             # lower triangle of plot
             sns.kdeplot(ax=axis[j, i], data=cur_psrf_like, x="PSRF_like", hue="Treeset", fill=True, legend=False,
                         common_norm=False)
-            # todo maybe add a line at 1 (if in the xtick range) indicating ideal and then the actual mean
             axis[j, i].axvline(x=np.mean(cur_psrf_like["PSRF_like"]), color="red")
             axis[j, i].axvline(x=np.mean(cur_psrf_like["PSRF_like"]) + np.std(cur_psrf_like["PSRF_like"]), color="red",
                                linestyle="--")

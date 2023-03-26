@@ -177,8 +177,8 @@ class MultiChain():
     def gelman_rubin_all_chains_density_plot(self, samples: int = 100):
         return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
 
-    def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False):
-        return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling)
+    def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False, _gr_boundary=0.02, smoothing_average="mean"):
+        return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, _gr_boundary=_gr_boundary, smoothing_average=smoothing_average)
 
     def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=0, pseudo_ess_range=100, _overwrite=False, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
         # First if overwrite delete previous computation file
