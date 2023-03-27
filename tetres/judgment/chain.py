@@ -183,7 +183,7 @@ class Chain:
         best_cluster = 0
         best_bic = None
         for cur_cluster in range(max_cluster):
-            bic, mnd_cluster = bic(treeset=self.trees, matrix=self.pwd_matrix(),
+            cur_bic, mnd_cluster = bic(treeset=self.trees, matrix=self.pwd_matrix(),
                                    k=cur_cluster+1, local_norm=local_norm,
                                    working_folder=self.working_dir,
                                    _overwrite=False,
@@ -192,9 +192,9 @@ class Chain:
                                    )
             # todo at some point add check of mnd where the total sum should decrease and
             #  an increase indicates that this is not useful any longer
-            if best_bic is None or bic < best_bic:
+            if best_bic is None or cur_bic < best_bic:
                     best_cluster = cur_cluster + 1
-                    best_bic = bic
+                    best_bic = cur_bic
         return best_cluster
 
     def get_best_silhouette_cluster(self, max_cluster=5, local_norm=False):
