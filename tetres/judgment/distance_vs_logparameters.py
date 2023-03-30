@@ -178,7 +178,7 @@ def plot_log_neighbours(mchain, dist_type = "rnni", kc_param=0):
     plt.tick_params(labelsize=14)
     plt.tight_layout()
 
-    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot_{dist_type}_{kc_param if dist_type == 'kc' else ''}.eps", format="eps", dpi=400, bbox_inches="tight")
+    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot_{dist_type}{f'_{kc_param}' if dist_type == 'kc' else ''}.eps", format="eps", dpi=400, bbox_inches="tight")
     # plt.show()
     plt.clf()
     plt.close()
