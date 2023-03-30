@@ -102,22 +102,24 @@ def plot_loglik_along_path(mchain):
 
 
 # todo add to the pairwise distance matrix code with saving and all that instead of here ....
-def _kc(t1, t2, i, j):
+def _kc(t1, t2, i, j, kc_param = 0):
     matrix = get_shared_array('distances')
     ape = importr("ape")
-    TreeDist = importr("TreeDist")
-    distance = TreeDist.KendallColijn(ape.read_tree(text = t1), ape.read_tree(text = t2))[0]
+    # TreeDist = importr("TreeDist")
+    treespace = importr("treespace")
+    # distance = TreeDist.KendallColijn(ape.read_tree(text = t1), ape.read_tree(text = t2))[0]
+    distance = treespace.treeDist(ape.read_tree(text = t1), ape.read_tree(text = t2), kc_param)[0]
     matrix[i, j] = distance
     return 0
 
 
-def get_kc_matrix(trees):
+def get_kc_matrix(trees, kc_param):
     n = len(trees)
     distances = np.zeros((n, n))
     make_shared_array(distances, name='distances')  # create shared memory array from numpy array
     # shared_array = get_shared_array('distances')  # get shared memory array as numpy array
     with Pool(60) as p:
-        p.starmap(_kc, [(trees[i].get_newick(), trees[j].get_newick(), i, j) for i, j in itertools.combinations(range(n), 2)])
+        p.starmap(_kc, [(trees[i].get_newick(), trees[j].get_newick(), i, j, kc_param) for i, j in itertools.combinations(range(n), 2)])
     distances = get_shared_array('distances')
     try:
         del globals()['distances']
@@ -126,7 +128,7 @@ def get_kc_matrix(trees):
     return distances
 
 
-def plot_log_neighbours(mchain, dist_type = "rnni"):
+def plot_log_neighbours(mchain, dist_type = "rnni", kc_param=0):
 
     if dist_type not in ["rnni", "rf", "kc"]:
         raise ValueError(f"Distance {dist_type} not supported!")
@@ -138,7 +140,7 @@ def plot_log_neighbours(mchain, dist_type = "rnni"):
         elif dist_type == "rnni":
             distances = mchain.pwd_matrix(rf=False)
         elif dist_type == "kc":
-            distances = get_kc_matrix(mchain.trees)
+            distances = get_kc_matrix(mchain.trees, kc_param=kc_param)
             # todo
 
         log_values = mchain.log_data[log_key]
@@ -176,7 +178,7 @@ def plot_log_neighbours(mchain, dist_type = "rnni"):
     plt.tick_params(labelsize=14)
     plt.tight_layout()
 
-    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot_{dist_type}_new.eps", format="eps", dpi=400, bbox_inches="tight")
+    plt.savefig(f"{mchain.working_dir}/plots/smoothness_plot_{dist_type}_{kc_param if dist_type == 'kc' else ''}.eps", format="eps", dpi=400, bbox_inches="tight")
     # plt.show()
     plt.clf()
     plt.close()
