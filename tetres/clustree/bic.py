@@ -155,14 +155,14 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
     random_bic = []
     rand_mnd_list = []
     for i in range(max_cluster):
-        bic, mnd_cluster = bic(treeset=treeset,
+        bic_value, mnd_cluster = bic(treeset=treeset,
                                matrix=matrix,
                                k=i+1, local_norm=local_norm,
                                working_folder=working_folder,
                                _overwrite=_overwrite,
                                chain_id=name
                                )
-        bic_values.append(bic)
+        bic_values.append(bic_value)
         mnd_list.append(mnd_cluster)
         if add_random:
             rand_bic, rand_mnd = bic(treeset=treeset,
