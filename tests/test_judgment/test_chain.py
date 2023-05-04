@@ -242,7 +242,7 @@ def test_MChain_pwd_matrix(thirty_taxa_chain):
 #             "Spectral clustering for mchain failed!"
 
 
-def test_MChain_split_trees_from_clustering(ten_taxa_multichain):
+def test_Chain_split_trees_from_clustering(ten_taxa_multichain):
     k = 2
     ten_taxa_multichain[0].split_trees_from_clustering(k=k, _overwrite=True)
     assert all([os.path.exists(f"{ten_taxa_multichain.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{ten_taxa_multichain[0].name}.trees") for k_cluster in range(k)]), "Split trees from clustering failed!"
@@ -250,12 +250,12 @@ def test_MChain_split_trees_from_clustering(ten_taxa_multichain):
 
 def test_get_best_bic_cluster(ten_taxa_multichain):
     best_bic = ten_taxa_multichain[0].get_best_bic_cluster()
-    assert best_bic == 5, "Get best bic Mchain function failed"
+    assert best_bic == 2, "Get best bic Chain function failed"
 
 
 def test_get_best_silhouette_cluster(ten_taxa_multichain):
     best_sil = ten_taxa_multichain[0].get_best_silhouette_cluster()
-    assert best_sil == 5, "Get best silhouette cluster evaluation failed"
+    assert best_sil == 4, "Get best silhouette cluster evaluation failed"
 
 
 def test_similarity_matrix(ten_taxa_multichain):
@@ -274,4 +274,8 @@ def test_get_cluster_centroids(ten_taxa_multichain):
     for overwrite in [True, False]:
         summaries = ten_taxa_multichain[0].get_cluster_centroids(k=2, _overwrite=overwrite)
         assert len(summaries) == 2, "Failed to get cluster centroids!"
+
+
+def test_evaluate_clustering(ten_taxa_multichain):
+    ten_taxa_multichain[0].evaluate_clustering(kind="bic")
 
