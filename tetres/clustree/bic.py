@@ -1,11 +1,8 @@
 __author__ = "Lars Berling"
 
-
-from tetres.trees.time_trees import TimeTreeSet
-
+import random
 import numpy as np
 import matplotlib.pyplot as plt
-import os.path
 import pandas as pd
 
 
@@ -22,7 +19,7 @@ def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
     else:
         # Normalizing with the maximum distance two trees can have, global normalization
         divisor = ((n - 1) * (n - 2) / 2)
-    mnd_cluster = {k: 0 for k in range(max(clustering) + 1)}
+    mnd_cluster = {k: 0 for k in range(len(summaries) + 1)}
     for i, cluster in enumerate(clustering):
         mnd_cluster[cluster] += treeset[i].fp_distance(summaries[cluster])  # todo this could use multithreading maybe
     for k in mnd_cluster.keys():
@@ -42,32 +39,10 @@ def bic(treeset, clustering, summaries, local_norm):
     return bic_value, mnd_cluster
 
 
-def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False, working_folder="", name="", _overwrite=False):
-    """
-    Saves the BIC plot for cluster evaluation
-
-    Computes the Bayesian inference criterion for the clusterings in the rango of 1:max_cluster.
-    The parameters specify: Whether the mean normalized distance should use the diameter or the max distance
-    of two trees for normalization, whether to add a randomly shuffled clustering
-    and which clustering to use (Ward or spectral clustering).
-
-    :param tree_name: Specifies the folder MDS_Plots/{tree_name}
-    :type tree_name: string
-    :param max_cluster: The max number for which to plot/compute the BIC, defaults to 10
-    :type max_cluster: int
-    :param local_norm: Whether to use local scale or diameter for normalization of the distance, defaults to False
-    :type local_norm: bool
-    :param add_random: Add BIC of a randomly shuffled clustering, defaults to False
-    :type add_random: bool
-    :return: Saves the BIC cluster evaluation plot
-    """
-    if _overwrite:
-        try:
-            os.remove(f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png")
-        except FileNotFoundError:
-            pass
-    if os.path.exists(f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png"):
-        raise FileExistsError("Plot already exists -- pass _overwrite=True if you wish to recompute.")
+def plot_bic(treeset, clusterings, summaries_dict, max_cluster=5, local_norm=False, add_random=False, file_name = ""):
+    # clusterings is a dict k --> k-clustering
+    # summaries_dict is a dict k --> list of summaries for k clustering
+    # local_norm is either False or the value used to normalize distances
 
     bic_values = []
     mnd_list = []
@@ -75,22 +50,19 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
     rand_mnd_list = []
     for i in range(max_cluster):
         bic_value, mnd_cluster = bic(treeset=treeset,
-                               matrix=matrix,
-                               k=i+1, local_norm=local_norm,
-                               working_folder=working_folder,
-                               _overwrite=_overwrite,
-                               chain_id=name
-                               )
+                                       clustering=clusterings[i+1],
+                                       summaries=summaries_dict[i+1],
+                                       local_norm=local_norm)
+
         bic_values.append(bic_value)
         mnd_list.append(mnd_cluster)
         if add_random:
+            rshuf_cluster = clusterings[i+1].copy()
+            random.shuffle(rshuf_cluster)
             rand_bic, rand_mnd = bic(treeset=treeset,
-                                     matrix=matrix,
-                                     k=i+1, local_norm=local_norm,
-                                     working_folder=working_folder,
-                                     _overwrite=_overwrite,
-                                     chain_id=name,
-                                     random_shuffle=True)
+                                       clustering=rshuf_cluster,
+                                       summaries=summaries_dict[i+1],
+                                       local_norm=local_norm)
             random_bic.append(rand_bic)
             rand_mnd_list.append(rand_mnd)
 
@@ -140,9 +112,12 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
         ax[1].title.set_text("Random clustering")
         ax[1].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
-    # todo change to eps, or make the option available at some point
+    # File format of the plot is inferred from the name, i.e. .pdf/.eps/.png
+    # Todo maybe make the plot parameters an argument with kwargs in the future
     plt.tight_layout()
-    plt.savefig(f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png",
-                bbox_inches='tight', dpi=200)
-    plt.clf()
-    plt.close()
+    if file_name != "":
+        plt.savefig(file_name, bbox_inches='tight')
+        plt.clf()
+        plt.close()
+    else:
+        plt.show()
