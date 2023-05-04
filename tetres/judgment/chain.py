@@ -9,6 +9,9 @@ from tetres.judgment.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic
 from tetres.clustree.silhouette_score import silhouette_score
 
+from tetres.clustree.spectral_clustree import spectral_clustree_dm
+import random
+
 
 class Chain:
     def __init__(self, working_dir, trees, log_file=None, summary=None, name: str = "MC"):
@@ -182,19 +185,84 @@ class Chain:
         #  maybe just save all the bic scores to a file and then create the plot based on that
         best_cluster = 0
         best_bic = None
+
+        # todo soon to be arguments
+        _overwrite = False
+        random_shuffle = False
+
+        # trying to create the cluster folder if not exists
+        cluster_folder = os.path.join(self.working_dir, 'clustering')
+        try:
+            os.mkdir(cluster_folder)
+        except FileExistsError:
+            pass
+
+        from tetres.summary.centroid import Centroid
+
         for cur_cluster in range(max_cluster):
-            cur_bic, mnd_cluster = bic(treeset=self.trees, matrix=self.pwd_matrix(),
-                                   k=cur_cluster+1, local_norm=local_norm,
-                                   working_folder=self.working_dir,
-                                   _overwrite=False,
-                                   random_shuffle=False,
-                                   chain_id=self.name
-                                   )
+
+            summaries = []
+            clustering = self.get_clustering(k=cur_cluster+1)
+
+            if cur_cluster == 0:
+                if _overwrite and not random_shuffle:
+                    try:
+                        os.remove(f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree')
+                    except FileNotFoundError:
+                        pass
+                if os.path.exists(f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree'):
+                    # Assumes that the map is always the same
+                    cen = TimeTreeSet(file=f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree')[0]
+                else:
+                    centroid = Centroid()
+                    cen, sos = centroid.compute_centroid(self.trees)
+                    for _ in range(10):
+                        new_cen, new_sos = centroid.compute_centroid(self.trees)
+                        if new_sos < sos:
+                            cen, sos = new_cen, new_sos
+                    cen.write_nexus(self.trees.map, f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree',
+                                    name=f"Cen-{cur_cluster + 1}-{self.name}")
+                summaries.append(cen)
+            else:
+                for k_cluster in range(cur_cluster+1):
+                    # Creating a TimeTreeSet for the k-th cluster
+                    cur_treeset = TimeTreeSet()
+                    cur_treeset.map = self.trees.map
+                    cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if x == k_cluster]
+
+                    # cur_trees = [trees[index] for index, x in enumerate(clustering) if x == cluster]
+                    if len(cur_treeset) != 0:  # todo empty clusters????
+                        if _overwrite and not random_shuffle:
+                            try:
+                                os.remove(f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree')
+                            except FileNotFoundError:
+                                pass
+                        if os.path.exists(f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree'):
+                            cen = TimeTreeSet(file=f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree')[0]
+                        else:
+                            centroid = Centroid()
+                            cen, sos = centroid.compute_centroid(cur_treeset)
+                            for _ in range(10):
+                                new_cen, new_sos = centroid.compute_centroid(cur_treeset)
+                                if new_sos < sos:
+                                    cen, sos = new_cen, new_sos
+                            cen.write_nexus(cur_treeset.map, f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree',
+                                            name=f"Cen-{cur_cluster+1}-k{k_cluster}-{self.name}")
+                        summaries.append(cen)
+                    else:
+                        summaries.append([None])
+
+            cur_bic, mnd_cluster = bic(treeset=self.trees,
+                                       clustering=clustering,
+                                       summaries=summaries,
+                                       local_norm=local_norm)
+
             # todo at some point add check of mnd where the total sum should decrease and
             #  an increase indicates that this is not useful any longer
+
             if best_bic is None or cur_bic < best_bic:
-                    best_cluster = cur_cluster + 1
-                    best_bic = cur_bic
+                best_cluster = cur_cluster + 1
+                best_bic = cur_bic
         return best_cluster
 
     def get_best_silhouette_cluster(self, max_cluster=5, local_norm=False):
@@ -212,6 +280,28 @@ class Chain:
                 best_cluster = cur_cluster + 1
                 best_sil = cur_s
         return best_cluster
+
+    def get_clustering(self, k, random_shuffle = False, _overwrite=False):
+        cluster_type = "sc"  # todo should be a list of cluster_type [sc, ...] Future feature
+
+        if k == 0:
+            clustering = np.zeros(len(self.trees), dtype=int)
+        else:
+            if _overwrite and not random_shuffle:
+                try:
+                    os.remove(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
+                except FileNotFoundError:
+                    pass
+
+            if os.path.exists(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy"):
+                clustering = np.load(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
+            else:
+                if cluster_type == "sc":
+                    clustering = spectral_clustree_dm(self.pwd_matrix(), n_clus=k, beta=1)
+                    np.save(file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}", arr=clustering)
+            if random_shuffle:
+                random.shuffle(clustering)
+        return clustering
 
     def spectral_clustree(self, n_clus=2, beta=1):
         raise NotImplementedError("Currently not supported and a WIP")
@@ -233,13 +323,27 @@ class Chain:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
 
-    def evaluate_clustering(self, kind="silhouette", plot=True, _overwrite_plot=False, _overwrite_clustering=False):
+    def evaluate_clustering(self, kind="silhouette", _overwrite_plot=False, _overwrite_clustering=False):
         if kind not in ["silhouette", "bic"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
 
         # todo if _overwrite_plot delete plot and silhouette score
         # todo if _recalculate_clsutering delete clustering and also the plot and save file for the scores
 
+        if kind == "bic":
+
+            # todo kwargs with add_random and local norm, max_cluster
+
+            from tetres.clustree.bic import plot_bic
+            # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
+            plot_bic(treeset=self.trees,
+                     matrix=self.pwd_matrix(),
+                     max_cluster = 5,
+                     working_folder=self.working_dir,
+                     name=self.name,
+                     _overwrite=False,
+                     local_norm=False,
+                     add_random=True)
 
         # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
 

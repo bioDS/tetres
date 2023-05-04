@@ -1,14 +1,12 @@
 __author__ = "Lars Berling"
 
-from tetres.clustree.spectral_clustree import spectral_clustree_dm
-from tetres.summary.centroid import Centroid
+
 from tetres.trees.time_trees import TimeTreeSet
 
 import numpy as np
 import matplotlib.pyplot as plt
 import os.path
 import pandas as pd
-import random
 
 
 def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
@@ -32,93 +30,16 @@ def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
     return mnd_cluster
 
 
-def bic(treeset, matrix, k, local_norm, working_folder, random_shuffle=False, chain_id='myChain', _overwrite=False):
+def bic(treeset, clustering, summaries, local_norm):
+    # local_norm is either False or the value by which to divide the distances, local = max(distance matrix)
 
-    # todo chnage this to only work on a given clustering, not reading anything as that is part of the MChain class!!!
+    k = len(summaries)  # number of clusters
+    m = len(treeset)  # number of trees in the set
 
-    # check if working dir exists
-    if not os.path.exists(working_folder):
-        raise ValueError('Given working dir does not exist')
-    # trying to create the cluster folder if not exists
-    cluster_folder = os.path.join(working_folder, 'clustering')
-    try:
-        os.mkdir(cluster_folder)
-    except FileExistsError:
-        pass
-
-    m = matrix.shape[0]
-
-    summaries = []
-    if k == 1:
-        clustering = np.zeros(m, dtype=int)
-        if _overwrite and not random_shuffle:
-            try:
-                os.remove(f'{cluster_folder}/sc-{k}-{chain_id}.tree')
-            except FileNotFoundError:
-                pass
-        if os.path.exists(f'{cluster_folder}/sc-{k}-{chain_id}.tree'):
-            # Assumes that the map is always the same
-            cen = TimeTreeSet(file=f'{cluster_folder}/sc-{k}-{chain_id}.tree')[0]
-        else:
-            centroid = Centroid()
-            cen, sos = centroid.compute_centroid(treeset)
-            for _ in range(10):
-                new_cen, new_sos = centroid.compute_centroid(treeset)
-                if new_sos < sos:
-                    cen, sos = new_cen, new_sos
-            cen.write_nexus(treeset.map, f'{cluster_folder}/sc-{k}-{chain_id}.tree', name=f"Cen-{k}-{chain_id}")
-
-        summaries.append(cen)
-    else:
-        if _overwrite and not random_shuffle:
-            try:
-                os.remove(f"{cluster_folder}/sc-{k}-{chain_id}.npy")
-            except FileNotFoundError:
-                pass
-
-        if os.path.exists(f"{cluster_folder}/sc-{k}-{chain_id}.npy"):
-            clustering = np.load(f"{cluster_folder}/sc-{k}-{chain_id}.npy")
-        else:
-            clustering = spectral_clustree_dm(matrix, n_clus=k, beta=1)
-            np.save(file=f"{cluster_folder}/sc-{k}-{chain_id}", arr=clustering)
-
-        if random_shuffle:
-            random.shuffle(clustering)
-
-        for k_cluster in range(k):
-            # Creating a TimeTreeSet for the k-th cluster
-            cur_treeset = TimeTreeSet()
-            cur_treeset.map = treeset.map
-            cur_treeset.trees = [treeset[index] for index, x in enumerate(clustering) if x == k_cluster]
-
-            # cur_trees = [trees[index] for index, x in enumerate(clustering) if x == cluster]
-            if len(cur_treeset) != 0:  # todo empty clusters????
-                if _overwrite and not random_shuffle:
-                    try:
-                        os.remove(f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree')
-                    except FileNotFoundError:
-                        pass
-                if os.path.exists(f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree'):
-                    cen = TimeTreeSet(file=f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree')[0]
-                else:
-                    centroid = Centroid()
-                    cen, sos = centroid.compute_centroid(cur_treeset)
-                    for _ in range(10):
-                        new_cen, new_sos = centroid.compute_centroid(cur_treeset)
-                        if new_sos < sos:
-                            cen, sos = new_cen, new_sos
-                    cen.write_nexus(cur_treeset.map, f'{cluster_folder}/sc-{k}-k{k_cluster}-{chain_id}.tree', name=f"Cen-{k}-k{k_cluster}-{chain_id}")
-                summaries.append(cen)
-            else:
-                summaries.append([None])
-    if local_norm:
-        local_norm = np.max(matrix)
     mnd_cluster = mean_normalized_distance(treeset, summaries, clustering, local_norm=local_norm)
+    bic_value = k / 2 * np.log(m) - 2 * m * np.log(1 - np.sum(list(mnd_cluster.values())))
 
-    # TODO division by 0 is sometimes possible for bic computation,
-    #  maybe only if empty cluster exists, therefore delete that bit
-    bic = k / 2 * np.log(m) - 2 * m * np.log(1 - np.sum(list(mnd_cluster.values())))
-    return bic, mnd_cluster
+    return bic_value, mnd_cluster
 
 
 def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False, working_folder="", name="", _overwrite=False):
@@ -138,8 +59,6 @@ def plot_bic(treeset, matrix, max_cluster=5, local_norm=False, add_random=False,
     :type local_norm: bool
     :param add_random: Add BIC of a randomly shuffled clustering, defaults to False
     :type add_random: bool
-    :param ward: Whether to use Ward or spectral clustering, defaults to False
-    :type ward: bool
     :return: Saves the BIC cluster evaluation plot
     """
     if _overwrite:
