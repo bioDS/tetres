@@ -286,13 +286,13 @@ class Chain:
 
     def get_clustering(self, k, random_shuffle = False, _overwrite=False, beta=1):
 
-        cluster_type = f"sc{'' if beta == 1 else f'-{beta}'}"
+        cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
         # todo should be a list of cluster_type [sc, ...] Future feature
         # todo beta should be part of kwargs as only needed for similarity matrix calculation for spectral clustering
 
-        if k == 0:
-            clustering = np.zeros(len(self.trees), dtype=int)
-        else:
+        if k == 1:
+            return np.zeros(len(self.trees), dtype=int)
+        elif k > 1:
             if _overwrite and not random_shuffle:
                 try:
                     os.remove(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
@@ -302,12 +302,14 @@ class Chain:
             if os.path.exists(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy"):
                 clustering = np.load(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
             else:
-                if cluster_type == "sc":
+                if cluster_type == f"sc{'' if beta == 1 else f'-b{beta}'}":
                     clustering = _spectral_clustree(self.similarity_matrix(beta=beta), n_clus=k)
                     np.save(file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}", arr=clustering)
             if random_shuffle:
                 random.shuffle(clustering)
-        return clustering
+            return clustering
+        else:
+            raise ValueError(f"Value {k} not supported!")
 
     def similarity_matrix(self, beta=1):
         if not os.path.exists(

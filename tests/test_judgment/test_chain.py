@@ -263,3 +263,10 @@ def test_similarity_matrix(ten_taxa_multichain):
         simd = ten_taxa_multichain[0].similarity_matrix(beta=beta)
         assert simd.shape[0] == 1001, "Similarity matrix failed!"
 
+
+def test_get_clustering(ten_taxa_multichain):
+    for beta in [1, 2]:
+        clustering = ten_taxa_multichain[0].get_clustering(2, beta=beta)
+        assert len(clustering) == 1001, "Get clustering failed"
+
+
