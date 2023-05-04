@@ -9,7 +9,7 @@ from tetres.judgment.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic
 from tetres.clustree.silhouette_score import silhouette_score
 
-from tetres.clustree.spectral_clustree import spectral_clustree_dm
+from tetres.summary.centroid import Centroid
 import random
 
 
@@ -200,7 +200,7 @@ class Chain:
         except FileExistsError:
             pass
 
-        from tetres.summary.centroid import Centroid
+
 
         for cur_cluster in range(max_cluster):
 
@@ -300,7 +300,7 @@ class Chain:
                     pass
 
             if os.path.exists(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy"):
-                clustering = np.load(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
+                clustering = np.load(os.path.join(self.working_dir, 'clustering', f"{cluster_type}-{k}-{self.name}.npy"))
             else:
                 if cluster_type == f"sc{'' if beta == 1 else f'-b{beta}'}":
                     clustering = _spectral_clustree(self.similarity_matrix(beta=beta), n_clus=k)
@@ -310,6 +310,44 @@ class Chain:
             return clustering
         else:
             raise ValueError(f"Value {k} not supported!")
+
+    def get_cluster_centroids(self, k, beta=1, _overwrite=False, _best_of_range = 10):
+        # todo beta as kwargs parameter in the future
+        cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
+
+        output = []
+        for cur_cluster in range(k):
+            cur_centroid_path = os.path.join(self.working_dir, "clustering", f"{cluster_type}-{k}{f'-k{cur_cluster+1}' if k != 1 else ''}-{self.name}.tree")
+            if _overwrite:
+                try:
+                    os.remove(cur_centroid_path)
+                except FileNotFoundError:
+                    pass
+
+            # Creating a TimeTreeSet for the k-th cluster
+            cur_treeset = TimeTreeSet()
+            cur_treeset.map = self.trees.map
+            cur_treeset.trees = [self.trees[index] for index, x in
+                                         enumerate(self.get_clustering(k=cur_cluster + 1)) if x == cur_cluster]
+            if len(cur_treeset) == 0:
+                output.append(None)
+            else:
+                if os.path.exists(cur_centroid_path):
+                    # Assumes that the map is always the same
+                    output.append(TimeTreeSet(file=cur_centroid_path)[0])
+                else:
+                    centroid = Centroid()
+                    cen, sos = centroid.compute_centroid(cur_treeset)
+                    for _ in range(_best_of_range):
+                        new_cen, new_sos = centroid.compute_centroid(cur_treeset)
+                        if new_sos < sos:
+                            cen, sos = new_cen, new_sos
+                    cen.write_nexus(cur_treeset.map,
+                                    cur_centroid_path,
+                                    name=f"Cen-{k}-k{cur_cluster}-{self.name}")
+                    output.append(cen)
+        return output
+
 
     def similarity_matrix(self, beta=1):
         if not os.path.exists(
@@ -324,8 +362,10 @@ class Chain:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
-    def evaluate_clustering(self, kind="silhouette", _overwrite_plot=False, _overwrite_clustering=False):
-        raise NotImplemented("Stil a WIP")
+    def evaluate_clustering(self, kind="bic", _overwrite_plot=False, _overwrite_clustering=False):
+
+        from tetres.clustree.bic import plot_bic
+
         if kind not in ["silhouette", "bic"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
 
@@ -334,17 +374,35 @@ class Chain:
 
         if kind == "bic":
             # todo kwargs with add_random and local norm, max_cluster
+            add_random = True
+            max_cluster = 5
+            local_norm = False
+            beta = 1
 
-            from tetres.clustree.bic import plot_bic
+            # if _overwrite:
+            #     try:
+            #         os.remove(
+            #             f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png")
+            #     except FileNotFoundError:
+            #         pass
+            # if os.path.exists(
+            #         f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png"):
+            #     raise FileExistsError("Plot already exists -- pass _overwrite=True if you wish to recompute.")
+
+            clusterings = {k+1: self.get_clustering(k+1, beta=beta) for k in range(max_cluster)}
+
+            summaries_dict = {}
+
+
+
             # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
             plot_bic(treeset=self.trees,
-                     matrix=self.pwd_matrix(),
-                     max_cluster=5,
-                     working_folder=self.working_dir,
-                     name=self.name,
-                     _overwrite=False,
+                     clusterings=clusterings,
+                     summaries_dict=summaries_dict,
+                     max_cluster=max_cluster,
                      local_norm=False,
-                     add_random=True)
+                     add_random=add_random,
+                     file_name=os.path.join(self.working_dir, "plots", f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.png"))
 
         # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
 

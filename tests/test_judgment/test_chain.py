@@ -270,3 +270,8 @@ def test_get_clustering(ten_taxa_multichain):
         assert len(clustering) == 1001, "Get clustering failed"
 
 
+def test_get_cluster_centroids(ten_taxa_multichain):
+    for overwrite in [True, False]:
+        summaries = ten_taxa_multichain[0].get_cluster_centroids(k=2, _overwrite=overwrite)
+        assert len(summaries) == 2, "Failed to get cluster centroids!"
+
