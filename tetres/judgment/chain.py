@@ -303,32 +303,27 @@ class Chain:
                 clustering = np.load(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
             else:
                 if cluster_type == "sc":
-                    clustering = _spectral_clustree(self.simmilarity_matrix(beta=beta), n_clus=k)
+                    clustering = _spectral_clustree(self.similarity_matrix(beta=beta), n_clus=k)
                     np.save(file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}", arr=clustering)
             if random_shuffle:
                 random.shuffle(clustering)
         return clustering
 
-    def simmilarity_matrix(self, beta=1):
-        raise NotImplementedError("Currently WIP and not supported")
-        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
-        # todo this matrix should also be in the clustering folder
-
+    def similarity_matrix(self, beta=1):
         if not os.path.exists(
-                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
-
+                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
             matrix = self.pwd_matrix()
             similarity = np.exp(-beta * matrix / matrix.std())
             np.save(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy",
+                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy",
                 arr=similarity)
             return similarity
         else:
             return np.load(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
-        raise NotImplemented("Currently WIP")
+                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
     def evaluate_clustering(self, kind="silhouette", _overwrite_plot=False, _overwrite_clustering=False):
+        raise NotImplemented("Stil a WIP")
         if kind not in ["silhouette", "bic"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
 
@@ -355,4 +350,3 @@ class Chain:
         # todo this function should return the suggeted number of clusters for a given chain, i.e. save the scores to a file and read from that file
 
         # todo implementation missing
-        raise NotImplemented("Currently WIP")
