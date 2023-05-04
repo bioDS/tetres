@@ -63,7 +63,7 @@ class MultiChain():
             raise IndexError("Given Index out of range!")
 
         if index2 is None:
-            return self.MChain_list[index1].pwd_matrix(index=index1, name=self.name, csv=csv, rf=rf)
+            return self.MChain_list[index1].pwd_matrix(name=self.MChain_list[index1].name, csv=csv, rf=rf)
         else:
             if type(index2) is not int:
                 raise ValueError("Unrecognized index type!")
