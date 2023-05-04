@@ -88,27 +88,27 @@ class Chain:
         # returns number of tree samples at this point!
         return len(self.trees)
 
-    def pwd_matrix(self, csv: bool = False, index="", name="", rf=False):
+    def pwd_matrix(self, csv: bool = False, name="", rf=False):
         if not os.path.exists(
-                f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
+                f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
             dm = calc_pw_distances(self.trees, rf=rf)
             if csv:
                 np.savetxt(
-                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.csv.gz",
+                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.csv.gz",
                     X=dm, delimiter=',', fmt='%i')
             else:
                 np.save(
-                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.npy",
+                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.npy",
                     arr=dm)
             return dm
         else:
             if csv:
                 return np.genfromtxt(
-                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.csv.gz",
+                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.csv.gz",
                     delimiter=',', dtype=int)
             else:
                 return np.load(
-                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}{'_rf' if rf else ''}.npy")
+                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.npy")
 
     def get_key_names(self):
         return list(self.log_data.columns)[1:]
@@ -133,7 +133,10 @@ class Chain:
             raise ValueError("Not (yet) implemented!")
 
     def split_trees_from_clustering(self, k, _overwrite=False):
+
+        # todo change to the get_clustering funciton and also include the type of clustering that is wanted here
         if os.path.exists(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy"):
+
             clustering = np.load(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy")
         else:
             raise ValueError("Clustering has not yet been computed!")
@@ -281,8 +284,11 @@ class Chain:
                 best_sil = cur_s
         return best_cluster
 
-    def get_clustering(self, k, random_shuffle = False, _overwrite=False):
-        cluster_type = "sc"  # todo should be a list of cluster_type [sc, ...] Future feature
+    def get_clustering(self, k, random_shuffle = False, _overwrite=False, beta=1):
+
+        cluster_type = f"sc{'' if beta == 1 else f'-{beta}'}"
+        # todo should be a list of cluster_type [sc, ...] Future feature
+        # todo beta should be part of kwargs as only needed for similarity matrix calculation for spectral clustering
 
         if k == 0:
             clustering = np.zeros(len(self.trees), dtype=int)
@@ -297,63 +303,13 @@ class Chain:
                 clustering = np.load(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
             else:
                 if cluster_type == "sc":
-                    clustering = spectral_clustree_dm(self.pwd_matrix(), n_clus=k, beta=1)
+                    clustering = _spectral_clustree(self.simmilarity_matrix(beta=beta), n_clus=k)
                     np.save(file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}", arr=clustering)
             if random_shuffle:
                 random.shuffle(clustering)
         return clustering
 
-    def spectral_clustree(self, n_clus=2, beta=1):
-        raise NotImplementedError("Currently not supported and a WIP")
-        # todo adapt to new folder clustering/ and integrate what I did for BIC here!
-        try:
-            os.mkdir(os.path.join(self.working_dir, "clustering"))
-        except FileExistsError:
-            raise ValueError("Didn't work?!")
-
-        if not os.path.exists(
-                f"{self.working_dir}/clustering/sc-{n_clus}-{self.name}{'' if beta == 1 else f'-{beta}'}.npy"):
-
-            clustering = _spectral_clustree(self.simmilarity_matrix(beta=beta), n_clus=n_clus)
-            np.save(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy",
-                arr=clustering)
-            return clustering
-        else:
-            return np.load(
-                file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index != '' else ''}_{'' if beta == 1 else f'{beta}_'}{n_clus}clustering.npy")
-
-    def evaluate_clustering(self, kind="silhouette", _overwrite_plot=False, _overwrite_clustering=False):
-        if kind not in ["silhouette", "bic"]:
-            raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
-
-        # todo if _overwrite_plot delete plot and silhouette score
-        # todo if _recalculate_clsutering delete clustering and also the plot and save file for the scores
-
-        if kind == "bic":
-
-            # todo kwargs with add_random and local norm, max_cluster
-
-            from tetres.clustree.bic import plot_bic
-            # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
-            plot_bic(treeset=self.trees,
-                     matrix=self.pwd_matrix(),
-                     max_cluster = 5,
-                     working_folder=self.working_dir,
-                     name=self.name,
-                     _overwrite=False,
-                     local_norm=False,
-                     add_random=True)
-
-        # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
-
-        # todo file identifyer is kind_....
-        # todo this function should return the suggeted number of clusters for a given chain, i.e. save the scores to a file and read from that file
-
-        # todo implementation missing
-        raise NotImplemented("Currently WIP")
-
-    def simmilarity_matrix(self, index="", name="", beta=1):
+    def simmilarity_matrix(self, beta=1):
         raise NotImplementedError("Currently WIP and not supported")
         # todo adapt to new folder clustering/ and integrate what I did for BIC here!
         # todo this matrix should also be in the clustering folder
@@ -370,4 +326,33 @@ class Chain:
         else:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name if name == '' else name}{f'_{index}' if index!='' else ''}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
+        raise NotImplemented("Currently WIP")
+
+    def evaluate_clustering(self, kind="silhouette", _overwrite_plot=False, _overwrite_clustering=False):
+        if kind not in ["silhouette", "bic"]:
+            raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
+
+        # todo if _overwrite_plot delete plot and silhouette score
+        # todo if _recalculate_clsutering delete clustering and also the plot and save file for the scores
+
+        if kind == "bic":
+            # todo kwargs with add_random and local norm, max_cluster
+
+            from tetres.clustree.bic import plot_bic
+            # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
+            plot_bic(treeset=self.trees,
+                     matrix=self.pwd_matrix(),
+                     max_cluster=5,
+                     working_folder=self.working_dir,
+                     name=self.name,
+                     _overwrite=False,
+                     local_norm=False,
+                     add_random=True)
+
+        # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
+
+        # todo file identifyer is kind_....
+        # todo this function should return the suggeted number of clusters for a given chain, i.e. save the scores to a file and read from that file
+
+        # todo implementation missing
         raise NotImplemented("Currently WIP")
