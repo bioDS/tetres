@@ -6,9 +6,8 @@ from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgment._pairwise_distance_matrix import calc_pw_distances
 from tetres.clustree.spectral_clustree import _spectral_clustree
 from tetres.judgment.ess import autocorr_ess, pseudo_ess
-from tetres.clustree.bic import bic
+from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
-
 from tetres.summary.centroid import Centroid
 import random
 
@@ -31,7 +30,7 @@ class Chain:
         else:
             raise ValueError("Working directory type not recognized!")
 
-        for new_dir in ["data", "plots"]:
+        for new_dir in ["data", "plots", "clustering"]:
             try:
                 os.mkdir(f"{self.working_dir}/{new_dir}")
             except FileExistsError:
@@ -189,71 +188,13 @@ class Chain:
         best_cluster = 0
         best_bic = None
 
-        # todo soon to be arguments
-        _overwrite = False
-        random_shuffle = False
-
-        # trying to create the cluster folder if not exists
-        cluster_folder = os.path.join(self.working_dir, 'clustering')
-        try:
-            os.mkdir(cluster_folder)
-        except FileExistsError:
-            pass
-
-
+        # todo soon to be arguments ?
+        beta = 1
 
         for cur_cluster in range(max_cluster):
 
-            summaries = []
+            summaries = self.get_cluster_centroids(k=cur_cluster+1, beta=beta)
             clustering = self.get_clustering(k=cur_cluster+1)
-
-            if cur_cluster == 0:
-                if _overwrite and not random_shuffle:
-                    try:
-                        os.remove(f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree')
-                    except FileNotFoundError:
-                        pass
-                if os.path.exists(f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree'):
-                    # Assumes that the map is always the same
-                    cen = TimeTreeSet(file=f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree')[0]
-                else:
-                    centroid = Centroid()
-                    cen, sos = centroid.compute_centroid(self.trees)
-                    for _ in range(10):
-                        new_cen, new_sos = centroid.compute_centroid(self.trees)
-                        if new_sos < sos:
-                            cen, sos = new_cen, new_sos
-                    cen.write_nexus(self.trees.map, f'{cluster_folder}/sc-{cur_cluster + 1}-{self.name}.tree',
-                                    name=f"Cen-{cur_cluster + 1}-{self.name}")
-                summaries.append(cen)
-            else:
-                for k_cluster in range(cur_cluster+1):
-                    # Creating a TimeTreeSet for the k-th cluster
-                    cur_treeset = TimeTreeSet()
-                    cur_treeset.map = self.trees.map
-                    cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if x == k_cluster]
-
-                    # cur_trees = [trees[index] for index, x in enumerate(clustering) if x == cluster]
-                    if len(cur_treeset) != 0:  # todo empty clusters????
-                        if _overwrite and not random_shuffle:
-                            try:
-                                os.remove(f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree')
-                            except FileNotFoundError:
-                                pass
-                        if os.path.exists(f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree'):
-                            cen = TimeTreeSet(file=f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree')[0]
-                        else:
-                            centroid = Centroid()
-                            cen, sos = centroid.compute_centroid(cur_treeset)
-                            for _ in range(10):
-                                new_cen, new_sos = centroid.compute_centroid(cur_treeset)
-                                if new_sos < sos:
-                                    cen, sos = new_cen, new_sos
-                            cen.write_nexus(cur_treeset.map, f'{cluster_folder}/sc-{cur_cluster+1}-k{k_cluster}-{self.name}.tree',
-                                            name=f"Cen-{cur_cluster+1}-k{k_cluster}-{self.name}")
-                        summaries.append(cen)
-                    else:
-                        summaries.append([None])
 
             cur_bic, mnd_cluster = bic(treeset=self.trees,
                                        clustering=clustering,
@@ -271,6 +212,7 @@ class Chain:
     def get_best_silhouette_cluster(self, max_cluster=5, local_norm=False):
         best_cluster = 0
         best_sil = None
+        # todo rework with new funcitons
         for cur_cluster in range(2, max_cluster+1):
             cur_s = silhouette_score(matrix=self.pwd_matrix(),
                                      k=cur_cluster,
@@ -364,7 +306,7 @@ class Chain:
 
     def evaluate_clustering(self, kind="bic", _overwrite_plot=False, _overwrite_clustering=False):
 
-        from tetres.clustree.bic import plot_bic
+        # todo parameters for overwrite currently not used
 
         if kind not in ["silhouette", "bic"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
@@ -391,9 +333,7 @@ class Chain:
 
             clusterings = {k+1: self.get_clustering(k+1, beta=beta) for k in range(max_cluster)}
 
-            summaries_dict = {}
-
-
+            summaries_dict = {k+1: self.get_cluster_centroids(k=k+1) for k in range(max_cluster)}
 
             # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
             plot_bic(treeset=self.trees,
