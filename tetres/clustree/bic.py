@@ -19,7 +19,7 @@ def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
     else:
         # Normalizing with the maximum distance two trees can have, global normalization
         divisor = ((n - 1) * (n - 2) / 2)
-    mnd_cluster = {k: 0 for k in range(len(summaries) + 1)}
+    mnd_cluster = {k: 0 for k in range(len(summaries))}
     for i, cluster in enumerate(clustering):
         mnd_cluster[cluster] += treeset[i].fp_distance(summaries[cluster])  # todo this could use multithreading maybe
     for k in mnd_cluster.keys():
@@ -79,8 +79,10 @@ def plot_bic(treeset, clusterings, summaries_dict, max_cluster=5, local_norm=Fal
         ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
         ax2.set_ylabel('BIC')
         ax2.set_xlabel('Number of clusters k')
-        sug_k = bic_values.index(min(bic_values))+1
-        plt.suptitle(f"BIC - k = {sug_k} clusters suggested")
+        mnd_constraint = np.argmin([sum(c.values()) for c in mnd_list]) + 1
+        sug_k = np.argmin(bic_values[0:mnd_constraint])+1
+        plt.suptitle(
+            f"BIC - k = {sug_k} clusters suggested {'(MND constraint)' if mnd_constraint != max_cluster else ''}")
         plt.xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
     else:
@@ -94,8 +96,10 @@ def plot_bic(treeset, clusterings, summaries_dict, max_cluster=5, local_norm=Fal
         ax2.plot(range(len(bic_values)), bic_values, color='black', label='BIC')
         ax2.set_ylabel('BIC')
         ax2.set_xlabel('Number of clusters k')
-        sug_k = bic_values.index(min(bic_values)) + 1
-        plt.suptitle(f"BIC - k = {sug_k} clusters suggested")
+        mnd_constraint = np.argmin([sum(c.values()) for c in mnd_list]) + 1
+        sug_k = np.argmin(bic_values[0:mnd_constraint]) + 1
+        plt.suptitle(
+            f"BIC - k = {sug_k} clusters suggested {'(MND constraint)' if mnd_constraint != max_cluster else ''}")
         ax[0].set_xticks(range(max_cluster), labels=[i + 1 for i in range(max_cluster)], rotation='horizontal')
 
         # adding the random plot to the second subplot
