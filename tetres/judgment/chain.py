@@ -309,7 +309,7 @@ class Chain:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
-    def evaluate_clustering(self, kind="bic", _overwrite_plot=False, _overwrite_clustering=False, add_random=True, local=False):
+    def evaluate_clustering(self, kind="bic", _overwrite_clustering=False, add_random=True, local=False):
 
         # todo parameters for overwrite currently not used
 
@@ -329,19 +329,8 @@ class Chain:
             else:
                 local_norm = False
 
-            # if _overwrite:
-            #     try:
-            #         os.remove(
-            #             f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png")
-            #     except FileNotFoundError:
-            #         pass
-            # if os.path.exists(
-            #         f"{working_folder}/plots/BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{name}.png"):
-            #     raise FileExistsError("Plot already exists -- pass _overwrite=True if you wish to recompute.")
-
-            clusterings = {k+1: self.get_clustering(k+1, beta=beta) for k in range(max_cluster)}
-
-            summaries_dict = {k+1: self.get_cluster_centroids(k=k+1) for k in range(max_cluster)}
+            clusterings = {k+1: self.get_clustering(k+1, beta=beta, _overwrite=_overwrite_clustering) for k in range(max_cluster)}
+            summaries_dict = {k+1: self.get_cluster_centroids(k=k+1, _overwrite=_overwrite_clustering) for k in range(max_cluster)}
 
             # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
             plot_bic(treeset=self.trees,
