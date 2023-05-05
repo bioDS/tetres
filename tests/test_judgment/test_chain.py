@@ -249,8 +249,9 @@ def test_Chain_split_trees_from_clustering(ten_taxa_multichain):
 
 
 def test_get_best_bic_cluster(ten_taxa_multichain):
-    best_bic = ten_taxa_multichain[0].get_best_bic_cluster()
-    assert best_bic == 2, "Get best bic Chain function failed"
+    for local in [True, False]:
+        best_bic = ten_taxa_multichain[0].get_best_bic_cluster(local=local)
+        assert best_bic == (1 if local else 2), "Get best bic Chain function failed"
 
 
 def test_get_best_silhouette_cluster(ten_taxa_multichain):
