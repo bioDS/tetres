@@ -4,13 +4,12 @@ import numpy as np
 
 from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgment._pairwise_distance_matrix import calc_pw_distances
-from tetres.clustree.spectral_clustree import _spectral_clustree
+from tetres.clustree.spectral_clustree import _spectral_clustree, spectral_clustree_dm
 from tetres.judgment.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
-import random
-
+import warnings
 
 class Chain:
     def __init__(self, working_dir, trees, log_file=None, summary=None, name: str = "MC"):
@@ -182,14 +181,18 @@ class Chain:
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                           dist=dist, sample_range=sample_range, no_zero=no_zero)
 
-    def get_best_bic_cluster(self, max_cluster=5, local_norm=False):
+    def get_best_bic_cluster(self, max_cluster=5, local=False):
         # todo add overwrite option and saving this to a file so that it can be read
         #  maybe just save all the bic scores to a file and then create the plot based on that
         best_cluster = 0
         best_bic = None
-
+        prev_mnd = None
         # todo soon to be arguments ?
         beta = 1
+
+        local_norm = False
+        if local:
+            local_norm = np.max(self.pwd_matrix())
 
         for cur_cluster in range(max_cluster):
 
@@ -201,9 +204,10 @@ class Chain:
                                        summaries=summaries,
                                        local_norm=local_norm)
 
-            # todo at some point add check of mnd where the total sum should decrease and
-            #  an increase indicates that this is not useful any longer
-
+            if prev_mnd is not None and sum(mnd_cluster.values()) > prev_mnd:
+                warnings.warn(f"MND Constraint reached at {cur_cluster+1} clustering")
+                return best_cluster
+            prev_mnd = sum(mnd_cluster.values())
             if best_bic is None or cur_bic < best_bic:
                 best_cluster = cur_cluster + 1
                 best_bic = cur_bic
@@ -226,7 +230,7 @@ class Chain:
                 best_sil = cur_s
         return best_cluster
 
-    def get_clustering(self, k, random_shuffle = False, _overwrite=False, beta=1):
+    def get_clustering(self, k, _overwrite=False, beta=1):
 
         cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
         # todo should be a list of cluster_type [sc, ...] Future feature
@@ -235,7 +239,7 @@ class Chain:
         if k == 1:
             return np.zeros(len(self.trees), dtype=int)
         elif k > 1:
-            if _overwrite and not random_shuffle:
+            if _overwrite:
                 try:
                     os.remove(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
                 except FileNotFoundError:
@@ -247,8 +251,6 @@ class Chain:
                 if cluster_type == f"sc{'' if beta == 1 else f'-b{beta}'}":
                     clustering = _spectral_clustree(self.similarity_matrix(beta=beta), n_clus=k)
                     np.save(file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}", arr=clustering)
-            if random_shuffle:
-                random.shuffle(clustering)
             return clustering
         else:
             raise ValueError(f"Value {k} not supported!")
@@ -295,6 +297,9 @@ class Chain:
         if not os.path.exists(
                 f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
             matrix = self.pwd_matrix()
+            if np.allclose(matrix, np.triu(matrix)):
+                # matrix is upper triangular, has to be changed to a full matrix for this implementation
+                matrix += np.transpose(matrix)
             similarity = np.exp(-beta * matrix / matrix.std())
             np.save(
                 file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy",
@@ -304,7 +309,7 @@ class Chain:
             return np.load(
                 file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
-    def evaluate_clustering(self, kind="bic", _overwrite_plot=False, _overwrite_clustering=False):
+    def evaluate_clustering(self, kind="bic", _overwrite_plot=False, _overwrite_clustering=False, add_random=True, local=False):
 
         # todo parameters for overwrite currently not used
 
@@ -316,10 +321,13 @@ class Chain:
 
         if kind == "bic":
             # todo kwargs with add_random and local norm, max_cluster
-            add_random = True
             max_cluster = 5
-            local_norm = False
             beta = 1
+            if local:
+                # Set local norm to be the max distance observed instead of diameter of the space
+                local_norm = np.max(self.pwd_matrix())
+            else:
+                local_norm = False
 
             # if _overwrite:
             #     try:
@@ -340,13 +348,7 @@ class Chain:
                      clusterings=clusterings,
                      summaries_dict=summaries_dict,
                      max_cluster=max_cluster,
-                     local_norm=False,
+                     local_norm=local_norm,
                      add_random=add_random,
-                     file_name=os.path.join(self.working_dir, "plots", f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.png"))
+                     file_name=os.path.join(self.working_dir, "plots", f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.pdf"))
 
-        # todo change the BIC and silhouette funcitons to take a clustering, reading should take place here instead!
-
-        # todo file identifyer is kind_....
-        # todo this function should return the suggeted number of clusters for a given chain, i.e. save the scores to a file and read from that file
-
-        # todo implementation missing
