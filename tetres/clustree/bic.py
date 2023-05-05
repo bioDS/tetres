@@ -17,7 +17,6 @@ def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
     m = len(treeset)  # number of trees
     n = len(treeset[0])  # number of taxa
 
-    # todo optimize this with a given local parameter
     if local_norm:
         # This will normalize with the maximum distance two trees have in the given set
         divisor = local_norm
@@ -38,11 +37,8 @@ def bic(treeset, clustering, summaries, local_norm):
 
     k = len(summaries)  # number of clusters
     m = len(treeset)  # number of trees in the set
-
     mnd_cluster = mean_normalized_distance(treeset, summaries, clustering, local_norm=local_norm)
-    print(np.sum(list(mnd_cluster.values())))
     bic_value = k / 2 * np.log(m) - 2 * m * np.log(1 - np.sum(list(mnd_cluster.values())))
-
     return bic_value, mnd_cluster
 
 
