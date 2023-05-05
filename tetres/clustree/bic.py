@@ -8,6 +8,12 @@ import pandas as pd
 
 def mean_normalized_distance(treeset, summaries, clustering, local_norm=False):
 
+    if local_norm:
+        # Casts local_norm as integer!
+        local_norm = int(local_norm)
+        if local_norm <= 0:
+            raise ValueError("local_norm has to be a positive integer!")
+
     m = len(treeset)  # number of trees
     n = len(treeset[0])  # number of taxa
 
@@ -34,6 +40,7 @@ def bic(treeset, clustering, summaries, local_norm):
     m = len(treeset)  # number of trees in the set
 
     mnd_cluster = mean_normalized_distance(treeset, summaries, clustering, local_norm=local_norm)
+    print(np.sum(list(mnd_cluster.values())))
     bic_value = k / 2 * np.log(m) - 2 * m * np.log(1 - np.sum(list(mnd_cluster.values())))
 
     return bic_value, mnd_cluster
