@@ -24,7 +24,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
+def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02, burnin=0):
     # this function will return the cut.start and cut.end values calculated for the given full chain
 
     dm_i = multichain.pwd_matrix(i)
@@ -32,11 +32,22 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
     dm_ij = multichain.pwd_matrix(i, j)
     dm_ji = np.transpose(dm_ij)
 
+    # Deleting the given burnin
+    dm_i = np.delete(dm_i, list(range(burnin)), axis=0)
+    dm_i = np.delete(dm_i, list(range(burnin)), axis=1)
+    dm_j = np.delete(dm_j, list(range(burnin)), axis=0)
+    dm_j = np.delete(dm_j, list(range(burnin)), axis=1)
+    dm_ij = np.delete(dm_ij, list(range(burnin)), axis=0)
+    dm_ij = np.delete(dm_ij, list(range(burnin)), axis=1)
+    dm_ji = np.delete(dm_ji, list(range(burnin)), axis=0)
+    dm_ji = np.delete(dm_ji, list(range(burnin)), axis=1)
+
     if dm_i.shape != dm_j.shape:
         raise ValueError("Treesets have different sizes!")
 
-    cutoff_end = -1
-    consecutive = 0
+    # cutoff_end = -1
+    # consecutive = 0
+    cutoff_start = -1
 
     if _subsampling:
         for _ in range(_subsampling):
@@ -55,9 +66,11 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
     for cur_sample in range(dm_i.shape[0]):
         slide_start = int(cur_sample * (1 - smoothing))  # smoothing is impacting the current sliding window start
 
+        # psrf_like_i = _psrf_like_value(dm_i, dm_ij, k=cur_sample, s=cutoff_start, e=cur_sample)
+        # psrf_like_j = _psrf_like_value(dm_j, dm_ji, k=cur_sample, s=cutoff_start, e=cur_sample)
+
         psrf_like_i = []
         psrf_like_j = []
-
         for x in range(slide_start, cur_sample + 1):
             psrf_like_i.append(_psrf_like_value(dm_i, dm_ij, x, slide_start, cur_sample))
             psrf_like_j.append(_psrf_like_value(dm_j, dm_ji, x, slide_start, cur_sample))
@@ -69,19 +82,28 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
             psrf_like_j = np.mean(psrf_like_j)
         else:
             raise ValueError(f"Unrecognized parameter {smoothing_average} smoothing_average!")
-
+        # print(psrf_like_i, psrf_like_j)
         if 1/(1+_gr_boundary) < psrf_like_i < 1+_gr_boundary and 1/(1+_gr_boundary) < psrf_like_j < 1+_gr_boundary:
-            consecutive += 1
-            if cutoff_end == -1 and consecutive >= ess_threshold:
+            if cutoff_start == -1:
+                # If this is the first sample within the threshold then this is the start
+                cutoff_start = slide_start
+            # consecutive += 1
+            # if cutoff_end == -1 and consecutive >= ess_threshold:
+            if cur_sample - cutoff_start > ess_threshold:
                     # todo change to calculate the pseudo ess with the already existing distance matrix
-                    if (multichain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                    if (multichain[i].get_pseudo_ess(lower_i=cutoff_start, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
                             and \
-                            (multichain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
-                        cutoff_end = cur_sample
-                        cutoff_start = cur_sample - consecutive
-                        return cutoff_start, cutoff_end
+                            (multichain[j].get_pseudo_ess(lower_i=cutoff_start, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                    # if (multichain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                    #         and \
+                    #         (multichain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                        # cutoff_end = cur_sample
+                        # cutoff_start = cur_sample - consecutive
+                        return cutoff_start, cur_sample
         else:
-            consecutive = 0
+            # consecutive = 0
+            # if we are outside the boundary reset the cutoff start
+            cutoff_start = -1
     # No cutoff found
     return -1, -1
 
@@ -99,9 +121,9 @@ def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_thresh
 
     df = []
 
-    cutoff_start = {k: -1 for k in ess_threshold_list}
+    cutoff_start = {k: 0 for k in ess_threshold_list}
     cutoff_end = {k: -1 for k in ess_threshold_list}
-    consecutive = 0
+    # consecutive = 0
 
     if _subsampling:
         # delete every second row (can be repeated multiple times)
@@ -138,17 +160,30 @@ def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_thresh
             raise ValueError(f"Smoothing_function = {smoothing_average} not recognized!")
 
         if 1/(1+_gr_boundary) < df[-1][1] < 1+_gr_boundary and 1/(1+_gr_boundary) < df[-2][1] < 1+_gr_boundary:
-            consecutive += 1
+            # consecutive += 1
             for ess_threshold in cutoff_end.keys():
-                if cutoff_end[ess_threshold] == -1 and consecutive >= ess_threshold:
+                if cutoff_start[ess_threshold] == -1:
+                    cutoff_start[ess_threshold] = slide_start
+                # if cutoff_end[ess_threshold] == -1 and consecutive >= ess_threshold:
+
+                if cutoff_end[ess_threshold] == -1 and cur_sample - cutoff_start[ess_threshold] > ess_threshold:
                     # todo change to calculate the pseudo ess with the already existing distance matrix
-                    if (multichain[i].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
+                    if (multichain[i].get_pseudo_ess(lower_i=cutoff_start[ess_threshold], upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
                             and \
-                            (multichain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
+                            (multichain[j].get_pseudo_ess(lower_i=cutoff_start[ess_threshold], upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
                         cutoff_end[ess_threshold] = cur_sample
-                        cutoff_start[ess_threshold] = cur_sample - consecutive
+                        # cutoff_start[ess_threshold] = cur_sample - consecutive
         else:
-            consecutive = 0
+            for ess_threshold in cutoff_end.keys():
+                if cutoff_end[ess_threshold] == -1:
+                    cutoff_start[ess_threshold] = -1
+            # consecutive = 0
+
+    # todo without the consecutive stuff, it can happen that cutoffstart is set but the end is never found
+    #  renormalizing to fit previous strucutre where this was not possible
+    # for ess_threshold in cutoff_end.keys():
+    #     if cutoff_end[ess_threshold] == -1:
+    #         cutoff_start[ess_threshold] = -1
 
     return pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"]), cutoff_start, cutoff_end
 
@@ -157,7 +192,7 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr
     warnings.warn("This takes a long time and is not optimized, nor does it save anything other than the plot!")
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
     ess_threshold_list = np.sort([200, 500])
-    smoothing = [0.3, 0.5, 0.6, 0.75, 0.9]
+    smoothing = [0, 0.5, 0.9]
     smoothing = np.sort(smoothing)
 
     figure, axis = plt.subplots(ncols=len(smoothing), nrows=len(ess_threshold_list),
@@ -173,14 +208,14 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr
                                                                             _gr_boundary=_gr_boundary)
         for row in range(len(ess_threshold_list)):
             axis[row, col].set_ylim([0.9, 1.1])
-            sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False)
+            sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False, linewidth=0.6)
 
             axis[row, col].set_xticks = set(df["Sample"])
 
             if cutoff_end[ess_threshold_list[row]] != -1 and cutoff_start[ess_threshold_list[row]] != -1:
                 # adding lines for the cutoff in red and green
-                axis[row, col].axvline(x=cutoff_end[ess_threshold_list[row]], color="red")
-                axis[row, col].axvline(x=cutoff_start[ess_threshold_list[row]], color="green")
+                axis[row, col].axvline(x=cutoff_end[ess_threshold_list[row]], color="red", linewidth=0.8)
+                axis[row, col].axvline(x=cutoff_start[ess_threshold_list[row]], color="green", linewidth=0.8)
 
                 # adding text of how many trees are being cut by the specific parameter setting
                 axis[row, col].text(x=cutoff_end[ess_threshold_list[row]]-(0.5*(cutoff_end[ess_threshold_list[row]] - cutoff_start[ess_threshold_list[row]])) + 0.1, y=-.05,
