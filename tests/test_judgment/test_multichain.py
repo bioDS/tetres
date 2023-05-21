@@ -161,3 +161,18 @@ def test_multichain_extract_cutoff_error(ten_taxa_multichain):
 
 def test_multichain_detect_burnin(ten_taxa_multichain):
         assert 10 == ten_taxa_multichain.detect_burnin(0, 1), "Burnin detection failed!"
+
+
+def test_multichain_gelman_rubin_cut(ten_taxa_multichain):
+    cut = ten_taxa_multichain.gelman_rubin_cut(0, 1)
+    assert cut == (128, 330), "Failed GR cut!"
+
+
+def test_multichain_gelman_rubin_cut_burnin(ten_taxa_multichain):
+    cut = ten_taxa_multichain.gelman_rubin_cut(0, 1, burnin=50)
+    assert cut == (106, 308), "Failed GR cut!"
+
+
+def test_multichain_gelman_rubin_cut_burnin_subsample(ten_taxa_multichain):
+    cut = ten_taxa_multichain.gelman_rubin_cut(0, 1, burnin=50, _subsampling=1)
+    assert cut == (300, 704), "Failed GR cut!"

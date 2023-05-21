@@ -25,6 +25,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
 
 
 def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02, burnin=0):
+    # BEWARE: the values from this function are uncorrected for subsampling, the multichain function is correcting for this
     # this function will return the cut.start and cut.end values calculated for the given full chain
 
     dm_i = multichain.pwd_matrix(i)

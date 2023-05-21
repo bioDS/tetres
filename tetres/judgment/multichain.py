@@ -159,22 +159,20 @@ class MultiChain():
                                                       smoothing_average=smoothing_average)
 
     def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, _overwrite=False,
-                         smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
-
-        # todo add the burnin detection somewhere here!
+                         smoothing_average="mean", _subsampling=False, _gr_boundary=0.02, burnin=0):
 
         # First if overwrite delete previous computation file
         if _overwrite:
             try:
                 os.remove(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}")
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}")
             except FileNotFoundError:
                 pass
         # IF no overwrite and the file exists simply read the values from the file
         if os.path.exists(
-                f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}"):
+                f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}"):
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
                     "r") as file:
                 cut_start = int(file.readline())
                 cut_end = int(file.readline())
@@ -187,7 +185,8 @@ class MultiChain():
                                                   pseudo_ess_range=pseudo_ess_range,
                                                   smoothing_average=smoothing_average,
                                                   _subsampling=_subsampling,
-                                                  _gr_boundary=_gr_boundary)
+                                                  _gr_boundary=_gr_boundary,
+                                                  burnin=burnin)
         # Write the cutoff boundaries to a file, if it already exists skip this part
         if _subsampling:
             # If subsampling the start and end need to be adapted, each subsampling is dividing the chain length by 2
@@ -196,7 +195,7 @@ class MultiChain():
         try:
             # Write the cut start and end to a file, if it exists raises an Error
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
+                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{_gr_boundary}",
                     "x") as f:
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
