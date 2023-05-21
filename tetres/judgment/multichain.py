@@ -9,6 +9,7 @@ from tetres.summary.centroid import Centroid
 from tetres.summary.annotate_centroid import annotate_centroid
 from tetres.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
 from tetres.judgment._extract_cutoff import _extract_cutoff
+from tetres.judgment.burnin_detection import burn_detector
 
 
 class MultiChain():
@@ -159,6 +160,9 @@ class MultiChain():
 
     def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, _overwrite=False,
                          smoothing_average="mean", _subsampling=False, _gr_boundary=0.02):
+
+        # todo add the burnin detection somewhere here!
+
         # First if overwrite delete previous computation file
         if _overwrite:
             try:
@@ -200,6 +204,9 @@ class MultiChain():
                 "The file for writing the GRD cut start and end exists already, this shouldn't happen here!")
         # return the start and end values
         return cut_start, cut_end
+
+    def detect_burnin(self, i, j, traces=["posterior", "likelihood", "prior"]):
+        return burn_detector(self, chain_i=i, chain_j=j, traces=traces)
 
     def __getitem__(self, index):
         if isinstance(index, int):

@@ -158,3 +158,6 @@ def test_multichain_extract_cutoff_error(ten_taxa_multichain):
     with pytest.raises(ValueError):
         # For this there was not cutoff found, ends in error
         ten_taxa_multichain.extract_cutoff(i=1, j=0)
+
+def test_multichain_detect_burnin(ten_taxa_multichain):
+        assert 10 == ten_taxa_multichain.detect_burnin(0, 1), "Burnin detection failed!"
