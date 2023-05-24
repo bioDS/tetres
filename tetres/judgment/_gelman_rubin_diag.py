@@ -28,6 +28,10 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
     # BEWARE: the values from this function are uncorrected for subsampling, the multichain function is correcting for this
     # this function will return the cut.start and cut.end values calculated for the given full chain
 
+    # The indeces need to be sorted for the dm_ij to make sense, otherwise dm_ij will be the wrong matrix
+    if j < i:
+        i,j = j, i
+
     dm_i = multichain.pwd_matrix(i)
     dm_j = multichain.pwd_matrix(j)
     dm_ij = multichain.pwd_matrix(i, j)
@@ -193,7 +197,7 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr
     warnings.warn("This takes a long time and is not optimized, nor does it save anything other than the plot!")
     # Will compute the gelman rubin like diagnostic for chains i and j, this will result in a 'trace'
     ess_threshold_list = np.sort([200, 500])
-    smoothing = [0, 0.5, 0.9]
+    smoothing = [0.6, 0.9, 1]
     smoothing = np.sort(smoothing)
 
     figure, axis = plt.subplots(ncols=len(smoothing), nrows=len(ess_threshold_list),
