@@ -120,10 +120,10 @@ class MultiChain():
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
     def extract_cutoff(self, i, j, ess_threshold=200, smoothing=0.6, gr_boundary=0.02, smoothing_average="mean",
-                       subsampling=False, _overwrite=False):
+                       subsampling=False, _overwrite=False, burnin=0):
         # The tree and log file strings for storing the cutoff
-        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.trees"
-        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.log"
+        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{f'_burnin-{burnin}' if burnin != 0 else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.trees"
+        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{f'_burnin-{burnin}' if burnin != 0 else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.log"
         if os.path.exists(tree_file) and os.path.exists(log_file) and not _overwrite:
             # Files have already been extracted, nothing will be done
             return 0
@@ -144,7 +144,7 @@ class MultiChain():
         # computing start and end from the current Multichain
         start, end = self.gelman_rubin_cut(i=i, j=j, smoothing=smoothing, ess_threshold=ess_threshold,
                                            smoothing_average=smoothing_average, _gr_boundary=gr_boundary,
-                                           _subsampling=subsampling, _overwrite=_overwrite)
+                                           _subsampling=subsampling, _overwrite=_overwrite, burnin=burnin)
         # Check if no cutoff raise ValueError
         if start < 0 or end < 1:
             raise ValueError("No cutoff exist, therefore no cutoff can be extracted!")
@@ -160,6 +160,10 @@ class MultiChain():
 
     def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, _overwrite=False,
                          smoothing_average="mean", _subsampling=False, _gr_boundary=0.02, burnin=0):
+
+        # sorting to make sense for dm_ij interpretation
+        if j < i:
+            i, j = j, i
 
         # First if overwrite delete previous computation file
         if _overwrite:
