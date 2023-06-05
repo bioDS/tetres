@@ -52,7 +52,7 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
 
     # cutoff_end = -1
     # consecutive = 0
-    cutoff_start = -1
+    cutoff_start = 0  # start with the first sample
 
     if _subsampling:
         for _ in range(_subsampling):
@@ -89,11 +89,6 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
             raise ValueError(f"Unrecognized parameter {smoothing_average} smoothing_average!")
         # print(psrf_like_i, psrf_like_j)
         if 1/(1+_gr_boundary) < psrf_like_i < 1+_gr_boundary and 1/(1+_gr_boundary) < psrf_like_j < 1+_gr_boundary:
-            if cutoff_start == -1:
-                # If this is the first sample within the threshold then this is the start
-                cutoff_start = slide_start
-            # consecutive += 1
-            # if cutoff_end == -1 and consecutive >= ess_threshold:
             if cur_sample - cutoff_start > ess_threshold:
                     # todo change to calculate the pseudo ess with the already existing distance matrix
                     if (multichain[i].get_pseudo_ess(lower_i=cutoff_start, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
@@ -107,8 +102,8 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
                         return cutoff_start, cur_sample
         else:
             # consecutive = 0
-            # if we are outside the boundary reset the cutoff start
-            cutoff_start = -1
+            # if we are outside the boundary we discard the previous samples from the cut as they don't count
+            cutoff_start = cur_sample
     # No cutoff found
     return -1, -1
 
