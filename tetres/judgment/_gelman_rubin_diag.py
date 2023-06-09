@@ -99,7 +99,7 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
                     #         (multichain[j].get_pseudo_ess(lower_i=cur_sample - consecutive, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold):
                         # cutoff_end = cur_sample
                         # cutoff_start = cur_sample - consecutive
-                        return cutoff_start, cur_sample
+                        return cutoff_start+burnin, cur_sample+burnin
         else:
             # consecutive = 0
             # if we are outside the boundary we discard the previous samples from the cut as they don't count
