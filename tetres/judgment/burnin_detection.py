@@ -16,17 +16,17 @@ def burn_detector(multichain, chain_i, chain_j, traces=["posterior", "likelihood
     for tr in traces:
         cur_burn_i, cur_burn_j = index75, index75
         mean_i = np.mean(multichain[chain_i].log_data[tr].values[index75:])
-        var_i = np.var(multichain[chain_i].log_data[tr].values[index75:])
+        std_i = np.std(multichain[chain_i].log_data[tr].values[index75:])
         mean_j = np.mean(multichain[chain_j].log_data[tr].values[index75:])
-        var_j = np.var(multichain[chain_j].log_data[tr].values[index75:])
+        std_j = np.std(multichain[chain_j].log_data[tr].values[index75:])
         i_set, j_set = False, False
         for i in range(M, index75):
             if not i_set:
-                if mean_i - var_i <= np.mean(multichain[chain_i].log_data[tr].values[i-M:i]) <= mean_i + var_i:
+                if mean_i - std_i <= np.mean(multichain[chain_i].log_data[tr].values[i-M:i]) <= mean_i + std_i:
                     cur_burn_i = i
                     i_set = True
             if not j_set:
-                if mean_j - var_j <= np.mean(multichain[chain_j].log_data[tr].values[i-M:i]) <= mean_j + var_j:
+                if mean_j - std_j <= np.mean(multichain[chain_j].log_data[tr].values[i-M:i]) <= mean_j + std_j:
                     cur_burn_j = i
                     j_set = True
             if i_set and j_set:
