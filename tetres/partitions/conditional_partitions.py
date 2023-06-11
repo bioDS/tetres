@@ -6,6 +6,15 @@ import numpy as np
 import copy
 
 
+def get_pp_coverage(trees):
+    # todo this is deprecated as it does not account for uniqueness of trees!
+    dict_partitions = get_dict_of_partitions(trees)
+    cov = 0
+    for t in trees:
+        cov += get_pp(t, dict_partitions)
+    return cov
+
+
 def get_conditional_partitions(tree, as_dict=False):
     rank_etree = ctree_to_ete3(tree.ctree)
     rc_dict = {}
@@ -26,7 +35,7 @@ def get_conditional_partitions(tree, as_dict=False):
 
             rc_dict[node_rank] = f"{','.join([str(i) for i in sorted(c0_leafs)])}|{','.join([str(i) for i in sorted(c1_leafs)])}"
 
-    rc_dict[max(rc_dict.keys())+1] = ",".join(sorted([t for t in re.split(r",|\|", rc_dict[max(rc_dict.keys())])], key=int))  # Setting root
+    rc_dict[max(rc_dict.keys())+1] = ",".join(sorted([t for t in re.split(r"[,|]", rc_dict[max(rc_dict.keys())])], key=int))  # Setting root
 
     if as_dict:
         return rc_dict
@@ -35,7 +44,7 @@ def get_conditional_partitions(tree, as_dict=False):
         cur_split = rc_dict[rank]
         to_be_mod = rc_dict[rank+1]
         to_be_swapped = ','.join(sorted([t for t in re.split(r',|\|', cur_split)], key=int))
-        rc_dict[rank] = re.sub(fr"{to_be_swapped}(?=$|[^\d])",cur_split, to_be_mod)
+        rc_dict[rank] = re.sub(fr"{to_be_swapped}(?=$|\D)",cur_split, to_be_mod)
     # return set of strings for a tree
     return rc_dict
 

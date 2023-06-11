@@ -1,5 +1,4 @@
-from tetres.judgment.conditional_ranked_clade_distribution import get_rank_maps, get_rank_tree_probability
-from collections import Counter
+from tetres.partitions.conditional_ranked_clade_distribution import get_rank_maps, get_rank_tree_probability
 
 
 def test_get_maps(ten_taxa_cMChain):
