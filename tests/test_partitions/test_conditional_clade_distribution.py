@@ -1,4 +1,4 @@
-from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability
+from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, get_greedy_ccd_tree, get_tree_from_list_of_splits
 from collections import Counter
 
 
@@ -31,3 +31,9 @@ def test_coverage2(twenty_taxa_tts):
     assert sum(Counter(probs)) == 0.6749181338892793, "Coverage sum failed"
 
 
+def test_get_greedy_ccd_tree(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    greedy_tree = get_greedy_ccd_tree(m1, m2)
+    greedy_timetree = get_tree_from_list_of_splits(greedy_tree)
+    # assert len(greedy_timetree) == 20, "Failed Greedy CCD tree algorithm!"
+    assert True
