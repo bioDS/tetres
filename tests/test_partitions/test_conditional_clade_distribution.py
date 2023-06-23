@@ -1,4 +1,5 @@
-from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, get_greedy_ccd_tree, get_tree_from_list_of_splits
+from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, \
+    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound
 from collections import Counter
 
 
@@ -35,5 +36,12 @@ def test_get_greedy_ccd_tree(twenty_taxa_tts):
     m1, m2, u = get_maps(twenty_taxa_tts)
     greedy_tree = get_greedy_ccd_tree(m1, m2)
     greedy_timetree = get_tree_from_list_of_splits(greedy_tree)
-    # assert len(greedy_timetree) == 20, "Failed Greedy CCD tree algorithm!"
-    assert True
+    assert len(greedy_timetree) == 20, "Failed Greedy CCD tree algorithm!"
+
+
+def test_get_ccd_tree_branch_bound(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    greedy_tree = get_tree_from_list_of_splits(get_greedy_ccd_tree(m1, m2))
+    greedy_prob = get_tree_probability(greedy_tree, m1, m2)
+    bb_tree, _, _ = get_ccd_tree_branch_bound(m1, m2, greedy_prob)
+    assert len(bb_tree) == 20, "Failed Branch and bound CCD algorithm"

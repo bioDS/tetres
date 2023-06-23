@@ -64,10 +64,47 @@ def get_tree_probability(tree, m1, m2):
     return float(probability)
 
 
-def get_greedy_ccd_tree(m1, m2):
-    # todo somehow return a greedy tree from the maps of partitions
+def get_ccd_tree_branch_bound(m1, m2, prob):
 
-    working_list = [max(m1.keys())]
+    working_list = [([max(m1.keys())], [], 1)]  # initialize with root clade, empty tree, probability 1
+    output = []
+    while working_list:
+        # Get the currently unresolved tree as cur_tuple
+        cur_tuple = working_list.pop()
+        for tuple_split in cur_tuple[0]:
+            # iterate over all unresolved parts of the tree
+            all_splits_of_cur_tuple = [(m2[p, c], c) for p, c in [(list(i)[0], list(i)[1]) for i in m2.keys()] if
+                                        p == tuple_split]
+            for split in all_splits_of_cur_tuple:
+                # iterate over all possible splits of this currently unresolved part of the tree
+                new_prob = cur_tuple[2] * (split[0] / m1[tuple_split])
+                if new_prob >= prob:
+                    # if the probability of this resolving is still higher than the one given as threhsold
+                    # add it to the working list of partially unresolved trees
+                    new_list = cur_tuple[0].copy()  # copy all unresolved bits of tree
+                    new_list.remove(tuple_split)  # remove bit that is resolved in this step
+                    if len(split[1]) > 2:
+                        new_list.append(split[1])  # add child1 if it contains more than 2 taxe, i.e. is unresolved
+                    if len(tuple_split.difference(split[1])) > 2:
+                        new_list.append(tuple_split.difference(split[1]))  # add child2 if it is unresolved
+                    tree_as_list_of_splits = cur_tuple[1].copy()  # Copy the tree which is less resolved
+                    tree_as_list_of_splits.append((tuple_split, split[1]))  # add this pair parent, child1 split to the output tree list
+                    if not new_list:
+                        # if the new list does not contain anything we have a fully resolved tree
+                        #  hence we add it to output and don't need to resolve it further
+                        output.append((tree_as_list_of_splits,
+                                         new_prob))
+                    else:
+                        # current tree is not yet fully resolved, so add it to working list
+                        working_list.append((new_list,
+                                         tree_as_list_of_splits,
+                                         new_prob))
+    best_bb_tree = max(output, key=lambda item: item[1])
+    return get_tree_from_list_of_splits(best_bb_tree[0]), output, best_bb_tree[1]
+
+
+def get_greedy_ccd_tree(m1, m2):
+    working_list = [max(m1.keys())]  # initialize with root clade
     greedy_tree = []
     while working_list:
         cur_parent = working_list.pop()
@@ -76,7 +113,6 @@ def get_greedy_ccd_tree(m1, m2):
         cur_greedy_split = max(all_splits_of_cur_parent, key=lambda  item: item[0])[1]
         if len(cur_greedy_split) > 2:
             working_list.append(cur_greedy_split)
-            # todo add the other child, i.e. cur_parent-cur_greedy_split
         greedy_tree.append((cur_parent, cur_greedy_split))
         if len(cur_parent.difference(cur_greedy_split)) > 2:
             # if the second child is not a resolved tree yet (i.e. 2 or 1 taxa) add to working list
@@ -85,29 +121,39 @@ def get_greedy_ccd_tree(m1, m2):
 
 
 def get_tree_from_list_of_splits(splits):
-    print("HELP ME")
     # this is dependent on the current structure of how the greedy list of splits is created!
-    n_taxa = len(splits[0])
+    n_taxa = len(splits[0][0])
+    dist = 1
     # support is the rank of the node...
-    cur_t = ete3.Tree(support=n_taxa - 1, name=",".join([str(i) for i in sorted(splits[0][0])]))
+    cur_t = ete3.Tree(support=0, dist=0, name=",".join([str(i) for i in sorted(splits[0][0])]))
     for parent, child1 in splits:
         node = cur_t.search_nodes(name=",".join([str(i) for i in sorted(parent)]))[0]
         child2 = parent.difference(child1)
-        node.add_child(name= ",".join([str(i) for i in sorted(child1)]))
-        node.add_child(name= ",".join([str(i) for i in sorted(child2)]))
+        if len(child1) == 1:
+            node.add_child(name=",".join([str(i) for i in sorted(child1)]), support=n_taxa-1)
+        else:
+            node.add_child(name= ",".join([str(i) for i in sorted(child1)]), support=dist)
+            dist +=1
+        if len(child2) == 1:
+            node.add_child(name=",".join([str(i) for i in sorted(child2)]), support=n_taxa-1)
+        else:
+            node.add_child(name= ",".join([str(i) for i in sorted(child2)]), support=dist)
+            dist +=1
         # IF the children nodes have 2 taxa the correspoinding leafs need to be added here
         if len(child1) == 2:
             node = cur_t.search_nodes(name=",".join([str(i) for i in sorted(child1)]))[0]
-            node.add_child(name=list(sorted(child1))[0])
-            node.add_child(name=list(sorted(child1))[1])
+            node.add_child(name=list(sorted(child1))[0], support=n_taxa-1)
+            node.add_child(name=list(sorted(child1))[1], support=n_taxa-1)
         if len(child2) == 2:
             node = cur_t.search_nodes(name=",".join([str(i) for i in sorted(child2)]))[0]
-            node.add_child(name=list(sorted(child2))[0])
-            node.add_child(name=list(sorted(child2))[1])
-    # todo annotate with branch lengths here?
-    # todo otherwise how do we get it to be a timetree? or do we even need that at all?
-    # return TimeTree(cur_t.write(format=0))
-    return cur_t.write(format=0)
+            node.add_child(name=list(sorted(child2))[0], support=n_taxa-1)
+            node.add_child(name=list(sorted(child2))[1], support=n_taxa-1)
+
+    # setting the node distances to ranks, no meaning just to have a ranked tree
+    for node in cur_t.iter_descendants("postorder"):
+        node.dist = node.support - node.up.support
+
+    return TimeTree(cur_t.write(format=5))
 
 
 def add_centroid(centroid, m1, m2):
