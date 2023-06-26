@@ -1,5 +1,5 @@
 from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, \
-    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound
+    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_dfs
 from collections import Counter
 
 
@@ -43,5 +43,14 @@ def test_get_ccd_tree_branch_bound(twenty_taxa_tts):
     m1, m2, u = get_maps(twenty_taxa_tts)
     greedy_tree = get_tree_from_list_of_splits(get_greedy_ccd_tree(m1, m2))
     greedy_prob = get_tree_probability(greedy_tree, m1, m2)
-    bb_tree, _, _ = get_ccd_tree_branch_bound(m1, m2, greedy_prob)
+    bb_tree, output, treeprob = get_ccd_tree_branch_bound(m1, m2, greedy_prob)
     assert len(bb_tree) == 20, "Failed Branch and bound CCD algorithm"
+
+
+def test_get_ccd_tree_bottom_up(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    greedy_tree = get_tree_from_list_of_splits(get_greedy_ccd_tree(m1, m2))
+    greedy_prob = get_tree_probability(greedy_tree, m1, m2)
+    testing = [frozenset([int(j) for j in i]) for i in greedy_tree.get_clades()]
+    get_ccd_tree_dfs(m1, m2, greedy_prob)
+    assert True, "Failed DFS BB algorithm"

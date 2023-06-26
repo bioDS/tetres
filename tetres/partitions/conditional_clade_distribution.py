@@ -117,7 +117,7 @@ def get_ccd_tree_branch_bound(m1, m2, prob):
     return get_tree_from_list_of_splits(best_bb_tree[0]), output, best_bb_tree[1]
 
 
-def get_ccd_tree_dfs(m1, m2, prob):
+def get_ccd_tree_bottom_up(m1, m2, prob):
     # working_list = [([max(m1.keys())], [], 1)]  # initialize with root clade, empty tree, probability 1
 
     useless = {}  # saving all clades that will not lead to a better tree
