@@ -11,7 +11,8 @@ def _tsne_coords_from_pwd(pwd_matrix, dim=2):
                         metric="precomputed",
                         learning_rate='auto',
                         init="random",
-                        perplexity=10)
+                        perplexity=10,
+                        square_distances=True)
     coords = mds.fit_transform(internal_matrix)
     return coords, mds.kl_divergence_
 
