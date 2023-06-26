@@ -17,12 +17,11 @@ def get_rank_maps(trees):
 
     for ix, t in enumerate(trees):
         rank_etree = ctree_to_ete3(t.ctree)
-        # todo all unique rank trees?
-        # if not frozenset(sorted(t.get_clades())) in seen:
-        #     seen[frozenset(sorted(t.get_clades()))] = ix
-        #     uniques[ix] = []
-        # else:
-        #     uniques[seen[frozenset(sorted(t.get_clades()))]].append(ix)
+        if not frozenset(sorted(t.get_clades())) in seen:
+            seen[frozenset(sorted(t.get_clades()))] = ix
+            uniques[ix] = []
+        else:
+            uniques[seen[frozenset(sorted(t.get_clades()))]].append(ix)
 
         for node in rank_etree.traverse("levelorder"):
             if len(node) > 2:
