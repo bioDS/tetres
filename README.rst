@@ -12,9 +12,9 @@ Installation
 Download this Github repository, go into a command line and cd to the directories `.../path/tetres/{trees, judgment}/` and run the make command in each (OpenMP is required for these c extensions).
 
 Then this package can be installed for Python with
-```
+``
 pip install -e your/path/to/tetres
-```
+``
 
 For usage check out the documentation available in `html <docs/build/html/index.html>` and [pdf](docs/build/latex/treeoclock.pdf) formats.
 
