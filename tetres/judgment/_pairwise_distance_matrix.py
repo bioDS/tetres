@@ -28,7 +28,7 @@ def calc_pw_distances(trees, rf: bool = False):
         lib.pairwise_distance(ctreelist, n, distances.ctypes.data_as(POINTER((c_long * n) * n)))
         return distances
     else:
-        if not platform == "linux" or not platform == "linux2":
+        if not platform in ["linux", "linux2"]:
             raise ValueError("Using this implementation only works on Linux at the moment.")
         # The shared_array package only works on Linux
         distances = np.zeros((n, n), dtype=c_long)
