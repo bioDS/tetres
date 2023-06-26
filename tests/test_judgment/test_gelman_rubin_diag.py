@@ -24,20 +24,20 @@ def test_cMChain_gelman_rubin_plot(ten_taxa_multichain):
 
 
 def test_cMChain_gr_cut(ten_taxa_multichain):
-    start, end = gelman_rubin_cut(ten_taxa_multichain, 0, 1, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean")
-    assert (start, end) == (128, 330), "Failed GR-cut"
+    start, end = gelman_rubin_cut(ten_taxa_multichain, 0, 1, smoothing=1, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean")
+    assert (start, end) == (154, 356), "Failed GR-cut"
     # Saving old cut, how does it change with the new algorithm?
     # assert (start, end) == (524, 726), "Failed GR-cut"
 
 
 def test_cMChain_gr_cut_burnin(ten_taxa_multichain):
-    start, end = gelman_rubin_cut(ten_taxa_multichain, 0, 1, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", burnin=50)
-    assert (start, end) == (106, 308), "Failed GR-cut"
+    start, end = gelman_rubin_cut(ten_taxa_multichain, 0, 1, smoothing=0.9, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", burnin=50)
+    assert (start, end) == (73, 275), "Failed GR-cut"
 
 
 def test_cMChain_gr_cut_burnin_subsample(ten_taxa_multichain):
-    start, end = gelman_rubin_cut(ten_taxa_multichain, 0, 1, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", burnin=50, _subsampling=1)
-    assert (start, end) == (150, 352), "Failed GR-cut"
+    start, end = gelman_rubin_cut(ten_taxa_multichain, 0, 1, smoothing=0.9, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", burnin=50, _subsampling=1)
+    assert (start, end) == (67, 269), "Failed GR-cut"
 
 
 def test_cMChain_gr_cut_subsample(ten_taxa_multichain):
