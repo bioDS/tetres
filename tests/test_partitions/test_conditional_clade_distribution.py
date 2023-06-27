@@ -1,5 +1,5 @@
 from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, \
-    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_dfs
+    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_bottom_up
 from collections import Counter
 
 
@@ -49,8 +49,5 @@ def test_get_ccd_tree_branch_bound(twenty_taxa_tts):
 
 def test_get_ccd_tree_bottom_up(twenty_taxa_tts):
     m1, m2, u = get_maps(twenty_taxa_tts)
-    greedy_tree = get_tree_from_list_of_splits(get_greedy_ccd_tree(m1, m2))
-    greedy_prob = get_tree_probability(greedy_tree, m1, m2)
-    testing = [frozenset([int(j) for j in i]) for i in greedy_tree.get_clades()]
-    get_ccd_tree_dfs(m1, m2, greedy_prob)
+    get_ccd_tree_bottom_up(m1, m2)
     assert True, "Failed DFS BB algorithm"
