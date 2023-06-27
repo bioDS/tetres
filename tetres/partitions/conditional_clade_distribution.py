@@ -117,10 +117,10 @@ def get_ccd_tree_branch_bound(m1, m2, prob):
     return get_tree_from_list_of_splits(best_bb_tree[0]), output, best_bb_tree[1]
 
 
-def get_ccd_tree_bottom_up(m1, m2, prob):
+def get_ccd_tree_bottom_up(m1, m2):
     # working_list = [([max(m1.keys())], [], 1)]  # initialize with root clade, empty tree, probability 1
 
-    useless = {}  # saving all clades that will not lead to a better tree
+    # useless = {}  # saving all clades that will not lead to a better tree
     seen_resolved_clades = {}
 
     all_clades = sorted(list(m1.keys()), key=len)
@@ -131,9 +131,11 @@ def get_ccd_tree_bottom_up(m1, m2, prob):
             child1 = split[1]
             child2 = split[0].difference(split[1])
 
-            if child1 in useless or child2 in useless:
-                # Current Split is not going to improve solution
-                continue
+            # if child1 in useless or child2 in useless:
+            #     # Current Split is not going to improve solution
+            #     continue
+
+            c1_prob, c2_prob = 0, 0
 
             if len(child1) < 3:
                 # length 2 or 1 gives probability 1
@@ -148,27 +150,28 @@ def get_ccd_tree_bottom_up(m1, m2, prob):
                 if child2 in seen_resolved_clades:
                     c2_prob, _ = seen_resolved_clades[child2]
 
-            if (c1_prob * c2_prob) < prob:
-                # The current split will not lead to an improvement
-                continue
+            # if (c1_prob * c2_prob) < prob:
+            #     # The current split will not lead to an improvement
+            #     continue
 
             cur_prob = m2[split] / m1[split[0]]  # Prob of current parent, given split
             split_prob = c1_prob * c2_prob * cur_prob  # best probability of current parent with split
-            if math.isclose(split_prob, prob) or split_prob > prob:
+            # if math.isclose(split_prob, prob) or split_prob > prob:
             # if split_prob >= prob:  # does not work due to float comparison, 0.1 + 0.2 != 0.3, use math.isclose instead of ==
-                if split[0] in seen_resolved_clades:
-                    # parent was already found, do we need to update?
-                    if seen_resolved_clades[split[0]][0] <= split_prob:
-                        # this split has better probability, therefore update the seen_resolved_clades with the better split of split[0]
-                        seen_resolved_clades[split[0]] = (split_prob, child1)
-                else:
-                    # we have not seen the parent before
+            if split[0] in seen_resolved_clades:
+                # parent was already found, do we need to update?
+                if seen_resolved_clades[split[0]][0] <= split_prob:
+                    # this split has better probability, therefore update the seen_resolved_clades with the better split of split[0]
                     seen_resolved_clades[split[0]] = (split_prob, child1)
-        if current_clade not in seen_resolved_clades:
+            else:
+                # we have not seen the parent before
+                seen_resolved_clades[split[0]] = (split_prob, child1)
+        # if current_clade not in seen_resolved_clades:
             # all possible splits of current_clade have not resulted in a tree with higher probability
             #  therefore add it to the useless pile
-            useless[current_clade] = 0
+            # useless[current_clade] = 0
     # todo build a tree from the seen and resolved dict
+
     return seen_resolved_clades
 
 
