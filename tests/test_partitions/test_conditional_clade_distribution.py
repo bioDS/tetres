@@ -49,5 +49,5 @@ def test_get_ccd_tree_branch_bound(twenty_taxa_tts):
 
 def test_get_ccd_tree_bottom_up(twenty_taxa_tts):
     m1, m2, u = get_maps(twenty_taxa_tts)
-    get_ccd_tree_bottom_up(m1, m2)
-    assert True, "Failed DFS BB algorithm"
+    best_tree = get_ccd_tree_bottom_up(m1, m2)
+    assert len(best_tree) == 20, "Failed DFS BB algorithm"

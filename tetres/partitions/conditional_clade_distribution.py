@@ -120,7 +120,6 @@ def get_ccd_tree_branch_bound(m1, m2, prob):
 def get_ccd_tree_bottom_up(m1, m2):
     # working_list = [([max(m1.keys())], [], 1)]  # initialize with root clade, empty tree, probability 1
 
-    # useless = {}  # saving all clades that will not lead to a better tree
     seen_resolved_clades = {}
 
     all_clades = sorted(list(m1.keys()), key=len)
@@ -130,10 +129,6 @@ def get_ccd_tree_bottom_up(m1, m2):
             # this for loop needs to find the best split of the current parent, if any exists!
             child1 = split[1]
             child2 = split[0].difference(split[1])
-
-            # if child1 in useless or child2 in useless:
-            #     # Current Split is not going to improve solution
-            #     continue
 
             c1_prob, c2_prob = 0, 0
 
@@ -166,13 +161,20 @@ def get_ccd_tree_bottom_up(m1, m2):
             else:
                 # we have not seen the parent before
                 seen_resolved_clades[split[0]] = (split_prob, child1)
-        # if current_clade not in seen_resolved_clades:
-            # all possible splits of current_clade have not resulted in a tree with higher probability
-            #  therefore add it to the useless pile
-            # useless[current_clade] = 0
-    # todo build a tree from the seen and resolved dict
 
-    return seen_resolved_clades
+    output = []
+    root = max(seen_resolved_clades.keys())
+    working_list = [root]
+
+    while working_list:
+        cur_parent = working_list.pop()
+        output.append((cur_parent, seen_resolved_clades[cur_parent][1]))
+        if len(seen_resolved_clades[cur_parent][1]) > 2:
+            working_list.append(seen_resolved_clades[cur_parent][1])
+        if len(cur_parent.difference(seen_resolved_clades[cur_parent][1])) > 2:
+            working_list.append(cur_parent.difference(seen_resolved_clades[cur_parent][1]))
+
+    return get_tree_from_list_of_splits(output)
 
 
 def get_greedy_ccd_tree(m1, m2):
