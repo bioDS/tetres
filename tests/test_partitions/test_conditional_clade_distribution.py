@@ -1,6 +1,7 @@
 from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, \
     get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_bottom_up, rogueiness, sample_tree_from_ccd
 from collections import Counter
+import numpy as np
 
 
 def test_get_maps(ten_taxa_multichain):
@@ -9,9 +10,15 @@ def test_get_maps(ten_taxa_multichain):
 
 
 def test_get_tree_probability(ten_taxa_multichain):
-    m1, m2 = get_maps(ten_taxa_multichain[0].trees)
+    m1, m2, u = get_maps(ten_taxa_multichain[0].trees)
     p = get_tree_probability(ten_taxa_multichain[0].trees[1], m1, m2)
-    assert p == 0.0037693679383000523, "Get tree probability failed!"
+    assert p == 0.0037693679383000514, "Get tree probability failed!"
+
+
+def test_get_tree_log_probability(ten_taxa_multichain):
+    m1, m2, u = get_maps(ten_taxa_multichain[0].trees)
+    p = get_tree_probability(ten_taxa_multichain[0].trees[1], m1, m2, log=True)
+    assert p == np.log(0.0037693679383000514), "Get tree probability failed!"
 
 
 def test_coverage(ten_taxa_multichain):

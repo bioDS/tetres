@@ -42,9 +42,9 @@ def get_maps(trees):
     return m1, m2, uniques
 
 
-def get_tree_probability(tree, m1, m2):
+def get_tree_probability(tree, m1, m2, log=False):
     # getcontext().prec = 20
-    probability = 1
+    probability = 0 if log else 1
     for node in tree.etree.traverse("levelorder"):
         if len(node) > 2:
             c = node.children
@@ -57,11 +57,19 @@ def get_tree_probability(tree, m1, m2):
             parent_clade = frozenset(sorted(c0_leafs.union(c1_leafs)))
             if m1[parent_clade] != 0:
                 if min(c0_leafs) < min(c1_leafs):
-                    probability *= Decimal(m2[(parent_clade, frozenset(c0_leafs))]) / Decimal(m1[parent_clade])
+                    if log:
+                        probability += np.log(m2[(parent_clade, frozenset(c0_leafs))] / m1[parent_clade])
+                    else:
+                        probability *= Decimal(m2[(parent_clade, frozenset(c0_leafs))]) / Decimal(m1[parent_clade])
                 else:
-                    probability *= Decimal(m2[(parent_clade, frozenset(c1_leafs))]) / Decimal(m1[parent_clade])
-        if probability == 0:
-            return 0
+                    if log:
+                        probability += np.log(m2[(parent_clade, frozenset(c1_leafs))] / m1[parent_clade])
+                    else:
+                        probability *= Decimal(m2[(parent_clade, frozenset(c1_leafs))]) / Decimal(m1[parent_clade])
+        # if probability == 0:
+        #     return 0
+    # if log:
+    #     return float(probability-1)
     return float(probability)
 
 
