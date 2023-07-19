@@ -1,5 +1,5 @@
 from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, \
-    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_bottom_up
+    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_bottom_up, rogueiness, sample_tree_from_ccd
 from collections import Counter
 
 
@@ -51,3 +51,16 @@ def test_get_ccd_tree_bottom_up(twenty_taxa_tts):
     m1, m2, u = get_maps(twenty_taxa_tts)
     best_tree = get_ccd_tree_bottom_up(m1, m2)
     assert len(best_tree) == 20, "Failed DFS BB algorithm"
+
+
+def test_rogueiness(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    rogueiness(m1)
+    assert True
+
+
+def test_sample_tree_from_ccd(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    sample = sample_tree_from_ccd(m1, m2, n=100)
+    assert len(sample) == 100
+
