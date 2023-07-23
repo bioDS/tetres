@@ -308,3 +308,37 @@ def sample_tree_from_ccd(m1, m2, n=1):
             cur_sample.append((cur_clade, chosen_split))
         samples.append(get_tree_from_list_of_splits(cur_sample))
     return samples
+
+
+def sample_logprob_from_ccd(m1, m2, n=1):
+    # todo this is fairly inefficient for some reason, may need change in the future, same for the other sampling funciton
+    # sample n trees from the CCD distribution, relative to its clade probabilities in each step
+    # samples = []
+    probabilities = []
+
+    for _ in range(n):
+        # cur_sample = []
+        cur_prob = 0
+        # cur_sample.append(max(m1))
+
+        working_list = [max(m1)]
+        while working_list:
+            cur_clade = working_list.pop()
+            possible_splits = [(list(i), m2[i]) for i in m2 if list(i)[0] == cur_clade]
+
+            cur_sum = m1[cur_clade]  # same as sum([i[1] for i in next_splits])
+            cur_p = [i[1]/cur_sum for i in possible_splits]
+
+            chosen_split = np.random.choice([i[0][1] for i in possible_splits], p=cur_p)
+            remainder_split = cur_clade.difference(chosen_split)
+            if len(chosen_split) > 2:
+                working_list.append((chosen_split))
+            if len(remainder_split) > 2:
+                working_list.append(remainder_split)
+            # cur_sample.append((cur_clade, chosen_split))
+            cur_prob += np.log(m2[(cur_clade, chosen_split)] / m1[cur_clade])
+
+        # samples.append(get_tree_from_list_of_splits(cur_sample))
+        probabilities.append(cur_prob)
+    return probabilities
+

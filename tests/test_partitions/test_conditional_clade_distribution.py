@@ -1,5 +1,5 @@
 from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, \
-    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_bottom_up, rogueiness, sample_tree_from_ccd
+    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_bottom_up, rogueiness, sample_tree_from_ccd, sample_logprob_from_ccd
 from collections import Counter
 import numpy as np
 
@@ -71,3 +71,8 @@ def test_sample_tree_from_ccd(twenty_taxa_tts):
     sample = sample_tree_from_ccd(m1, m2, n=100)
     assert len(sample) == 100
 
+
+def test_sample_logprob_from_ccd(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    sample = sample_logprob_from_ccd(m1, m2, n=100)
+    assert True
