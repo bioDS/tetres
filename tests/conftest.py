@@ -242,17 +242,13 @@ def thirty_taxa_log_data():
 
 @pytest.fixture
 def threespace():
-    return MultiChain(m_chains=1,
-                           trees=["3space.trees"], log_files=[None],
-                           working_dir=f"{Path(__file__).parent.absolute()}/data/",
-                           name="3Space"
-                           )
+    return Chain(trees="3space.trees", log_file=None,
+                 working_dir=f"{Path(__file__).parent.absolute()}/data/",
+                 name="3Space")
 
 
 @pytest.fixture
 def fourspace():
-    return MultiChain(m_chains=1,
-                           trees=["4space.trees"], log_files=[None],
-                           working_dir=f"{Path(__file__).parent.absolute()}/data/",
-                           name="4Space"
-                           )
+    return Chain(trees="4space.trees", log_file=None,
+                 working_dir=f"{Path(__file__).parent.absolute()}/data/",
+                 name="4Space")
