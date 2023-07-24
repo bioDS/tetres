@@ -1,5 +1,4 @@
-from tetres.partitions.conditional_clade_distribution import get_maps, get_tree_probability, \
-    get_greedy_ccd_tree, get_tree_from_list_of_splits, get_ccd_tree_branch_bound, get_ccd_tree_bottom_up, rogueiness, sample_tree_from_ccd, sample_logprob_from_ccd
+from tetres.partitions.conditional_clade_distribution import *
 from collections import Counter
 import numpy as np
 
@@ -76,3 +75,44 @@ def test_sample_logprob_from_ccd(twenty_taxa_tts):
     m1, m2, u = get_maps(twenty_taxa_tts)
     sample = sample_logprob_from_ccd(m1, m2, n=100)
     assert True
+
+
+def test_remove_taxa_fourspace(fourspace):
+    m1, m2, u = get_maps(fourspace.trees)
+    for i in range(1,5):
+        remove_taxa(i, m1, m2)
+    assert True
+
+
+def test_remove_taxa_twelve(twelve_taxa_tts):
+    m1, m2, u = get_maps(twelve_taxa_tts)
+    # remove_taxa(9, m1, m2)
+    for i in range(1, 13):
+        remove_taxa(i, m1, m2)
+    assert True
+
+
+def test_remove_taxa_twenty(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    # remove_taxa(4, m1, m2)
+    for i in range(1, 21):
+        remove_taxa(i, m1, m2)
+    assert True
+
+
+def test_remove_taxa_dp(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    for i in range(1, 21):
+        new_m1, new_m2 = remove_taxa(i, m1, m2)
+        tree = get_ccd_tree_bottom_up(new_m1, new_m2)
+        assert len(tree) == 19
+
+def test_remove_taxa_dp_prob(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    for i in range(1, 21):
+        new_m1, new_m2 = remove_taxa(i, m1, m2)
+        tree = get_ccd_tree_bottom_up(new_m1, new_m2)
+        p = get_tree_probability(tree, new_m1, new_m2)
+        print(p)
+        assert p < 1
+
