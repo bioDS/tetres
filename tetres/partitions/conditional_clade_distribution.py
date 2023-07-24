@@ -342,3 +342,60 @@ def sample_logprob_from_ccd(m1, m2, n=1):
         probabilities.append(cur_prob)
     return probabilities
 
+
+def remove_taxa(t_del, m1, m2):
+    # function will delete taxa t from datastructure m1, m2 to create new maps
+    # part of rogue taxa detection
+
+    new_m1 = {}
+    new_m2 = {}
+
+    for kp, kc in sorted(m2.keys(), reverse=True):
+        if t_del in kp:
+            if len(kp) > 3:
+                # if length is 3 this will not be added because the t_del will be deleted leading to a trivial clade of two taxa
+                if t_del in kc:
+                    # t_del is in both the parent and child
+                    if len(kc) > 1:
+                        # if lenght is 1 then we will add this case later one
+                        new_p = kp.difference({t_del})
+                        new_c = kc.difference({t_del})
+                        if not min(new_p) == min(new_c):
+                            # need to keep the datastructure correct, i.e. the child contains the minimum taxa integer
+                            new_c = new_p.difference(new_c)
+                        if (new_p, new_c) in new_m2:
+                            new_m2[(new_p, new_c)] += m2[(kp, kc)]
+                        else:
+                            new_m2[(new_p, new_c)] = m2[(kp, kc)]
+                else:
+                    # t_del is in the other child clade
+                    if len(kp) > len(kc) + 1:
+                        # else this would mean we delete only a leaf, collapsing kp to be the same as kc
+                        if (kp.difference({t_del}), kc) in new_m2:
+                            new_m2[(kp.difference({t_del}), kc)] += m2[(kp, kc)]  # only delete t_del from parent
+                        else:
+                            new_m2[(kp.difference({t_del}), kc)] = m2[(kp, kc)]  # only delete t_del from parent
+        else:
+            # t_del is not in the parent
+            if (kp, kc) in new_m2:
+                # a collapsed case already lead to this parent child combination
+                # because it existed previously we add the values
+                new_m2[(kp, kc)] += m2[(kp, kc)]
+            else:
+                # No collapse lead to this specific combination, add it to the dict
+                new_m2[(kp, kc)] = m2[(kp, kc)]
+
+    # todo think about uniques too
+
+    # the new_m1 map needs to be constructed from the new_m2, this is because the m1 doesn't contain enough information to properly update to new_m1
+    #  example is (1,2),3),4) and (2, 3),(1, 4) turn into differnt subclades with deletion of taxa 4
+    #  which is impossible to update just given the whole clade (1,2,3,4) and then trying to update the numbers of clade (1,2,3)
+    #  as it is counted once by the tree (1,2),3),4) already but not by the (2,3)(1,4) tree, so it would need an update of +1
+    #  however m1 does not contain information this deep, hence construction from m2 is necessary (I tried the other way)
+    for kp, kc in new_m2:
+        if kp in new_m1:
+            new_m1[kp] += new_m2[(kp, kc)]
+        else:
+            new_m1[kp] = new_m2[(kp, kc)]
+
+    return new_m1, new_m2
