@@ -402,15 +402,17 @@ def remove_taxa(t_del, m1, m2):
 
 
 def calc_Entropy(m1, m2):
-    def rec_entropy(clade):
-        nonlocal m1, m2
-        H = 0
-        cur_children = [k for k in m2.keys() if k[0] == clade]
-        for _, child in cur_children:
-            p = m2[(clade, child)]/m1[clade]
-            H = H - p *(np.log(p) - rec_entropy(child) - rec_entropy(clade.difference(child)))
-        return H
-    root = max(m1.keys())  # initialize with the root clade
-    H = rec_entropy(root)
-    return H
-
+    h_dict = defaultdict(lambda: 0)
+    for c in sorted(m1.keys(), reverse=False, key=len):
+        # iterate over all clades, from small to large
+        h_dict[c] = 0
+        c_children = [k for k in m2.keys() if k[0] == c]
+        for _, child in c_children:
+            p = m2[(c, child)]/m1[c]
+            # if len(c) == 3:
+            #     # if c has only 3 taxa we don't need to go for childrens entropy
+            #     h_dict[c] -= p * np.log(p)
+            # else:
+                # if c has more than 3 taxa use formula
+            h_dict[c] -= p * (np.log(p) - h_dict[child] - h_dict[c.difference(child)])
+    return h_dict[max(m1.keys())]
