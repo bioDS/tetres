@@ -116,3 +116,8 @@ def test_remove_taxa_dp_prob(twenty_taxa_tts):
         print(p)
         assert p < 1
 
+
+def test_calc_Entropy(twenty_taxa_tts):
+    m1, m2, u = get_maps(twenty_taxa_tts)
+    h = calc_Entropy(m1, m2)
+    assert h == 7.500020954155561, "Entropy calculation failed!"

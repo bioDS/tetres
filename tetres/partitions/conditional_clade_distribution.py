@@ -399,3 +399,18 @@ def remove_taxa(t_del, m1, m2):
             new_m1[kp] = new_m2[(kp, kc)]
 
     return new_m1, new_m2
+
+
+def calc_Entropy(m1, m2):
+    def rec_entropy(clade):
+        nonlocal m1, m2
+        H = 0
+        cur_children = [k for k in m2.keys() if k[0] == clade]
+        for _, child in cur_children:
+            p = m2[(clade, child)]/m1[clade]
+            H = H - p *(np.log(p) - rec_entropy(child) - rec_entropy(clade.difference(child)))
+        return H
+    root = max(m1.keys())  # initialize with the root clade
+    H = rec_entropy(root)
+    return H
+
