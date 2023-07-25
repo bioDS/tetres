@@ -64,6 +64,11 @@ def twelve_taxa_tts():
 
 
 @pytest.fixture
+def twelve_taxa_tts_del7():
+    return TimeTreeSet(f"{Path(__file__).parent.absolute()}/data/12Taxa_del7.trees")
+
+
+@pytest.fixture
 def twelve_taxa_tts_start():
     return TimeTreeSet(f"{Path(__file__).parent.absolute()}/data/12Taxa_start.trees")
 
