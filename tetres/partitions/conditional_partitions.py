@@ -1,5 +1,6 @@
 from tetres.trees._converter import ctree_to_ete3
 from tetres.trees.time_trees import TimeTree
+from collections import defaultdict
 import re
 import ete3
 import numpy as np
@@ -255,3 +256,20 @@ def search_maxpp_tree(dict_partitions, n_taxa):
     sol[max(sol)].reverse()
     t = get_tree_from_partition(sol[max(sol)], n_taxa)
     return t, max(sol)
+
+
+def max_cpd_tree_dp():
+    # todo dp algorithm for partitions ...
+    return 0
+
+
+def calc_Entropy_cpd(dict_part):
+    h_dict = defaultdict(lambda: 0)
+    for partition in [k for k in sorted(dict_part.keys(), key=lambda x: x.count("|"), reverse=True)]:
+        cur_count = dict_part[partition]["Count"]
+        for refined_part in dict_part[partition]:
+            if refined_part != "Count":
+                p = dict_part[partition][refined_part]/cur_count
+                h_dict[partition] -= p * (np.log(p) - h_dict[refined_part])
+    # after this loop partition will be the root, i.e. all taxa separated by commas
+    return h_dict[partition]

@@ -1,4 +1,4 @@
-from tetres.partitions.conditional_partitions import get_conditional_partitions, get_dict_of_partitions, get_pp, get_greedy_pp_tree, get_tree_from_partition, sample_from_dict_partition, search_maxpp_tree, get_greedy_relaxed_pp_tree, are_compatible, convert_to_relaxed_partition_dict
+from tetres.partitions.conditional_partitions import *
 
 
 def test_get_conditional_partitions(ten_taxa_multichain):
@@ -90,3 +90,9 @@ def test_convert_to_relaxed_partition_dict(ten_taxa_multichain):
     relaxed_greedy_tree = get_greedy_pp_tree(relaxed_dict, len(ten_taxa_multichain[0].trees[0]))
     relaxed_tree = get_greedy_relaxed_pp_tree(dict_part, len(ten_taxa_multichain[0].trees[0]))
     assert (greedy_tree.fp_distance(relaxed_tree), greedy_tree.fp_distance(relaxed_greedy_tree), relaxed_greedy_tree.fp_distance(relaxed_tree)) == (1, 1, 0), "Converting dict of partitions to relaxed dict of partitions failed!"
+
+
+def test_calc_Entropy_cpd(twenty_taxa_tts):
+    dict_part = get_dict_of_partitions(twenty_taxa_tts)
+    h = calc_Entropy_cpd(dict_part)
+    assert h ==  16.116557383124142, "Entropy Calculation failed!"
