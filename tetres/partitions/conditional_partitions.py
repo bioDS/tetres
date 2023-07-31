@@ -180,6 +180,10 @@ def get_greedy_relaxed_pp_tree(dict_partitions, n_taxa):
 
 
 def get_tree_from_partition(p_list, n_taxa):
+    # function takes a sorted list of partitions p_list
+    #  this list starts with the first split, i.e. first entry has one | symbol
+    #  the last entry is the full split of taxa, 1|2|3...|n
+
     cur_t = ete3.Tree(support=n_taxa-1, name=",".join([str(i) for i in range(1, n_taxa+1)]))
     # add the first thing manually
     init_split = p_list[0].split("|")
@@ -258,9 +262,31 @@ def search_maxpp_tree(dict_partitions, n_taxa):
     return t, max(sol)
 
 
-def max_cpd_tree_dp():
-    # todo dp algorithm for partitions ...
-    return 0
+def max_cpd_tree_dp(dict_part):
+    best = {}
+    list_bottom_up = [k for k in sorted(dict_part.keys(), key=lambda x: x.count("|"), reverse=True)]
+    n_taxa = list_bottom_up[-1].count(",") + 1
+    for partition in list_bottom_up:
+        cur_count = dict_part[partition]["Count"]
+        cur_best_p = 0
+        cur_best_part = 0
+        for refined_part in [k for k in dict_part[partition] if k != "Count"]:
+            if refined_part.count("|") == n_taxa - 2:
+                new_p = (dict_part[partition][refined_part] / cur_count)
+            else:
+                new_p = (dict_part[partition][refined_part]/cur_count) * best[refined_part][1]
+            if new_p > cur_best_p:
+                cur_best_p = new_p
+                cur_best_part = refined_part
+        best[partition] = (cur_best_part, cur_best_p)
+
+    sol = []
+    best_p = best[partition][1]  # same as cur_best_p after the loop
+    sol.append(best[partition][0])  # this is adding the best split of the root, because after the previous loop partition is the root
+    for _ in range(n_taxa-3):
+        sol.append(best[sol[-1]][0])
+    sol.append(sol[-1].replace(",", "|"))
+    return get_tree_from_partition(sol, n_taxa), best_p
 
 
 def calc_Entropy_cpd(dict_part):

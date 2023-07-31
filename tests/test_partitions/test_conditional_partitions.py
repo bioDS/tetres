@@ -96,3 +96,19 @@ def test_calc_Entropy_cpd(twenty_taxa_tts):
     dict_part = get_dict_of_partitions(twenty_taxa_tts)
     h = calc_Entropy_cpd(dict_part)
     assert h ==  16.116557383124142, "Entropy Calculation failed!"
+
+
+def test_max_cpd_tree_dp(twenty_taxa_tts):
+    dict_part = get_dict_of_partitions(twenty_taxa_tts)
+    # greedy = get_greedy_pp_tree(dict_part, 20)
+    dp_tree, dp_prob = max_cpd_tree_dp(dict_part)
+    test_p = get_pp(dp_tree, dict_part)
+    assert test_p == dp_prob, "DP alg for partitions failed!"
+
+
+def test_max_cpd_tree_dp_greedy(twenty_taxa_tts):
+    dict_part = get_dict_of_partitions(twenty_taxa_tts)
+    greedy = get_greedy_pp_tree(dict_part, 20)
+    dp_tree, dp_prob = max_cpd_tree_dp(dict_part)
+    greedy_p = get_pp(dp_tree, dict_part)
+    assert greedy_p <= dp_prob, "DP alg for partitions failed!"
