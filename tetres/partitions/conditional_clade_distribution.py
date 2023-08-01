@@ -199,7 +199,7 @@ def get_greedy_ccd_tree(m1, m2):
         if len(cur_parent.difference(cur_greedy_split)) > 2:
             # if the second child is not a resolved tree yet (i.e. 2 or 1 taxa) add to working list
             working_list.append(cur_parent.difference(cur_greedy_split))
-    return greedy_tree
+    return get_tree_from_list_of_splits(greedy_tree)
 
 
 def get_tree_from_list_of_splits(splits):
