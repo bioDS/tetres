@@ -250,21 +250,21 @@ def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100
     psrf_like = []
 
     if samples != "all":
-        for _ in range(samples):
+        for x in range(samples):  # todo sample outside to have proper sample indeces for the dataframe....
             random_sample = random.randint(0, nt1 - 1)
             r = _psrf_like_value(pwts1, pwts1ts2, random_sample, 0, nt1)
-            psrf_like.append(["TS1", r])
+            psrf_like.append(["TS1", r, x])
             r = _psrf_like_value(pwts2, np.transpose(pwts1ts2), random_sample, 0, nt1)
-            psrf_like.append(["TS2", r])
+            psrf_like.append(["TS2", r, x])
     elif samples == "all":
         for cur_sample in range(nt1):
             r = _psrf_like_value(pwts1, pwts1ts2, cur_sample, 0, nt1)
-            psrf_like.append(["TS1", r])
+            psrf_like.append(["TS1", r, cur_sample])
             r = _psrf_like_value(pwts2, np.transpose(pwts1ts2), cur_sample, 0, nt1)
-            psrf_like.append(["TS2", r])
+            psrf_like.append(["TS2", r, cur_sample])
     else:
         raise ValueError(f"Unrecognizes samples {samples} given!")
-    return pd.DataFrame(data=psrf_like, columns=["Treeset", "PSRF_like"])
+    return pd.DataFrame(data=psrf_like, columns=["Treeset", "PSRF_like", "Sample"])
 
 
 def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
@@ -328,6 +328,57 @@ def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
     # plt.show()
     plt.savefig(
         fname=f"{multichain.working_dir}/plots/{multichain.name}_grd_density_full_chain_{'all' if samples == 'all' else f'subsampling_{samples}'}.pdf",
+        format="pdf", bbox_inches="tight", dpi=1200)
+    plt.clf()
+    plt.close("all")
+    gc.collect()
+
+
+def density_trace_plot(multichain, interval, i=0, j=1):
+
+    # figure, axis = plt.subplots(nrows=1, ncols=2, layout="constrained", figsize=(15, 5))
+    figure, axis = plt.subplot_mosaic([["a", "a", "b"]], figsize=(15, 5), sharey=True)
+    ax = [(label, ax) for label, ax in axis.items()]
+
+    cur_psrf_like = gelman_rubin_full_chain_subsample(multichain.pwd_matrix(i),
+                                                              multichain.pwd_matrix(j),
+                                                              multichain.pwd_matrix(i, j),
+                                                              samples="all")
+
+    sns.kdeplot(ax=ax[1][1],
+                data=cur_psrf_like,
+                y="PSRF_like",
+                hue="Treeset",
+                fill=True,
+                legend=False,
+                common_norm=False)
+
+    x_ticks = [(i+1)*interval for i in list(cur_psrf_like["Sample"])]
+    sns.lineplot(ax=ax[0][1], data=cur_psrf_like, y="PSRF_like", x=x_ticks, hue="Treeset")
+
+    ax[0][1].set_xlim((0, max(x_ticks)))
+
+    new_ticks = np.linspace(0, max(x_ticks), 11, endpoint=True, dtype=int)
+    ax[0][1].set_xticks(new_ticks, new_ticks, fontsize=12, rotation=45)
+
+    ax[0][1].set_xlabel("Sample", fontsize=12)
+    ax[1][1].set_xlabel("Density", fontsize=12)
+    ax[0][1].grid()
+    ax[1][1].grid()
+
+    ax[1][1].tick_params(axis="y", which="both", left=False)
+
+    ax[0][1].set_ylabel("PSRF", fontsize=12)
+    ax[0][1].legend(ncol=2)
+
+    ax[0][1].tick_params(axis="both", labelsize=12)
+    ax[1][1].tick_params(axis="both", labelsize=12)
+
+    # plt.subplots_adjust(wspace=0.01)
+    plt.tight_layout()
+    # plt.show()
+    plt.savefig(
+        fname=f"{multichain.working_dir}/plots/{multichain.name}_density_trace_plot.pdf",
         format="pdf", bbox_inches="tight", dpi=1200)
     plt.clf()
     plt.close("all")
