@@ -154,8 +154,8 @@ class MultiChain():
     def gelman_rubin_all_chains_density_plot(self, samples: int = 100):
         return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
 
-    def psrf_density_trace_plot(self, interval, i=0, j=1):
-        return grd.density_trace_plot(self, interval, i=i, j=j)
+    def psrf_density_trace_plot(self, interval, i=0, j=1, no_smooth=False):
+        return grd.density_trace_plot(self, interval, i=i, j=j, no_smooth=no_smooth)
 
     def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False, _gr_boundary=0.02, smoothing_average="mean"):
         return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, _gr_boundary=_gr_boundary,

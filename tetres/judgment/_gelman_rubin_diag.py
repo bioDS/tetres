@@ -241,7 +241,7 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr
     gc.collect()
 
 
-def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100):
+def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100, no_smooth=False):
     # this could be a gelman_rubin_like postprocessing tool
     nt1 = pwts1.shape[0]
     nt2 = pwts2.shape[0]
@@ -257,10 +257,15 @@ def gelman_rubin_full_chain_subsample(pwts1, pwts2, pwts1ts2, samples: int = 100
             r = _psrf_like_value(pwts2, np.transpose(pwts1ts2), random_sample, 0, nt1)
             psrf_like.append(["TS2", r, x])
     elif samples == "all":
+        s = 0
+        e = nt1
         for cur_sample in range(nt1):
-            r = _psrf_like_value(pwts1, pwts1ts2, cur_sample, 0, nt1)
+            if no_smooth:
+                s = cur_sample
+                e = cur_sample
+            r = _psrf_like_value(pwts1, pwts1ts2, cur_sample, s, e)
             psrf_like.append(["TS1", r, cur_sample])
-            r = _psrf_like_value(pwts2, np.transpose(pwts1ts2), cur_sample, 0, nt1)
+            r = _psrf_like_value(pwts2, np.transpose(pwts1ts2), cur_sample, s, e)
             psrf_like.append(["TS2", r, cur_sample])
     else:
         raise ValueError(f"Unrecognizes samples {samples} given!")
@@ -334,7 +339,7 @@ def gelman_rubin_all_chains_density_plot(multichain, samples: int = 100):
     gc.collect()
 
 
-def density_trace_plot(multichain, interval, i=0, j=1):
+def density_trace_plot(multichain, interval, i=0, j=1, no_smooth=False):
 
     # figure, axis = plt.subplots(nrows=1, ncols=2, layout="constrained", figsize=(15, 5))
     figure, axis = plt.subplot_mosaic([["a", "a", "b"]], figsize=(15, 5), sharey=True)
@@ -343,7 +348,7 @@ def density_trace_plot(multichain, interval, i=0, j=1):
     cur_psrf_like = gelman_rubin_full_chain_subsample(multichain.pwd_matrix(i),
                                                               multichain.pwd_matrix(j),
                                                               multichain.pwd_matrix(i, j),
-                                                              samples="all")
+                                                              samples="all", no_smooth=no_smooth)
 
     sns.kdeplot(ax=ax[1][1],
                 data=cur_psrf_like,
@@ -357,6 +362,9 @@ def density_trace_plot(multichain, interval, i=0, j=1):
     sns.lineplot(ax=ax[0][1], data=cur_psrf_like, y="PSRF_like", x=x_ticks, hue="Treeset")
 
     ax[0][1].set_xlim((0, max(x_ticks)))
+    if no_smooth:
+        # This needs to be set manually somehow...
+        ax[0][1].set_ylim((0, 35))
 
     new_ticks = np.linspace(0, max(x_ticks), 11, endpoint=True, dtype=int)
     ax[0][1].set_xticks(new_ticks, new_ticks, fontsize=12, rotation=45)
@@ -378,7 +386,7 @@ def density_trace_plot(multichain, interval, i=0, j=1):
     plt.tight_layout()
     # plt.show()
     plt.savefig(
-        fname=f"{multichain.working_dir}/plots/{multichain.name}_density_trace_plot.pdf",
+        fname=f"{multichain.working_dir}/plots/{multichain.name}_density_trace_plot{'_no-smooth' if no_smooth else ''}.pdf",
         format="pdf", bbox_inches="tight", dpi=1200)
     plt.clf()
     plt.close("all")
