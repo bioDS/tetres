@@ -1,6 +1,6 @@
 | :warning: Package in active developement                                                                                       |
 |:-------------------------------------------------------------------------------------------------------------------------------|
-| This package is in active development. If you encounter a bug or don't find documentation for something please raise an issue. |
+| If you encounter a bug or don't find documentation for something please raise an issue. |
 
 tetres
 ======
