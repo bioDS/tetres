@@ -7,3 +7,6 @@
 [submodule "tetres/clustree"]
 	path = tetres/clustree
 	url = git@github.com:bioDS/clustree.git
+[submodule "tetres/partitions"]
+	path = tetres/partitions
+	url = git@github.com:bioDS/partitions.git
