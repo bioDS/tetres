@@ -1,0 +1,3 @@
+[submodule "tetres/online"]
+	path = tetres/online
+	url = git@github.com:bioDS/onlineRNNI.git
