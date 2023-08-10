@@ -362,9 +362,6 @@ def density_trace_plot(multichain, interval, i=0, j=1, no_smooth=False):
     sns.lineplot(ax=ax[0][1], data=cur_psrf_like, y="PSRF_like", x=x_ticks, hue="Treeset")
 
     ax[0][1].set_xlim((0, max(x_ticks)))
-    if no_smooth:
-        # This needs to be set manually somehow...
-        ax[0][1].set_ylim((0, 35))
 
     new_ticks = np.linspace(0, max(x_ticks), 11, endpoint=True, dtype=int)
     ax[0][1].set_xticks(new_ticks, new_ticks, fontsize=12, rotation=45)
