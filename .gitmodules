@@ -4,3 +4,6 @@
 [submodule "tetres/visualize"]
 	path = tetres/visualize
 	url = git@github.com:bioDS/visualizeRNNI.git
+[submodule "tetres/clustree"]
+	path = tetres/clustree
+	url = git@github.com:bioDS/clustree.git
