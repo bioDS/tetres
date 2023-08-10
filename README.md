@@ -21,7 +21,7 @@ Then this package can be installed for Python with
 pip install -e your/path/to/tetres
 ```
 
-For usage check out the documentation available in `html <docs/build/html/index.html>` and [pdf](docs/build/latex/treeoclock.pdf) formats.
+For usage check out the documentation available in [html](docs/build/html/index.html) and [pdf](docs/build/latex/tetres.pdf) formats.
 
 
 References
