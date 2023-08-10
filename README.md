@@ -1,3 +1,7 @@
+| :warning: Package in active developement                                                                                       |
+|:-------------------------------------------------------------------------------------------------------------------------------|
+| This package is in active development. If you encounter a bug or don't find documentation for something please raise an issue. |
+
 tetres
 ======
 
@@ -22,3 +26,16 @@ For usage check out the documentation available in `html <docs/build/html/index.
 
 References
 ----------
+
+If you publish a paper using the summary subpacke, please cite<br>
+Lars Berling, Lena Collienne, and Alex Gavryushkin<br>
+**Estimating the mean in the space of ranked phylogenetic trees**<br>
+*bioRxiv* 2023<br>
+[https://doi.org/10.1101/2023.05.08.539790](https://doi.org/10.1101/2023.05.08.539790) 
+
+If you publish a paper using the judgement (GR tree diagnostic) subpacke, please cite<br>
+Lars Berling, Remco Bouckaert, and Alex Gavryushkin<br>
+**Automated convergence diagnostic for phylogenetic MCMC analyses**<br>
+*bioRxiv* 2023<br>
+[N/A](nan) 
+
