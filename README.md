@@ -21,8 +21,8 @@ Then this package can be installed for Python with
 pip install -e your/path/to/tetres
 ```
 
-For usage check out the [documentation](https://biods.github.io/tetres/) also availabe as a [pdf](docs/build/latex/tetres.pdf).
-
+For usage check out the [documentation](https://biods.github.io/tetres/) also availabe as a [pdf](docs/build/latex/tetres.pdf).<br>
+Tutorials for specific tasks are available at [tetres-tutorials](https://github.com/Lars-B/tetres-tutorials).
 
 References
 ----------
@@ -37,5 +37,5 @@ If you publish a paper using the judgement (GR tree diagnostic) subpackage, plea
 Lars Berling, Remco Bouckaert, and Alex Gavryushkin<br>
 **Automated convergence diagnostic for phylogenetic MCMC analyses**<br>
 *bioRxiv* 2023<br>
-[N/A](nan) 
+[https://doi.org/10.1101/2023.08.10.552869](https://doi.org/10.1101/2023.08.10.552869) 
 
