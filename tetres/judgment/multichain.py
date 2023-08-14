@@ -119,7 +119,7 @@ class MultiChain():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def extract_cutoff(self, i, j, ess_threshold=200, smoothing=0.6, gr_boundary=0.02, smoothing_average="mean",
+    def extract_cutoff(self, i, j, ess_threshold=200, smoothing=1, gr_boundary=0.02, smoothing_average="mean",
                        subsampling=False, _overwrite=False, burnin=0):
         # The tree and log file strings for storing the cutoff
         tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{f'_burnin-{burnin}' if burnin != 0 else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{gr_boundary}.trees"
@@ -161,7 +161,7 @@ class MultiChain():
         return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, _gr_boundary=_gr_boundary,
                                                       smoothing_average=smoothing_average)
 
-    def gelman_rubin_cut(self, i, j, smoothing=0.5, ess_threshold=200, pseudo_ess_range=100, _overwrite=False,
+    def gelman_rubin_cut(self, i, j, smoothing=1, ess_threshold=200, pseudo_ess_range=100, _overwrite=False,
                          smoothing_average="mean", _subsampling=False, _gr_boundary=0.02, burnin=0):
 
         # sorting to make sense for dm_ij interpretation
