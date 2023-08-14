@@ -383,7 +383,7 @@ def density_trace_plot(multichain, interval, i=0, j=1, no_smooth=False):
     plt.tight_layout()
     # plt.show()
     plt.savefig(
-        fname=f"{multichain.working_dir}/plots/{multichain.name}_density_trace_plot{'_no-smooth' if no_smooth else ''}.pdf",
+        fname=f"{multichain.working_dir}/plots/{multichain.name}_density_trace_plot{'_no-smooth' if no_smooth else ''}_{i}-{j}.pdf",
         format="pdf", bbox_inches="tight", dpi=1200)
     plt.clf()
     plt.close("all")
