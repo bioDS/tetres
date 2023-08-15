@@ -41,8 +41,8 @@ def test_cMChain_gr_cut_burnin_subsample(ten_taxa_multichain):
 
 
 def test_cMChain_gr_cut_subsample(ten_taxa_multichain):
-    for _gr_boundary in [0.02, 0.01, 0.05]:
+    for tolerance in [0.02, 0.01, 0.05]:
         for sm_avg in ['mean', 'median']:
-            ten_taxa_multichain.gelman_rubin_cut(i=0, j=1, _overwrite=True, _subsampling=2, _gr_boundary=_gr_boundary, smoothing_average=sm_avg)
-            assert os.path.exists(f"{ten_taxa_multichain.working_dir}/data/{ten_taxa_multichain.name}_{0}_{1}_gelman_rubin_cutoff_subsampling-2_smoothing-0.5_{sm_avg}_boundary-{_gr_boundary}"), \
-                f"Gelman Rubin Cut function failed with subsampling! {_gr_boundary}-{sm_avg}"
+            ten_taxa_multichain.gelman_rubin_cut(i=0, j=1, _overwrite=True, _subsampling=2, tolerance=tolerance, smoothing_average=sm_avg)
+            assert os.path.exists(f"{ten_taxa_multichain.working_dir}/data/{ten_taxa_multichain.name}_{0}_{1}_gelman_rubin_cutoff_subsampling-2_smoothing-0.5_{sm_avg}_boundary-{tolerance}"), \
+                f"Gelman Rubin Cut function failed with subsampling! {tolerance}-{sm_avg}"

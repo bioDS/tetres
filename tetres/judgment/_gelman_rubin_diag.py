@@ -24,7 +24,7 @@ def _psrf_like_value(dm_in, dm_bt, k, s, e):
     return np.sqrt(bt_var/in_var)
 
 
-def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, _gr_boundary=0.02, burnin=0):
+def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_range=100, smoothing_average="mean", _subsampling=False, tolerance=0.02, burnin=0):
     # BEWARE: the values from this function are uncorrected for subsampling, the multichain function is correcting for this
     # this function will return the cut.start and cut.end values calculated for the given full chain
 
@@ -88,7 +88,7 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
         else:
             raise ValueError(f"Unrecognized parameter {smoothing_average} smoothing_average!")
         # print(psrf_like_i, psrf_like_j)
-        if 1/(1+_gr_boundary) < psrf_like_i < 1+_gr_boundary and 1/(1+_gr_boundary) < psrf_like_j < 1+_gr_boundary:
+        if 1/(1 + tolerance) < psrf_like_i < 1+tolerance and 1/(1 + tolerance) < psrf_like_j < 1+tolerance:
             if cur_sample - cutoff_start > ess_threshold:
                     # todo change to calculate the pseudo ess with the already existing distance matrix
                     if (multichain[i].get_pseudo_ess(lower_i=cutoff_start, upper_i=cur_sample, sample_range=pseudo_ess_range) >= ess_threshold) \
@@ -108,7 +108,7 @@ def gelman_rubin_cut(multichain, i, j, smoothing, ess_threshold=200, pseudo_ess_
     return -1, -1
 
 
-def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median", _subsampling=False, _gr_boundary=0.02):
+def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_threshold_list, pseudo_ess_range=100, smoothing_average="median", _subsampling=False, tolerance=0.02):
     # This function is able to take a list of threshold_percentage values and also calculates a dataframe of the psrf_like values
 
     warnings.warn("This funciton has not been updated to the latest version of the GRdiagnostic yet")
@@ -161,7 +161,7 @@ def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_thresh
         else:
             raise ValueError(f"Smoothing_function = {smoothing_average} not recognized!")
 
-        if 1/(1+_gr_boundary) < df[-1][1] < 1+_gr_boundary and 1/(1+_gr_boundary) < df[-2][1] < 1+_gr_boundary:
+        if 1/(1 + tolerance) < df[-1][1] < 1+tolerance and 1/(1 + tolerance) < df[-2][1] < 1+tolerance:
             # consecutive += 1
             for ess_threshold in cutoff_end.keys():
                 if cutoff_start[ess_threshold] == -1:
@@ -190,7 +190,7 @@ def gelman_rubin_ess_threshold_list_list(multichain, i, j, smoothing, ess_thresh
     return pd.DataFrame(df, columns=["Sample", "PSRF", "Chain"]), cutoff_start, cutoff_end
 
 
-def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr_boundary=0.02, smoothing_average="mean"):
+def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, tolerance=0.02, smoothing_average="mean"):
     warnings.warn("This funciton has not been updated to the latest version of the GRdiagnostic yet")
 
     warnings.warn("This takes a long time and is not optimized, nor does it save anything other than the plot!")
@@ -209,7 +209,7 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr
                                                                             ess_threshold_list=ess_threshold_list,
                                                                             smoothing_average=smoothing_average,
                                                                             _subsampling=_subsampling,
-                                                                            _gr_boundary=_gr_boundary)
+                                                                            tolerance=tolerance)
         for row in range(len(ess_threshold_list)):
             axis[row, col].set_ylim([0.9, 1.1])
             sns.lineplot(data=df, x="Sample", y="PSRF", hue="Chain", alpha=0.5, ax=axis[row, col], legend=False, linewidth=0.6)
@@ -234,7 +234,7 @@ def gelman_rubin_parameter_choice_plot(multichain, i, j, _subsampling=False, _gr
     figure.supylabel("Pseudo ESS threshold", color="green")
     figure.supxlabel("Smoothing fraction", color="blue")
 
-    plt.savefig(fname=f"{multichain.working_dir}/plots/{multichain.name}_{i}-{j}_grd_parameter_choices{f'_subsampling-{_subsampling}' if _subsampling else ''}_ess-list_{smoothing_average}_{_gr_boundary}.pdf",
+    plt.savefig(fname=f"{multichain.working_dir}/plots/{multichain.name}_{i}-{j}_grd_parameter_choices{f'_subsampling-{_subsampling}' if _subsampling else ''}_ess-list_{smoothing_average}_{tolerance}.pdf",
                 format="pdf", bbox_inches="tight", dpi=1200)
     plt.clf()
     plt.close("all")
