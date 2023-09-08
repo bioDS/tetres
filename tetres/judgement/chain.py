@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 
 from tetres.trees.time_trees import TimeTreeSet
-from tetres.judgment._pairwise_distance_matrix import calc_pw_distances
+from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
 from tetres.clustree.spectral_clustree import _spectral_clustree, spectral_clustree_dm
-from tetres.judgment.ess import autocorr_ess, pseudo_ess
+from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid

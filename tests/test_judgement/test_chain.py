@@ -1,7 +1,7 @@
 import pytest
 import random
 from pathlib import Path
-from tetres.judgment.chain import Chain
+from tetres.judgement.chain import Chain
 import os
 
 

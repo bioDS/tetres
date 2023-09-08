@@ -1,15 +1,15 @@
 import os
 import numpy as np
 
-from tetres.judgment.chain import Chain
-from tetres.judgment._pairwise_distance_matrix import calc_pw_distances_two_sets
-from tetres.judgment import _gelman_rubin_diag as grd
-from tetres.judgment import _cladesetcomparator as csc
+from tetres.judgement.chain import Chain
+from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
+from tetres.judgement import _gelman_rubin_diag as grd
+from tetres.judgement import _cladesetcomparator as csc
 from tetres.summary.centroid import Centroid
 from tetres.summary.annotate_centroid import annotate_centroid
-from tetres.judgment._discrete_cladesetcomparator import discrete_cladeset_comparator
-from tetres.judgment._extract_cutoff import _extract_cutoff
-from tetres.judgment.burnin_detection import burn_detector
+from tetres.judgement._discrete_cladesetcomparator import discrete_cladeset_comparator
+from tetres.judgement._extract_cutoff import _extract_cutoff
+from tetres.judgement.burnin_detection import burn_detector
 
 
 class MultiChain():

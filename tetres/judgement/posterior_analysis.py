@@ -1,6 +1,6 @@
 # Analysis of tree sets that are interpreted as a true posteior or an estimate of that
 
-from tetres.judgment.chain import Chain
+from tetres.judgement.chain import Chain
 from tetres.visualize.graphs import visualize_matrix, extract_largest_cc_indices
 
 import os

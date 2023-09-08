@@ -1,4 +1,4 @@
-from tetres.judgment.t_test import t_test
+from tetres.judgement.t_test import t_test
 from tetres.summary.centroid import Centroid
 
 

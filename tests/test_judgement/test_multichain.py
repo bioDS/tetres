@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from tetres.judgment.multichain import MultiChain
+from tetres.judgement.multichain import MultiChain
 import os
 from sys import platform
 

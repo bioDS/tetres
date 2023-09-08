@@ -1,4 +1,4 @@
-from tetres.judgment.bic_test import bic_test
+from tetres.judgement.bic_test import bic_test
 
 
 def test_bic_test(ten_taxa_multichain):

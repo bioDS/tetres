@@ -1,4 +1,4 @@
-from tetres.judgment.distance_vs_logparameters import *
+from tetres.judgement.distance_vs_logparameters import *
 
 
 def test_plot_distance_posterior_comparison(thirty_taxa_chain):

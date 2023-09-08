@@ -1,4 +1,4 @@
-from tetres.judgment._gelman_rubin_diag import gelman_rubin_cut
+from tetres.judgement._gelman_rubin_diag import gelman_rubin_cut
 import os
 
 

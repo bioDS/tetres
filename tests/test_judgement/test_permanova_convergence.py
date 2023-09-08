@@ -1,5 +1,5 @@
 import pytest
-from tetres.judgment.permanova_convergence import *
+from tetres.judgement.permanova_convergence import *
 import os
 
 

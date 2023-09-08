@@ -1,4 +1,4 @@
-from tetres.judgment.ess import pseudo_ess, autocorr_ess
+from tetres.judgement.ess import pseudo_ess, autocorr_ess
 import random
 
 

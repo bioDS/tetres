@@ -1,4 +1,4 @@
-from tetres.judgment.burnin_detection import burn_detector
+from tetres.judgement.burnin_detection import burn_detector
 import pytest
 
 
