@@ -18,7 +18,7 @@ def ete3_to_ctree(tree):
             if index == 0:
                 node.name = node.dist
             else:
-                # node.name = node.get_distance(tree_root))  # get_distance() is a very slow function
+                # node.name = node.get_distance(tree_root)  # get_distance() is a very slow function
                 node.name = node.dist + node.up.name  # Top down for loop makes this possible
             index += 1
             distances.append(node.name)
