@@ -32,7 +32,7 @@ def change_taxon_map(input_nexus, output_nexus, new_map):
                 # We are within the taxon map, all the line need to be extracted
                 split = line.split()
                 cur_key = int(split[0])
-                old_map[cur_key] = int(split[1][:-1]) if split[1][-1] == "," else int(split[1])
+                old_map[cur_key] = split[1][:-1] if split[1][-1] == "," else split[1]
                 out_file.write(f"\t\t{cur_key} {new_map[cur_key]},\n")
             if not finished_map and not within_map:
                 # Write everything that comes before the taxon map to the new file
