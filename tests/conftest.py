@@ -3,8 +3,8 @@ import pytest
 from pathlib import Path
 from testfixtures import TempDirectory
 from tetres.trees.time_trees import TimeTreeSet
-from tetres.judgment.chain import Chain
-from tetres.judgment.multichain import MultiChain
+from tetres.judgement.chain import Chain
+from tetres.judgement.multichain import MultiChain
 import pandas as pd
 
 
