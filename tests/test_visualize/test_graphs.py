@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from tetres.judgment.mchain import coupled_MChains
+from tetres.judgement.mchain import coupled_MChains
 import os
 from tetres.visualize.graphs import *
 
