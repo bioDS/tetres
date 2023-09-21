@@ -112,3 +112,9 @@ def test_max_cpd_tree_dp_greedy(twenty_taxa_tts):
     dp_tree, dp_prob = max_cpd_tree_dp(dict_part)
     greedy_p = get_pp(dp_tree, dict_part)
     assert greedy_p <= dp_prob, "DP alg for partitions failed!"
+
+
+def test_add_tree_dict_partitions(ten_taxa_multichain):
+    dict_part = get_dict_of_partitions(ten_taxa_multichain[0].trees)
+    add_tree(dict_part, ten_taxa_multichain[0].trees[0])
+    assert dict_part[sorted(dict_part.keys(), key=len)[0]]["Count"] == 1002, "Failed to add tree to dictionary of partitions"
