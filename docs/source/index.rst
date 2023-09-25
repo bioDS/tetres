@@ -14,6 +14,11 @@ Welcome to tetres's documentation!
 
    summary
 
+   judgement
+
+   clustree
+
+   beasthelper
 
 Indices and tables
 ==================
