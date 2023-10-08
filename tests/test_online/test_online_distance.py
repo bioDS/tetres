@@ -1,5 +1,6 @@
 from tetres.online.online_distance import greedy_online_omp, search_neighbourhood_greedy_online_omp,\
     intelligent_neighbourhood_online, get_precomp_list, free_precomp_list, _compute_and_free_precomp_list
+from tetres.summary._variations import greedy_omp
 from tetres.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound
 from tetres.summary.compute_sos import compute_sos_mt
 from tetres.trees.time_trees import TimeTree
@@ -78,7 +79,6 @@ def test_functionality_search_neighbourhood_greedy_online_omp_twelve(twelve_taxa
         "Failed to find the same best neighbour using the online distance for greedy neighbourhood search!"
 
 
-# todo test what if we do not have a better neighbour, implement throwing the exception
 def test_nobetterneighbour_search_neighbourhood_greedy_online_omp_twelve(five_taxa_tts):
     with pytest.raises(NoBetterNeighbourFound):
         # This Error is raised because of t_value being to low!
@@ -88,18 +88,21 @@ def test_nobetterneighbour_search_neighbourhood_greedy_online_omp_twelve(five_ta
 
 
 def test_search_neighbourhood_greedy_online_omp_twenty(twelve_taxa_tts, twenty_taxa_tts_start):
-
+    # Todo add a bigger test case for the neighbourhood
     assert True
 
 
-def test_greedy_online_omp(twelve_taxa_tts, twelve_taxa_tts_start):
-    temp_ret = greedy_online_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts_start[0])
-    assert True, "Failed!"
+def test_greedy_online_omp_memory(twelve_taxa_tts, twelve_taxa_tts_start):
+    before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
+    cen, sos = greedy_online_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts[10])
+    after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
+    assert after-before < 10.0, "Greedy_online_omp failed memory usage test (MemLeak)!"
 
 
-# todo i need a bunch of tests for the new funcitons now
-#  check whether it finds the same best neighbour
-#  check what happens if we have no better neighbour and how to deal with that
-#  how do we store the centroid, just moves or do we iteratively update it? not sure
-#  then I will also need to refactor the c code where these test will be very helpful
+def test_greedy_online_omp_functionality(twelve_taxa_tts, twelve_taxa_tts_start):
+    # todo compare to the greedy_omp standard version, should get the same output tree and sos value
+    cen_offline, sos_offline = greedy_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts[10], n_cores=4, select="last")
+    assert sos_offline == 288830, "Offline version did not find the appropriate centroid!"
+    cen_online, sos_online = greedy_online_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts[10])
+    assert all([cen_online.fp_distance(cen_offline) == 0, sos_online == sos_offline]), "Greedy_online_omp failed funcitonality, not consistent with offline version!"
 
