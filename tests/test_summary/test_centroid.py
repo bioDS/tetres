@@ -59,13 +59,13 @@ def test_centroid_greedy_12data(twelve_taxa_tts):
 
 
 # Tests for greedy_omp
-def test_centroid_greedy(five_taxa_tts):
+def test_centroid_greedyomp(five_taxa_tts):
     cen, sos = Centroid(variation="greedy_omp").compute_centroid(five_taxa_tts)
     t_cen = TimeTree('((3:2,(4:1,5:1):1):2,(1:3,2:3):1);')
     assert (cen.fp_distance(t_cen), sos) == (0, 5), "Greedy_omp centroid variation failed!"
 
 
-def test_centroid_greedy_12data(twelve_taxa_tts):
+def test_centroid_greedyomp_12data(twelve_taxa_tts):
     cen, sos = Centroid(variation="greedy_omp", start=10).compute_centroid(twelve_taxa_tts)
     assert sos == 288830, "Greedy_omp: Wrong SoS value for twelve taxa dataset!"
 
