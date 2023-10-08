@@ -1,6 +1,8 @@
-from tetres.online.online_distance import greedy_online_omp, search_neighbourhood_greedy_online_omp, intelligent_neighbourhood_online, get_precomp_list
+from tetres.online.online_distance import greedy_online_omp, search_neighbourhood_greedy_online_omp,\
+    intelligent_neighbourhood_online, get_precomp_list, free_precomp_list
 
 import psutil
+import gc
 
 
 def test_intelligent_neighbourhood_online_twelve(twelve_taxa_tts):
@@ -27,7 +29,11 @@ def test_get_precomp_list_twelve_memory(twelve_taxa_tts, twelve_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     for _ in range(100):
         precomp_list = get_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
+        free_precomp_list(precomp_list, len(twelve_taxa_tts_start[0]))
+    gc.collect()
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
+    # 1995.28515625, with freeing precomps, still memory leak, not sure where
+    # 2798.62890625, without freeing precomps
     assert after-before < 10.0, "get_precomp_list failed Memory usage Test (12 taxa)"
 
 
