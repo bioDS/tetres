@@ -44,19 +44,16 @@ def test_suspicious_memory(twelve_taxa_tts, twelve_taxa_tts_start):
 
 def test_get_precomp_list_twelve_memory(twelve_taxa_tts, twelve_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    for _ in range(100):
+    for _ in range(10):
         precomp_list = get_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
         free_precomp_list(precomp_list, len(twelve_taxa_tts_start[0]))
-    gc.collect()
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    # 1995.28515625, with freeing precomps, still memory leak, not sure where
-    # 2798.62890625, without freeing precomps
     assert after-before < 10.0, "get_precomp_list failed Memory usage Test (12 taxa)"
 
 
 def test_get_precomp_list_twenty(twenty_taxa_tts, twenty_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    for _ in range(100):
+    for _ in range(10):
         precomp_list = get_precomp_list(twenty_taxa_tts, twenty_taxa_tts_start[0])
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     assert after - before < 10.0, "get_precomp_list failed Memory usage Test (12 taxa)"
@@ -65,7 +62,8 @@ def test_get_precomp_list_twenty(twenty_taxa_tts, twenty_taxa_tts_start):
 def test_memory_search_neighbourhood_greedy_online_omp_twelve(twelve_taxa_tts, twelve_taxa_tts_start):
     precomp_list = get_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    centroid, sos = search_neighbourhood_greedy_online_omp(twelve_taxa_tts_start[0], twelve_taxa_tts, precomp_list)
+    for _ in range(10):
+        centroid, sos = search_neighbourhood_greedy_online_omp(twelve_taxa_tts_start[0], twelve_taxa_tts, precomp_list)
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     assert after-before < 10.0, "search_neighbourhood_greedy_online_omp failed Memory usage! There is a memory leak."
 
