@@ -119,13 +119,13 @@ def test_centroid_iter_sub_12data(twelve_taxa_tts):
     assert sos == 288830, "IterSub: Wrong SoS value for twelve taxa dataset!"
 
 
-def test_centroid_iter_sub_12data_maxiter(twelve_taxa_tts):
+def test_centroid_iter_sub_12data_maxiter1(twelve_taxa_tts):
     # Fixing the subsample size to the number of trees in the set for testing
     cen, sos = Centroid(variation="iter_sub", start=10, subsample_size=2500, max_iterations=1).compute_centroid(twelve_taxa_tts)
     assert sos == 288830, "IterSub: Wrong SoS value for twelve taxa dataset!"
 
 
-def test_centroid_iter_sub_12data_maxiter(twelve_taxa_tts):
+def test_centroid_iter_sub_12data_maxiter0(twelve_taxa_tts):
     # Fixing the subsample size to the number of trees in the set for testing
     cen, sos = Centroid(variation="iter_sub", start=10, subsample_size=2500, max_iterations=0).compute_centroid(twelve_taxa_tts)
     assert cen.fp_distance(twelve_taxa_tts[10]) == 0, "IncSub with max_iterations=0 failed!"
