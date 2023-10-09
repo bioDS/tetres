@@ -87,11 +87,6 @@ def test_nobetterneighbour_search_neighbourhood_greedy_online_omp_twelve(five_ta
         search_neighbourhood_greedy_online_omp(other, five_taxa_tts, precomp_list)
 
 
-def test_search_neighbourhood_greedy_online_omp_twenty(twelve_taxa_tts, twenty_taxa_tts_start):
-    # Todo add a bigger test case for the neighbourhood
-    assert True
-
-
 def test_greedy_online_omp_memory(twelve_taxa_tts, twelve_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     cen, sos = greedy_online_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts[10])
