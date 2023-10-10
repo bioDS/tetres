@@ -31,14 +31,14 @@ def test_intelligent_neighbourhood_online_twenty(twenty_taxa_tts):
 
 
 def test_suspicious_memory(twelve_taxa_tts, twelve_taxa_tts_start):
-    import tracemalloc
+    # import tracemalloc
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    tracemalloc.start()
-    s0 = tracemalloc.take_snapshot()
-    for _ in range(10):
+    # tracemalloc.start()
+    # s0 = tracemalloc.take_snapshot()
+    for _ in range(1000):
         _compute_and_free_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    s1 = tracemalloc.take_snapshot()
+    # s1 = tracemalloc.take_snapshot()
     assert after-before < 10.0, "Failed memory usage test"
 
 
@@ -51,7 +51,7 @@ def test_get_precomp_list_twelve_memory(twelve_taxa_tts, twelve_taxa_tts_start):
     assert after-before < 10.0, "get_precomp_list failed Memory usage Test (12 taxa)"
 
 
-def test_get_precomp_list_twenty(twenty_taxa_tts, twenty_taxa_tts_start):
+def test_get_precomp_list_twenty_memory(twenty_taxa_tts, twenty_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     for _ in range(10):
         precomp_list = get_precomp_list(twenty_taxa_tts, twenty_taxa_tts_start[0])
@@ -99,3 +99,9 @@ def test_greedy_online_omp_functionality(twelve_taxa_tts, twelve_taxa_tts_start)
     cen_online, sos_online = greedy_online_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts[10])
     assert all([cen_online.fp_distance(cen_offline) == 0, sos_online == sos_offline]), "Greedy_online_omp failed funcitonality, not consistent with offline version!"
 
+
+def test_greedy_online_omp_functionality_twenty(twenty_taxa_tts, twenty_taxa_tts_start):
+    cen_off, sos_off = greedy_omp(trees=twenty_taxa_tts, start=twenty_taxa_tts[100], n_cores=4, select="last")
+    assert sos_off == 392626, "Failed offline sos!"
+    cen_on, sos_on = greedy_online_omp(trees=twenty_taxa_tts, start=twenty_taxa_tts[100])
+    assert sos_on == sos_off, "Failed online vs. offline!"
