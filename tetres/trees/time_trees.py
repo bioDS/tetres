@@ -18,9 +18,12 @@ class DifferentNbrTaxa(Exception):
 
 
 class TimeTree:
-    def __init__(self, nwk, f=0):
+    def __init__(self, nwk, f=0, _ignore_ctrees=False):
         self.etree = ete3.Tree(nwk, format=f)
-        self.ctree = ete3_to_ctree(self.etree)
+        if not _ignore_ctrees:
+            self.ctree = ete3_to_ctree(self.etree)
+        else:
+            self.ctree = None
 
     def __len__(self):
         return self.ctree.num_leaves
@@ -68,6 +71,7 @@ class TimeTree:
     def write_nexus(self, taxa_map, file_name, name="TimeTree"):
         try:
             file = open(file_name, "x")
+            # todo this ctree.num_leaves causes problems if _ignore_ctrees=True
             file.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self.ctree.num_leaves};\n\t\tTaxlabels\n")
             for taxa in range(1, self.ctree.num_leaves + 1):
                 file.write(f"\t\t\t{taxa_map[taxa]}\n")
@@ -140,11 +144,11 @@ def get_nni_neighbours(tree: TimeTree):
 
 
 class TimeTreeSet:
-    def __init__(self, file=None):
+    def __init__(self, file=None, _ignore_ctrees=False):
         if file is not None:
             if os.path.exists(file):
                 self.map = get_mapping_dict(file)
-                self.trees = read_nexus(file)
+                self.trees = read_nexus(file, _ignore_ctrees=_ignore_ctrees)
             else:
                 raise FileNotFoundError(file)
         else:
@@ -215,6 +219,7 @@ class TimeTreeSet:
     def write_nexus(self, file_name, name="TimeTree"):
         try:
             file = open(file_name, "x")
+
             file.write(f"#NEXUS\n\nBegin taxa;\n\tDimensions ntax={self.trees[0].ctree.num_leaves};\n\t\tTaxlabels\n")
             for taxa in range(1, self.trees[0].ctree.num_leaves + 1):
                 file.write(f"\t\t\t{self.map[taxa]}\n")
@@ -233,7 +238,7 @@ class TimeTreeSet:
         except FileExistsError:
             raise FileExistsError("File already exists, manual deletion required!")
 
-def read_nexus(file: str) -> list:
+def read_nexus(file: str, _ignore_ctrees=False) -> list:
     # re_tree returns nwk string without the root height and no ; in the end
     re_tree = re.compile("\t?tree .*=? (.*$)", flags=re.I | re.MULTILINE)
     # Used to delete the ; and a potential branchlength of the root
@@ -245,7 +250,7 @@ def read_nexus(file: str) -> list:
         for line in f:
             if re_tree.match(line):
                 tree_string = f'{re.split(re_tree, line)[1][:re.split(re_tree, line)[1].rfind(")") + 1]};'
-                trees.append(TimeTree(re.sub(brackets, "", tree_string)))
+                trees.append(TimeTree(re.sub(brackets, "", tree_string), _ignore_ctrees=_ignore_ctrees))
     return trees
 
 
