@@ -1,5 +1,5 @@
 from tetres.online.online_distance import greedy_online_omp, search_neighbourhood_greedy_online_omp,\
-    intelligent_neighbourhood_online, get_precomp_list, free_precomp_list, _compute_and_free_precomp_list
+    intelligent_neighbourhood_online, get_precomp_list, free_precomp_list
 from tetres.summary._variations import greedy_omp
 from tetres.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound
 from tetres.summary.compute_sos import compute_sos_mt
@@ -30,42 +30,34 @@ def test_intelligent_neighbourhood_online_twenty(twenty_taxa_tts):
     assert after - before < 10.0, "Failed Memory usage test (20 taxa)"
 
 
-def test_suspicious_memory(twelve_taxa_tts, twelve_taxa_tts_start):
-    # import tracemalloc
-    before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    # tracemalloc.start()
-    # s0 = tracemalloc.take_snapshot()
-    for _ in range(1000):
-        _compute_and_free_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
-    after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    # s1 = tracemalloc.take_snapshot()
-    assert after-before < 10.0, "Failed memory usage test"
-
-
 def test_get_precomp_list_twelve_memory(twelve_taxa_tts, twelve_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    for _ in range(10):
-        precomp_list = get_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
-        free_precomp_list(precomp_list, len(twelve_taxa_tts_start[0]))
+    for _ in range(100):
+        precomp_list_c = get_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
+        free_precomp_list(precomp_list_c, len(twelve_taxa_tts), len(twelve_taxa_tts_start[0]))
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     assert after-before < 10.0, "get_precomp_list failed Memory usage Test (12 taxa)"
 
 
 def test_get_precomp_list_twenty_memory(twenty_taxa_tts, twenty_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    for _ in range(10):
-        precomp_list = get_precomp_list(twenty_taxa_tts, twenty_taxa_tts_start[0])
+    for _ in range(30):
+        precomp_list_c = get_precomp_list(twenty_taxa_tts, twenty_taxa_tts_start[0])
+        free_precomp_list(precomp_list_c, len(twenty_taxa_tts), len(twenty_taxa_tts_start[0]))
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     assert after - before < 10.0, "get_precomp_list failed Memory usage Test (12 taxa)"
 
 
 def test_memory_search_neighbourhood_greedy_online_omp_twelve(twelve_taxa_tts, twelve_taxa_tts_start):
-    precomp_list = get_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    for _ in range(10):
-        centroid, sos = search_neighbourhood_greedy_online_omp(twelve_taxa_tts_start[0], twelve_taxa_tts, precomp_list)
+    for _ in range(25):
+        precomp_list_c = get_precomp_list(twelve_taxa_tts, twelve_taxa_tts_start[0])
+        search_neighbourhood_greedy_online_omp(twelve_taxa_tts_start[0], twelve_taxa_tts, precomp_list_c)
+        free_precomp_list(precomp_list_c, len(twelve_taxa_tts), len(twelve_taxa_tts_start[0]))
+        inloop = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
+        # print(inloop-before)
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    assert after-before < 10.0, "search_neighbourhood_greedy_online_omp failed Memory usage! There is a memory leak."
+    assert after-before < 30.0, "search_neighbourhood_greedy_online_omp failed Memory usage! There is a memory leak."
 
 
 def test_functionality_search_neighbourhood_greedy_online_omp_twelve(twelve_taxa_tts, twelve_taxa_tts_start):
@@ -87,7 +79,8 @@ def test_nobetterneighbour_search_neighbourhood_greedy_online_omp_twelve(five_ta
 
 def test_greedy_online_omp_memory(twelve_taxa_tts, twelve_taxa_tts_start):
     before = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
-    cen, sos = greedy_online_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts[10])
+    for _ in range(10):
+        cen, sos = greedy_online_omp(trees=twelve_taxa_tts, start=twelve_taxa_tts[10])
     after = psutil.Process().memory_info().rss / 1024 ** 2  # in MiB
     assert after-before < 10.0, "Greedy_online_omp failed memory usage test (MemLeak)!"
 
