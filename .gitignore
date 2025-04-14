@@ -1,3 +1,6 @@
+# npy files generated during testing can be ignored
+*.npy
+
 *.o
 __pycache__
 .python-version
