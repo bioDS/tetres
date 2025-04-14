@@ -1,6 +1,11 @@
 # npy files generated during testing can be ignored
 *.npy
 
+# Excluding dirs for testing of cMChains
+/tests/data/cMChain/*/
+
+/tests/data/*.trees
+
 *.o
 __pycache__
 .python-version
@@ -197,3 +202,11 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Ugly quick fix ignores to push everything for computer change...
+/tests/data/beast_helper/*.png
+/tests/data/beast_helper/*/
+/tests/data/*/*.png
+/tests/data/*/*.eps
+/tests/data/*/*.txt
+/tests/data/cMChain/changed_mapping_chain0.trees

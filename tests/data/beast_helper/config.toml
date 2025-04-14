@@ -1,0 +1,5 @@
+[defaults]
+chain_length=5000
+store_every=50
+pre_burnin = 1000
+file_name = "DS1"
