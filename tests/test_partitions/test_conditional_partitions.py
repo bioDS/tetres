@@ -22,8 +22,8 @@ def test_get_pp_coverage_threespace(threespace):
     assert cov == 1, "Coverage failed (3space)"
 
 
-def test_get_pp_coverage_threespace(fourspace):
-    cov = get_pp_coverage(fourspace[0].trees)
+def test_get_pp_coverage_fourspace(fourspace):
+    cov = get_pp_coverage(fourspace.trees)
     cov == 1, "Coverage failed (4space)!"
 
 
@@ -118,3 +118,10 @@ def test_add_tree_dict_partitions(ten_taxa_multichain):
     dict_part = get_dict_of_partitions(ten_taxa_multichain[0].trees)
     add_tree(dict_part, ten_taxa_multichain[0].trees[0])
     assert dict_part[sorted(dict_part.keys(), key=len)[0]]["Count"] == 1002, "Failed to add tree to dictionary of partitions"
+
+
+def test_relaxed_dp(twenty_taxa_tts):
+    dict_part = get_dict_of_partitions(twenty_taxa_tts)
+    count, relaxed_dict = convert_to_relaxed_partition_dict(dict_part, ret_newpaths_count=True)
+    dp_tree, dp_prob = max_cpd_tree_dp(relaxed_dict)
+    assert dp_prob > 0, "Failed Relaxed DP."

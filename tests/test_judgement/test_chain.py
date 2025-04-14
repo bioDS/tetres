@@ -280,3 +280,7 @@ def test_get_cluster_centroids(ten_taxa_multichain):
 def test_evaluate_clustering(ten_taxa_multichain):
     ten_taxa_multichain[0].evaluate_clustering(kind="bic")
 
+
+def test_get_mds_coords(ten_taxa_multichain):
+    coords = ten_taxa_multichain[0].get_mds_coords(mds_type='tsne', dim=2)
+    assert len(coords) == len(ten_taxa_multichain[0])
