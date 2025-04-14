@@ -1,12 +1,12 @@
 [submodule "tetres/online"]
 	path = tetres/online
-	url = git@github.com:bioDS/onlineRNNI.git
+	url = ../onlineRNNI.git
 [submodule "tetres/visualize"]
 	path = tetres/visualize
-	url = git@github.com:bioDS/visualizeRNNI.git
+	url = ../visualizeRNNI.git
 [submodule "tetres/clustree"]
 	path = tetres/clustree
-	url = git@github.com:bioDS/clustree.git
+	url = ../clustree.git
 [submodule "tetres/partitions"]
 	path = tetres/partitions
-	url = git@github.com:bioDS/partitions.git
+	url = ../partitions.git
