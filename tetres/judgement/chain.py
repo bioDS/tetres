@@ -1,4 +1,6 @@
 import os
+from multiprocessing.managers import Value
+
 import pandas as pd
 import numpy as np
 
@@ -9,6 +11,7 @@ from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
+from tetres.judgement.enums import MDS
 import warnings
 
 class Chain:
@@ -292,6 +295,55 @@ class Chain:
                     output.append(cen)
         return output
 
+    def get_mds_coords(self, mds_type = 'tsne', dim=2, dist='rf'):
+        # todo will need to add more possible parameters, kwargs...
+        # todo sort out how to properly hande dist= make it an enum and generally expandable for different distances...
+
+        # todo this requires a proper test
+        if not isinstance(mds_type, MDS):
+            if mds_type in MDS:
+                mds_type = MDS[mds_type]
+            else:
+                raise TypeError('mds_type invalid.')
+
+        mds_coords_filename = 'BLBALBALBA'  # f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy"
+
+        if not os.path.exists(mds_coords_filename):
+            # need to first calculate the coordinates with the correct funciton
+            pwd_matrix = self.pwd_matrix(rf=False)  # todo make a dist enum and change the respective function for this
+            if mds_type == MDS.TSNE:
+                coords, kl_divergence = mds_type.value(pwd_matrix=pwd_matrix, dim=dim)
+            elif mds_type == MDS.PYTHON:
+                raise NotImplementedError('Python MDS not implemented yet.')
+            elif mds_type == MDS.R:
+                raise NotImplementedError('R isoMDS not implemented yet.')  # todo there is also cmdscale?
+            # todo could add spectral embedding, very closely related to the spectral clustering
+            else:
+                raise ValueError(f'Unsupported mds_type argument provided {mds_type}')
+            np.save(file=mds_coords_filename, arr=coords)
+        else:
+            # have to read the already computed coords
+            coords = np.load(file=mds_coords_filename)
+        return coords
+
+
+        # todo support for different types of mds coords, saving them and reading them
+        #  different distances
+        #  dimensionality is also an option
+
+        # # computing or loading the tsne coordinates
+        # # todo maybe change this to do a recomputation if wanted and overwriting of the old if better fit
+        #
+        # # todo this should just be a funciton that computes tsne, all the questions should be part of the mchain function
+        # coords_output = f"{mchain.working_dir}/data/{mchain.name}_tsne{'_rf' if rf else ''}_{dim}d_coords.npy"
+        # if not os.path.exists(coords_output):
+        #     pwd_matrix = mchain.pwd_matrix(rf=rf)
+        #     coords, kl_divergence = _tsne_coords_from_pwd(pwd_matrix=pwd_matrix, dim=dim)
+        #     # todo do something with the kl_divergence value
+        #     np.save(file=coords_output, arr=coords)
+        #     return coords
+        # else:
+        #     return np.load(coords_output)
 
     def similarity_matrix(self, beta=1):
         if not os.path.exists(
@@ -313,6 +365,7 @@ class Chain:
 
         # todo parameters for overwrite currently not used
 
+        # todo kind should be an enum
         if kind not in ["silhouette", "bic"]:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
 
