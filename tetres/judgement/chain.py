@@ -1,17 +1,26 @@
 import os
-from multiprocessing.managers import Value
+from argparse import ArgumentError
+from typing import Literal, get_args
 
 import pandas as pd
 import numpy as np
 
 from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
-from tetres.clustree.spectral_clustree import _spectral_clustree, spectral_clustree_dm
+from tetres.visualize.tsne import _tsne_coords_from_pwd
+from tetres.clustree.spectral_clustree import _spectral_clustree
 from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
 import warnings
+
+from tetres.visualize.tsne import tsne_coords_from_mchain
+
+# todo this should be moved to the visualize module...
+_MDS_TYPES = Literal["tsne"]
+_DIST = Literal["rnni", "rf"]
+
 
 class Chain:
     def __init__(self, working_dir, trees, log_file=None, summary=None, name: str = "MC"):
@@ -51,7 +60,8 @@ class Chain:
             self.chain_length = len(self.trees) - 1
             self.tree_sampling_interval = 1
         if os.path.exists(f"{self.working_dir}/{log_file}"):
-            self.log_data = pd.read_csv(f"{self.working_dir}/{log_file}", header=0, sep=r"\s+", comment="#")
+            self.log_data = pd.read_csv(f"{self.working_dir}/{log_file}", header=0, sep=r"\s+",
+                                        comment="#")
             self.chain_length = int(list(self.log_data["Sample"])[-1])
             self.log_sampling_interval = int(list(self.log_data["Sample"])[1])
             # assuming that the first iteration 0 tree and the last have been logged in the logfile
@@ -128,7 +138,8 @@ class Chain:
             if lower_i > upper_i or lower_i < 0 or upper_i < 0:
                 raise ValueError("Something went wrong with the given upper and lower index!")
         if ess_key in list(self.log_data.columns):
-            return autocorr_ess(data_list=list(self.log_data[ess_key][lower_i:(upper_i + 1)].dropna()))
+            return autocorr_ess(
+                data_list=list(self.log_data[ess_key][lower_i:(upper_i + 1)].dropna()))
         else:
             raise ValueError("Not (yet) implemented!")
 
@@ -144,16 +155,20 @@ class Chain:
         for k_cluster in range(k):
             cur_treeset = TimeTreeSet()
             cur_treeset.map = self.trees.map
-            cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if x == k_cluster]
+            cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if
+                                 x == k_cluster]
             if len(cur_treeset) != 0:
                 if _overwrite:
                     try:
-                        os.remove(f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
+                        os.remove(
+                            f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
                     except FileNotFoundError:
                         pass
-                if os.path.exists(f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees"):
+                if os.path.exists(
+                        f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees"):
                     raise ValueError("Tree file already exists!")
-                cur_treeset.write_nexus(file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
+                cur_treeset.write_nexus(
+                    file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
 
     def get_pseudo_ess(self, **kwargs):
         lower_i = 0
@@ -172,8 +187,8 @@ class Chain:
                 raise ValueError("Something went wrong with the given upper and lower index!")
 
         dist = "rnni"
-        if "dist" in kwargs:
-            dist = kwargs["dist"]
+        if "dist_type" in kwargs:
+            dist = kwargs["dist_type"]
         sample_range = 10
         if "sample_range" in kwargs:
             sample_range = kwargs["sample_range"]
@@ -198,8 +213,8 @@ class Chain:
 
         for cur_cluster in range(max_cluster):
 
-            summaries = self.get_cluster_centroids(k=cur_cluster+1, beta=beta)
-            clustering = self.get_clustering(k=cur_cluster+1)
+            summaries = self.get_cluster_centroids(k=cur_cluster + 1, beta=beta)
+            clustering = self.get_clustering(k=cur_cluster + 1)
 
             cur_bic, mnd_cluster = bic(treeset=self.trees,
                                        clustering=clustering,
@@ -207,7 +222,7 @@ class Chain:
                                        local_norm=local_norm)
 
             if prev_mnd is not None and sum(mnd_cluster.values()) > prev_mnd:
-                warnings.warn(f"MND Constraint reached at {cur_cluster+1} clustering")
+                warnings.warn(f"MND Constraint reached at {cur_cluster + 1} clustering")
                 return best_cluster
             prev_mnd = sum(mnd_cluster.values())
             if best_bic is None or cur_bic < best_bic:
@@ -219,7 +234,7 @@ class Chain:
         best_cluster = 0
         best_sil = None
         # todo rework with new funcitons
-        for cur_cluster in range(2, max_cluster+1):
+        for cur_cluster in range(2, max_cluster + 1):
             cur_s = silhouette_score(matrix=self.pwd_matrix(),
                                      k=cur_cluster,
                                      local_norm=local_norm,
@@ -243,27 +258,33 @@ class Chain:
         elif k > 1:
             if _overwrite:
                 try:
-                    os.remove(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
+                    os.remove(
+                        f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
                 except FileNotFoundError:
                     pass
 
-            if os.path.exists(f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy"):
-                clustering = np.load(os.path.join(self.working_dir, 'clustering', f"{cluster_type}-{k}-{self.name}.npy"))
+            if os.path.exists(
+                    f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy"):
+                clustering = np.load(os.path.join(self.working_dir, 'clustering',
+                                                  f"{cluster_type}-{k}-{self.name}.npy"))
             else:
                 if cluster_type == f"sc{'' if beta == 1 else f'-b{beta}'}":
                     clustering = _spectral_clustree(self.similarity_matrix(beta=beta), n_clus=k)
-                    np.save(file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}", arr=clustering)
+                    np.save(
+                        file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}",
+                        arr=clustering)
             return clustering
         else:
             raise ValueError(f"Value {k} not supported!")
 
-    def get_cluster_centroids(self, k, beta=1, _overwrite=False, _best_of_range = 10):
+    def get_cluster_centroids(self, k, beta=1, _overwrite=False, _best_of_range=10):
         # todo beta as kwargs parameter in the future
         cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
 
         output = []
         for cur_cluster in range(k):
-            cur_centroid_path = os.path.join(self.working_dir, "clustering", f"{cluster_type}-{k}{f'-k{cur_cluster+1}' if k != 1 else ''}-{self.name}.tree")
+            cur_centroid_path = os.path.join(self.working_dir, "clustering",
+                                             f"{cluster_type}-{k}{f'-k{cur_cluster + 1}' if k != 1 else ''}-{self.name}.tree")
             if _overwrite:
                 try:
                     os.remove(cur_centroid_path)
@@ -274,7 +295,8 @@ class Chain:
             cur_treeset = TimeTreeSet()
             cur_treeset.map = self.trees.map
             cur_treeset.trees = [self.trees[index] for index, x in
-                                         enumerate(self.get_clustering(k=cur_cluster + 1)) if x == cur_cluster]
+                                 enumerate(self.get_clustering(k=cur_cluster + 1)) if
+                                 x == cur_cluster]
             if len(cur_treeset) == 0:
                 output.append(None)
             else:
@@ -294,75 +316,56 @@ class Chain:
                     output.append(cen)
         return output
 
-    def get_mds_coords(self, mds_type='tsne', dim=2, dist='rf'):
-        # todo will need to add more possible parameters, kwargs...
-        # todo sort out how to properly hande dist= make it an enum and generally expandable for different distances...
+    def get_mds_coords(self, mds_type: _MDS_TYPES = 'tsne',
+                       dim: int = 2, dist_type: _DIST = 'rnni') -> np.ndarray:
+        # todo add overwrite option...
+        warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.")
 
-        # todo from typing import Literal
+        # todo will need to add more possible parameters, kwargs... beta for spectral
+        mds_options = get_args(_MDS_TYPES)
+        if mds_type not in mds_options:
+            raise ValueError(f"'{mds_type}' is not in {mds_options}")
+        dist_options = get_args(_DIST)
+        if dist_type not in dist_options:
+            raise ValueError(f"'{dist_type}' is not in {dist_options}")
 
-        # todo this requires a proper test
-        # if not isinstance(mds_type, MDS):
-        #     if mds_type in MDS:
-        #         mds_type = MDS[mds_type]
-        #     else:
-        #         raise TypeError('mds_type invalid.')
-
-        mds_coords_filename = 'BLBALBALBA'  # f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy"
+        mds_coords_filename = os.path.join(self.working_dir, "data",
+                                           f"{self.name}_{mds_type}-{dist_type}.npy")
 
         if not os.path.exists(mds_coords_filename):
-            # need to first calculate the coordinates with the correct funciton
-            pwd_matrix = self.pwd_matrix(rf=False)  # todo make a dist enum and change the respective function for this
-            if mds_type == MDS.TSNE:
-                coords, kl_divergence = mds_type.value(pwd_matrix=pwd_matrix, dim=dim)
-            elif mds_type == MDS.PYTHON:
-                raise NotImplementedError('Python MDS not implemented yet.')
-            elif mds_type == MDS.R:
-                raise NotImplementedError('R isoMDS not implemented yet.')  # todo there is also cmdscale?
-            # todo could add spectral embedding, very closely related to the spectral clustering
-            else:
-                raise ValueError(f'Unsupported mds_type argument provided {mds_type}')
+            # need to first calculate the coordinates with the correct function
+
+            # todo no really using the mds_type atm, need to implement that
+            coords, kl_divergence = _tsne_coords_from_pwd(self.pwd_matrix(rf=False), dim=dim)
+            # todo write the kl_divergence to some file in data that contains these things...
             np.save(file=mds_coords_filename, arr=coords)
         else:
             # have to read the already computed coords
             coords = np.load(file=mds_coords_filename)
         return coords
 
-
-        # todo support for different types of mds coords, saving them and reading them
-        #  different distances
-        #  dimensionality is also an option
-
-        # # computing or loading the tsne coordinates
-        # # todo maybe change this to do a recomputation if wanted and overwriting of the old if better fit
-        #
-        # # todo this should just be a funciton that computes tsne, all the questions should be part of the mchain function
-        # coords_output = f"{mchain.working_dir}/data/{mchain.name}_tsne{'_rf' if rf else ''}_{dim}d_coords.npy"
-        # if not os.path.exists(coords_output):
-        #     pwd_matrix = mchain.pwd_matrix(rf=rf)
-        #     coords, kl_divergence = _tsne_coords_from_pwd(pwd_matrix=pwd_matrix, dim=dim)
-        #     # todo do something with the kl_divergence value
-        #     np.save(file=coords_output, arr=coords)
-        #     return coords
-        # else:
-        #     return np.load(coords_output)
-
     def similarity_matrix(self, beta=1):
         if not os.path.exists(
-                f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy"):
+                f"{self.working_dir}/data/{self.name}_"
+                f"{'' if beta == 1 else f'{beta}_'}similarity.npy"):
             matrix = self.pwd_matrix()
             if np.allclose(matrix, np.triu(matrix)):
-                # matrix is upper triangular, has to be changed to a full matrix for this implementation
+                # matrix is upper triangular,
+                # has to be changed to a full matrix for this implementation
                 matrix += np.transpose(matrix)
             similarity = np.exp(-beta * matrix / matrix.std())
             np.save(
-                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy",
+                file=f"{self.working_dir}/data/{self.name}_"
+                     f"{'' if beta == 1 else f'{beta}_'}similarity.npy",
                 arr=similarity)
             return similarity
         else:
             return np.load(
-                file=f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy")
+                file=f"{self.working_dir}/data/{self.name}_"
+                     f"{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
-    def evaluate_clustering(self, kind="bic", _overwrite_clustering=False, add_random=True, local=False):
+    def evaluate_clustering(self, kind="bic", _overwrite_clustering=False, add_random=True,
+                            local=False):
 
         # todo parameters for overwrite currently not used
 
@@ -383,8 +386,12 @@ class Chain:
             else:
                 local_norm = False
 
-            clusterings = {k+1: self.get_clustering(k+1, beta=beta, _overwrite=_overwrite_clustering) for k in range(max_cluster)}
-            summaries_dict = {k+1: self.get_cluster_centroids(k=k+1, _overwrite=_overwrite_clustering) for k in range(max_cluster)}
+            clusterings = {
+                k + 1: self.get_clustering(k + 1, beta=beta, _overwrite=_overwrite_clustering) for k
+                in range(max_cluster)}
+            summaries_dict = {
+                k + 1: self.get_cluster_centroids(k=k + 1, _overwrite=_overwrite_clustering) for k
+                in range(max_cluster)}
 
             # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
             plot_bic(treeset=self.trees,
@@ -393,5 +400,5 @@ class Chain:
                      max_cluster=max_cluster,
                      local_norm=local_norm,
                      add_random=add_random,
-                     file_name=os.path.join(self.working_dir, "plots", f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.pdf"))
-
+                     file_name=os.path.join(self.working_dir, "plots",
+                                            f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.pdf"))
