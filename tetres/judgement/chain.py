@@ -7,7 +7,7 @@ import numpy as np
 
 from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
-from tetres.visualize.tsne import _tsne_coords_from_pwd
+from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.clustree.spectral_clustree import _spectral_clustree
 from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
@@ -15,7 +15,6 @@ from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
 import warnings
 
-from tetres.visualize.tsne import tsne_coords_from_mchain
 
 # todo this should be moved to the visualize module...
 _MDS_TYPES = Literal["tsne"]
