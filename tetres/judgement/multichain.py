@@ -5,8 +5,6 @@ from tetres.judgement.chain import Chain
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
 from tetres.judgement import _gelman_rubin_diag as grd
 from tetres.judgement import _cladesetcomparator as csc
-from tetres.summary.centroid import Centroid
-from tetres.summary.annotate_centroid import annotate_centroid
 from tetres.judgement._discrete_cladesetcomparator import discrete_cladeset_comparator
 from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement.burnin_detection import burn_detector
@@ -207,7 +205,8 @@ class MultiChain():
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
             raise Exception(
-                "The file for writing the GRD cut start and end exists already, this shouldn't happen here!")
+                "The file for writing the GRD cut start and end exists already. "
+                "This shouldn't happen here!")
         # return the start and end values
         return cut_start, cut_end
 
@@ -236,39 +235,3 @@ class MultiChain():
         return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot,
                                             burnin=burnin,
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
-
-    def cen_for_each_chain(self, repeat=5):
-        raise ValueError("Current Work in Progress and not supported for now.")
-        # todo should be its own script, adhering to the naming conventions to fit in with clustering
-        #  clustering stuff should use the output from this funciton for 1 clustering
-        for _ in range(repeat):
-            for chain in self.MChain_list:
-                cen = Centroid()
-                cen_tree, sos = cen.compute_centroid(chain.trees)
-                cen_tree = annotate_centroid(cen_tree, chain.trees)
-                try:
-                    file = open(f"{chain.working_dir}/data/{chain.name}_cen_sos.log", "r")
-                    cur_sos = int(file.readline())
-                    file.close()
-                except FileNotFoundError:
-                    # Setting cur_sos so that the folowing if will be Treu
-                    cur_sos = sos + 1
-                if sos < cur_sos:
-                    print("found better centroid!")
-                    # Removing the old sos file if exists
-                    try:
-                        os.remove(f"{chain.working_dir}/data/{chain.name}_cen_sos.log")
-                    except FileNotFoundError:
-                        pass
-                    # Writing the better sos value to the file
-                    file = open(f"{chain.working_dir}/data/{chain.name}_cen_sos.log", "x")
-                    file.write(f"{sos}")
-                    file.close()
-                    # deleting the old centroid tree file
-                    try:
-                        os.remove(f"{chain.working_dir}/{chain.name}_cen.tree")
-                    except FileNotFoundError:
-                        pass
-                    # writing the better centroid tree to the file
-                    cen_tree.write_nexus(chain.trees.map, file_name=f"{chain.working_dir}/{chain.name}_cen.tree",
-                                         name=f"Cen_{chain.name}")
