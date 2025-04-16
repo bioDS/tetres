@@ -11,7 +11,6 @@ from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
-from tetres.judgement.enums import MDS
 import warnings
 
 class Chain:
@@ -295,16 +294,18 @@ class Chain:
                     output.append(cen)
         return output
 
-    def get_mds_coords(self, mds_type = 'tsne', dim=2, dist='rf'):
+    def get_mds_coords(self, mds_type='tsne', dim=2, dist='rf'):
         # todo will need to add more possible parameters, kwargs...
         # todo sort out how to properly hande dist= make it an enum and generally expandable for different distances...
 
+        # todo from typing import Literal
+
         # todo this requires a proper test
-        if not isinstance(mds_type, MDS):
-            if mds_type in MDS:
-                mds_type = MDS[mds_type]
-            else:
-                raise TypeError('mds_type invalid.')
+        # if not isinstance(mds_type, MDS):
+        #     if mds_type in MDS:
+        #         mds_type = MDS[mds_type]
+        #     else:
+        #         raise TypeError('mds_type invalid.')
 
         mds_coords_filename = 'BLBALBALBA'  # f"{self.working_dir}/data/{self.name}_{'' if beta == 1 else f'{beta}_'}similarity.npy"
 
