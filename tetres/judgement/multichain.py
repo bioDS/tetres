@@ -2,8 +2,6 @@ import os
 import numpy as np
 import warnings
 
-from typing import get_args
-
 from tetres.judgement.chain import Chain
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
 from tetres.judgement import _gelman_rubin_diag as grd
@@ -11,13 +9,14 @@ from tetres.judgement import _cladesetcomparator as csc
 from tetres.judgement._discrete_cladesetcomparator import discrete_cladeset_comparator
 from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement.burnin_detection import burn_detector
-from tetres.visualize.literals import _DIST, _MDS_TYPES
+from tetres.utils.decorators import validate_literal_args
+from tetres.utils.literals import _DIST, _MDS_TYPES
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
+from tetres.visualize.plot_coords import plot_coords
 
 
 class MultiChain():
     def __init__(self, m_chains, trees, log_files, working_dir, name="cMC"):
-        # todo currently still missing the summary parameter of MChain, but its not really used at this point
         self.m_chains = m_chains
         if self.m_chains < 2 or self.m_chains < 0:
             raise ValueError("Wrong usage of MultiChain")
@@ -245,36 +244,58 @@ class MultiChain():
                                             burnin=burnin,
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
 
-    def get_mds_coords(self, target = "self" , mds_type: _MDS_TYPES = 'tsne',
+    @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
+    def get_mds_coords(self, target = "all" , mds_type: _MDS_TYPES = 'tsne',
                        dim: int = 2, dist_type: _DIST = 'rnni',
                        _overwrite: bool = False) -> np.ndarray:
         warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
-                      stacklevel=2)
+                      stacklevel=3)
 
         # todo will need to add more possible parameters, kwargs... beta for spectral
-        mds_options = get_args(_MDS_TYPES)
-        if mds_type not in mds_options:
-            raise ValueError(f"Invalid mds_type '{mds_type}'. Choose from: {', '.join(mds_options)}")
-        dist_options = get_args(_DIST)
-        if dist_type not in dist_options:
-            raise ValueError(f"Invalid mds_type '{dist_type}'. Choose from: {', '.join(dist_options)}")
 
-        if isinstance(target, int):
-            return self[target].get_mds_coords(mds_type=mds_type, dim=dim,
+        match target:
+            case int() as i:
+
+                return self[i].get_mds_coords(mds_type=mds_type, dim=dim,
                                                dist_type=dist_type, _overwrite=_overwrite)
-        elif target == "all":
-            mds_coords_filename = os.path.join(self.working_dir, "data",
-                                               f"{self.name}_{mds_type}-{dist_type}.npy")
+            case "all":
+                mds_coords_filename = os.path.join(self.working_dir, "data",
+                                                   f"{self.name}_{mds_type}-{dist_type}.npy")
 
-            if not os.path.exists(mds_coords_filename) or _overwrite:
-                # need to first calculate the coordinates with the correct function
+                if not os.path.exists(mds_coords_filename) or _overwrite:
+                    # need to first calculate the coordinates with the correct function
 
-                # todo no really using the mds_type atm, need to implement that
-                coords = _tsne_coords_from_pwd(self.pwd_matrix_all(rf=False), dim=dim)
-                np.save(file=mds_coords_filename, arr=coords)
-            else:
-                # have to read the already computed coords
-                coords = np.load(file=mds_coords_filename)
-            return coords
-        raise ValueError(f"Invalid target type '{target}'. "
-                         f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
+                    # todo no really using the mds_type atm, need to implement that
+                    coords = _tsne_coords_from_pwd(self.pwd_matrix_all(rf=False), dim=dim)
+                    np.save(file=mds_coords_filename, arr=coords)
+                else:
+                    # have to read the already computed coords
+                    coords = np.load(file=mds_coords_filename)
+                return coords
+            case _:
+                raise ValueError(f"Invalid target type '{target}'. "
+                                 f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
+
+    def plot_mds(self, target = "all", mds_type: _MDS_TYPES = 'tsne',
+                 dim: int = 2, dist_type: _DIST = 'rnni'):
+
+        match target:
+            case int() as i:
+                return self[i].plot_mds(mds_type=mds_type, dim=dim, dist_type=dist_type)
+            case "all":
+                if dim != 2:
+                    raise ValueError("Currently not supported dimension, only dim=2 accepted.")
+
+                # todo here we will need to add color for the different chains and make sure
+                #  that that works.
+
+                mds_plot_file = os.path.join(self.working_dir, "plots",
+                                             f"{self.name}_{mds_type}-{dist_type}.pdf")
+
+                coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim)
+
+                plot_coords(coords=coords, filename=mds_plot_file)
+
+            case _:
+                raise ValueError(f"Invalid target type '{target}'. "
+                                 f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")

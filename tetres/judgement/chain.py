@@ -1,6 +1,4 @@
 import os
-from argparse import ArgumentError
-from typing import get_args
 import warnings
 
 import pandas as pd
@@ -8,13 +6,15 @@ import numpy as np
 
 from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
+from tetres.utils.decorators import validate_literal_args
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.clustree.spectral_clustree import _spectral_clustree
 from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
-from tetres.visualize.literals import _DIST, _MDS_TYPES
+from tetres.utils.literals import _DIST, _MDS_TYPES
+from tetres.visualize.plot_coords import plot_coords
 
 
 # todo this should be moved to the visualize module...
@@ -315,20 +315,15 @@ class Chain:
                     output.append(cen)
         return output
 
+    @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
     def get_mds_coords(self, mds_type: _MDS_TYPES = 'tsne',
                        dim: int = 2, dist_type: _DIST = 'rnni',
                        _overwrite: bool = False) -> np.ndarray:
 
         warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
-                      stacklevel=2)
+                      stacklevel=3)
 
         # todo will need to add more possible parameters, kwargs... beta for spectral
-        mds_options = get_args(_MDS_TYPES)
-        if mds_type not in mds_options:
-            raise ValueError(f"'{mds_type}' is not in {mds_options}")
-        dist_options = get_args(_DIST)
-        if dist_type not in dist_options:
-            raise ValueError(f"'{dist_type}' is not in {dist_options}")
 
         mds_coords_filename = os.path.join(self.working_dir, "data",
                                            f"{self.name}_{mds_type}-{dist_type}.npy")
@@ -402,3 +397,24 @@ class Chain:
                      add_random=add_random,
                      file_name=os.path.join(self.working_dir, "plots",
                                             f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.pdf"))
+
+    def plot_mds(self, mds_type: _MDS_TYPES = 'tsne', dim: int = 2, dist_type: _DIST = 'rnni'):
+        """
+        (WIP) Plotting simple MDS of a chain without any clustering.
+
+        :param mds_type: Type of MDS to plot
+        :param dim: Dimension to plot to
+        :param dist_type:
+        :return:
+        """
+
+        if dim != 2:
+            raise ValueError("Unsupported dimension for MDS -- only supports dim=2 at the moment.")
+
+        mds_plot_file = os.path.join(self.working_dir, "plots", f"{self.name}_{mds_type}-"
+                                                                f"{dist_type}.pdf")
+
+        coords = self.get_mds_coords(mds_type=mds_type, dim=dim, dist_type=dist_type)
+
+        # todo title and more information to be put into the plot.
+        plot_coords(coords=coords, filename=mds_plot_file)
