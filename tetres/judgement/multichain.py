@@ -277,7 +277,16 @@ class MultiChain():
                                  f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
 
     def plot_mds(self, target = "all", mds_type: _MDS_TYPES = 'tsne',
-                 dim: int = 2, dist_type: _DIST = 'rnni'):
+                 dim: int = 2, dist_type: _DIST = 'rnni') -> None:
+        """
+        (WIP) Plotting simple MDS of MutliChain, either single chain or all together.
+
+        :param target: Either 'all' or index for which chain to plot
+        :param mds_type: Type of MDS coords to plot
+        :param dim: Dimention to plot to (only dim=2 supported atm)
+        :param dist_type: Type of tree distance to use (RNNI or RF)
+        :return: None
+        """
 
         match target:
             case int() as i:

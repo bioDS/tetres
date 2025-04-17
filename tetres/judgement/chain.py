@@ -398,14 +398,15 @@ class Chain:
                      file_name=os.path.join(self.working_dir, "plots",
                                             f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.pdf"))
 
-    def plot_mds(self, mds_type: _MDS_TYPES = 'tsne', dim: int = 2, dist_type: _DIST = 'rnni'):
+    def plot_mds(self, mds_type: _MDS_TYPES = 'tsne', dim: int = 2,
+                 dist_type: _DIST = 'rnni') -> None:
         """
         (WIP) Plotting simple MDS of a chain without any clustering.
 
         :param mds_type: Type of MDS to plot
-        :param dim: Dimension to plot to
-        :param dist_type:
-        :return:
+        :param dim: Dimension to plot to (only dim=2 supported atm)
+        :param dist_type: Type of tree distance to use (RNNI or RF)
+        :return: None
         """
 
         if dim != 2:
