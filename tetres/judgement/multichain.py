@@ -304,8 +304,9 @@ class MultiChain():
                                              f"{self.name}_{mds_type}-{dist_type}.pdf"),
                     colors=np.concatenate(
                         [[i] * len(chain) for i, chain in enumerate(self.MChain_list)]),
-                    title="TSNE Plot",
-                    scatter_kwargs={"edgecolors": "k", "linewidths": 0.5}
+                    label=np.concatenate(
+                        [[self[i].name] * len(chain) for i, chain in enumerate(self.MChain_list)]),
+                    title="TSNE Plot"
                 )
 
                 # todo legend and title of plot....

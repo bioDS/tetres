@@ -1,37 +1,28 @@
-from tetres.visualize.mds_coord_compuation import tsne_coords_from_mchain
-from tetres.visualize.plot_coords import plot_coords, plot_density_over_coordinates, plot_all_chains_tsne
+from tetres.visualize.plot_config import PlotOptions
+from tetres.visualize.plot_coords import plot_coords
 
 import numpy as np
 
 
 # todo colors as keyword for log_data and generally the function should be called from the class
 #  instead of directly calling the function
-def test_plot_coords_2d(ten_taxa_cMChain):
-    coords = tsne_coords_from_mchain(ten_taxa_cMChain[1], dim=2)
-    plot_coords(coords, colors=np.asarray(ten_taxa_cMChain[1].log_data["likelihood"]))
+def test_plot_coords_2d(ten_taxa_multichain):
+    coords = ten_taxa_multichain.get_mds_coords(target=1, _overwrite=True)
+    plot_options = PlotOptions(
+        colors=np.asarray(ten_taxa_multichain[1].log_data["likelihood"])
+    )
+    plot_coords(coords, dim=2, options=plot_options)
 
 
-def test_plot_coords_3d(ten_taxa_cMChain):
-    coords = tsne_coords_from_mchain(ten_taxa_cMChain[1], dim=3)
-    plot_coords(coords, colors=np.asarray(ten_taxa_cMChain[1].log_data["posterior"]))
+def test_plot_coords_2d_all(ten_taxa_multichain):
+    coords = ten_taxa_multichain.get_mds_coords(target="all", _overwrite=True)
+    plot_options = PlotOptions(
+        colors=np.concatenate(
+            [[i] * len(chain) for i, chain in enumerate(ten_taxa_multichain.MChain_list)]),
+        label=np.concatenate(
+            [[ten_taxa_multichain[i].name] * len(chain)
+             for i, chain in enumerate(ten_taxa_multichain.MChain_list)]),
+        title="TSNE Plot"
+    )
+    plot_coords(coords, dim=2, options=plot_options)
 
-
-def test_plot_coords_cluster_2d(ten_taxa_cMChain):
-    coords = tsne_coords_from_mchain(ten_taxa_cMChain[1], dim=2)
-    plot_coords(coords, colors=ten_taxa_cMChain[1].spectral_clustree(), colorbar=True, centers=["C1", "C2"], scale_centers=3)
-
-
-def test_plot_coords_cluster_3d(ten_taxa_cMChain):
-    coords = tsne_coords_from_mchain(ten_taxa_cMChain[1], dim=3)
-    plot_coords(coords, colors=ten_taxa_cMChain[1].spectral_clustree(), colorbar=True, centers=["C1", "C3"], scale_centers=3)
-
-
-def test_plot_density(ten_taxa_cMChain):
-    coords = tsne_coords_from_mchain(ten_taxa_cMChain[1], dim=2)
-    plot_density_over_coordinates(coords, np.asarray(ten_taxa_cMChain[1].log_data["posterior"]),
-                                  filename=f"{ten_taxa_cMChain.working_dir}/plots")
-
-
-def test_plot_all_chains_tsne(ten_taxa_cMChain):
-    plot_all_chains_tsne(ten_taxa_cMChain)
-    assert True
