@@ -12,6 +12,7 @@ from tetres.judgement.burnin_detection import burn_detector
 from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import _DIST, _MDS_TYPES
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
+from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
 
 
@@ -287,6 +288,8 @@ class MultiChain():
         :param dist_type: Type of tree distance to use (RNNI or RF)
         :return: None
         """
+        # todo the function should accept an input of PlotOptions and only set defaults below
+        #  if they are not already set in the given options
 
         match target:
             case int() as i:
@@ -295,15 +298,19 @@ class MultiChain():
                 if dim != 2:
                     raise ValueError("Currently not supported dimension, only dim=2 accepted.")
 
-                # todo here we will need to add color for the different chains and make sure
-                #  that that works.
-
-                mds_plot_file = os.path.join(self.working_dir, "plots",
-                                             f"{self.name}_{mds_type}-{dist_type}.pdf")
-
                 coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim)
+                options = PlotOptions(
+                    filename=os.path.join(self.working_dir, "plots",
+                                             f"{self.name}_{mds_type}-{dist_type}.pdf"),
+                    colors=np.concatenate(
+                        [[i] * len(chain) for i, chain in enumerate(self.MChain_list)]),
+                    title="TSNE Plot",
+                    scatter_kwargs={"edgecolors": "k", "linewidths": 0.5}
+                )
 
-                plot_coords(coords=coords, filename=mds_plot_file)
+                # todo legend and title of plot....
+                plot_coords(coords=coords, dim=dim, options=options)
+                return None
 
             case _:
                 raise ValueError(f"Invalid target type '{target}'. "

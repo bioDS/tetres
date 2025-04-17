@@ -14,6 +14,7 @@ from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
 from tetres.utils.literals import _DIST, _MDS_TYPES
+from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
 
 
@@ -409,6 +410,8 @@ class Chain:
         :return: None
         """
 
+        # todo the function should take as input the PlotOptions options argument
+        #  then here only set filename if not already given
         if dim != 2:
             raise ValueError("Unsupported dimension for MDS -- only supports dim=2 at the moment.")
 
@@ -418,4 +421,4 @@ class Chain:
         coords = self.get_mds_coords(mds_type=mds_type, dim=dim, dist_type=dist_type)
 
         # todo title and more information to be put into the plot.
-        plot_coords(coords=coords, filename=mds_plot_file)
+        plot_coords(coords=coords, dim=dim, options=PlotOptions(filename=mds_plot_file))
