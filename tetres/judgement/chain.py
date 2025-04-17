@@ -1,6 +1,7 @@
 import os
 from argparse import ArgumentError
-from typing import Literal, get_args
+from typing import get_args
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -13,12 +14,11 @@ from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
-import warnings
+from tetres.visualize.literals import _DIST, _MDS_TYPES
 
 
 # todo this should be moved to the visualize module...
-_MDS_TYPES = Literal["tsne"]
-_DIST = Literal["rnni", "rf"]
+
 
 
 class Chain:
@@ -316,9 +316,11 @@ class Chain:
         return output
 
     def get_mds_coords(self, mds_type: _MDS_TYPES = 'tsne',
-                       dim: int = 2, dist_type: _DIST = 'rnni') -> np.ndarray:
-        # todo add overwrite option...
-        warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.")
+                       dim: int = 2, dist_type: _DIST = 'rnni',
+                       _overwrite: bool = False) -> np.ndarray:
+
+        warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
+                      stacklevel=2)
 
         # todo will need to add more possible parameters, kwargs... beta for spectral
         mds_options = get_args(_MDS_TYPES)
@@ -331,12 +333,11 @@ class Chain:
         mds_coords_filename = os.path.join(self.working_dir, "data",
                                            f"{self.name}_{mds_type}-{dist_type}.npy")
 
-        if not os.path.exists(mds_coords_filename):
+        if not os.path.exists(mds_coords_filename) or _overwrite:
             # need to first calculate the coordinates with the correct function
 
             # todo no really using the mds_type atm, need to implement that
-            coords, kl_divergence = _tsne_coords_from_pwd(self.pwd_matrix(rf=False), dim=dim)
-            # todo write the kl_divergence to some file in data that contains these things...
+            coords = _tsne_coords_from_pwd(self.pwd_matrix(rf=False), dim=dim)
             np.save(file=mds_coords_filename, arr=coords)
         else:
             # have to read the already computed coords

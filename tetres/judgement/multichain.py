@@ -1,5 +1,8 @@
 import os
 import numpy as np
+import warnings
+
+from typing import get_args
 
 from tetres.judgement.chain import Chain
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
@@ -8,6 +11,8 @@ from tetres.judgement import _cladesetcomparator as csc
 from tetres.judgement._discrete_cladesetcomparator import discrete_cladeset_comparator
 from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement.burnin_detection import burn_detector
+from tetres.visualize.literals import _DIST, _MDS_TYPES
+from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 
 
 class MultiChain():
@@ -155,12 +160,14 @@ class MultiChain():
     def psrf_density_trace_plot(self, interval, i=0, j=1, no_smooth=False):
         return grd.density_trace_plot(self, interval, i=i, j=j, no_smooth=no_smooth)
 
-    def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False, tolerance=0.02, smoothing_average="mean"):
+    def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False, tolerance=0.02,
+                                           smoothing_average="mean"):
         return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, tolerance=tolerance,
                                                       smoothing_average=smoothing_average)
 
-    def gelman_rubin_cut(self, i, j, smoothing=1, ess_threshold=200, pseudo_ess_range=100, _overwrite=False,
-                         smoothing_average="mean", _subsampling=False, tolerance=0.02, burnin=0):
+    def gelman_rubin_cut(self, i, j, smoothing=1, ess_threshold=200, pseudo_ess_range=100,
+                         _overwrite=False, smoothing_average="mean", _subsampling=False,
+                         tolerance=0.02, burnin=0):
 
         # sorting to make sense for dm_ij interpretation
         if j < i:
@@ -210,7 +217,9 @@ class MultiChain():
         # return the start and end values
         return cut_start, cut_end
 
-    def detect_burnin(self, i, j, traces=["posterior", "likelihood", "prior"]):
+    def detect_burnin(self, i, j, traces=None):
+        if traces is None:
+            traces = ["posterior", "likelihood", "prior"]
         return burn_detector(self, chain_i=i, chain_j=j, traces=traces)
 
     def __getitem__(self, index):
@@ -235,3 +244,37 @@ class MultiChain():
         return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot,
                                             burnin=burnin,
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
+
+    def get_mds_coords(self, target = "self" , mds_type: _MDS_TYPES = 'tsne',
+                       dim: int = 2, dist_type: _DIST = 'rnni',
+                       _overwrite: bool = False) -> np.ndarray:
+        warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
+                      stacklevel=2)
+
+        # todo will need to add more possible parameters, kwargs... beta for spectral
+        mds_options = get_args(_MDS_TYPES)
+        if mds_type not in mds_options:
+            raise ValueError(f"Invalid mds_type '{mds_type}'. Choose from: {', '.join(mds_options)}")
+        dist_options = get_args(_DIST)
+        if dist_type not in dist_options:
+            raise ValueError(f"Invalid mds_type '{dist_type}'. Choose from: {', '.join(dist_options)}")
+
+        if isinstance(target, int):
+            return self[target].get_mds_coords(mds_type=mds_type, dim=dim,
+                                               dist_type=dist_type, _overwrite=_overwrite)
+        elif target == "all":
+            mds_coords_filename = os.path.join(self.working_dir, "data",
+                                               f"{self.name}_{mds_type}-{dist_type}.npy")
+
+            if not os.path.exists(mds_coords_filename) or _overwrite:
+                # need to first calculate the coordinates with the correct function
+
+                # todo no really using the mds_type atm, need to implement that
+                coords = _tsne_coords_from_pwd(self.pwd_matrix_all(rf=False), dim=dim)
+                np.save(file=mds_coords_filename, arr=coords)
+            else:
+                # have to read the already computed coords
+                coords = np.load(file=mds_coords_filename)
+            return coords
+        raise ValueError(f"Invalid target type '{target}'. "
+                         f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
