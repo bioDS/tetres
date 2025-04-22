@@ -10,7 +10,7 @@ from tetres.judgement._discrete_cladesetcomparator import discrete_cladeset_comp
 from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement.burnin_detection import burn_detector
 from tetres.utils.decorators import validate_literal_args
-from tetres.utils.literals import _DIST, _MDS_TYPES
+from tetres.utils.literals import _DIST, _MDS_TYPES, _CLUSTERING_TYPE
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
@@ -22,6 +22,14 @@ class MultiChain():
         if self.m_chains < 2 or self.m_chains < 0:
             raise ValueError("Wrong usage of MultiChain")
         self.name = name
+
+        # todo was unreachable at the end of the if statements...
+        # if not all(
+        #         [self.MChain_list[0].trees.map == self.MChain_list[c].trees.map
+        #          for c in range(1, self.m_chains)]):
+        #     raise ValueError(
+        #         "The taxon maps in the tree files are not the same,"
+        #         " this can lead to problems! Fix before continue!")
 
         # if type(trees) != type(log_files):
         #     raise ValueError("trees and logfiles should be given with the same data type!")
@@ -41,7 +49,8 @@ class MultiChain():
             self.log_files = log_files.copy()
             for i in range(self.m_chains):
                 self.MChain_list.append(Chain(trees=trees[i], log_file=log_files[i],
-                                              working_dir=working_dir, name=f"{self.name}_{i}"))
+                                              working_dir=working_dir,
+                                              name=f"{self.name}_chain{i}"))
 
         elif type(trees) is str:
             if not os.path.exists(f"{self.working_dir}/{trees}"):
@@ -49,16 +58,15 @@ class MultiChain():
             if not os.path.exists(f"{self.working_dir}/{log_files}"):
                 raise FileNotFoundError(f"Given trees file {self.working_dir}/{log_files} does not exist!")
             self.MChain_list.append(
-                Chain(trees=trees, log_file=log_files, working_dir=working_dir, name=f"{self.name}_{0}"))
+                Chain(trees=trees, log_file=log_files, working_dir=working_dir,
+                      name=f"{self.name}_chain{0}"))
             for i in range(1, self.m_chains):
                 self.MChain_list.append(
                     Chain(trees=f"chain{i}{trees}", log_file=f"chain{i}{log_files}",
-                          working_dir=working_dir, name=f"{self.name}_{i}"))
+                          working_dir=working_dir,
+                          name=f"{self.name}_chain{i}"))
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
-        if not all([self.MChain_list[0].trees.map == self.MChain_list[c].trees.map for c in range(1, self.m_chains)]):
-            raise ValueError(
-                "The taxon maps in the tree files are not the same, this can lead to problems! Fix before continue!")
 
     def pwd_matrix(self, index1, index2=None, csv: bool = False, rf: bool = False):
         if type(index1) is not int:
@@ -122,11 +130,18 @@ class MultiChain():
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
 
-    def extract_cutoff(self, i, j, ess_threshold=200, smoothing=1, tolerance=0.02, smoothing_average="mean",
+    def extract_cutoff(self, i, j, ess_threshold=200, smoothing=1,
+                       tolerance=0.02, smoothing_average="mean",
                        subsampling=False, _overwrite=False, burnin=0):
         # The tree and log file strings for storing the cutoff
-        tree_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{f'_burnin-{burnin}' if burnin != 0 else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}.trees"
-        log_file = f"{self.working_dir}/cutoff_files/{self[i].name}_{self[j].name}{f'_burnin-{burnin}' if burnin != 0 else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}{f'_subsample-{subsampling}' if subsampling else ''}_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}.log"
+        _base_file = (f"{self.working_dir}/cutoff_files/"
+                      f"{self[i].name}_{self[j].name}"
+                      f"{f'_burnin-{burnin}' if burnin != 0 else ''}"
+                      f"{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}"
+                      f"{f'_subsample-{subsampling}' if subsampling else ''}"
+                      f"_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}")
+        tree_file = f"{_base_file}.trees"
+        log_file = f"{_base_file}.log"
         if os.path.exists(tree_file) and os.path.exists(log_file) and not _overwrite:
             # Files have already been extracted, nothing will be done
             return 0
@@ -173,18 +188,25 @@ class MultiChain():
         if j < i:
             i, j = j, i
 
+        cutoff_file_name = (f"{self.working_dir}/"
+                            f"data/"
+                            f"{self.name}_{i}_{j}_"
+                            f"gelman_rubin_cutoff"
+                            f"{f'_burnin_{burnin}' if burnin != 0 else ''}"
+                            f"{f'_subsampling-{_subsampling}' if _subsampling else ''}"
+                            f"{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}"
+                            f"_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}")
+
         # First if overwrite delete previous computation file
         if _overwrite:
             try:
-                os.remove(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}")
+                os.remove(cutoff_file_name)
             except FileNotFoundError:
                 pass
         # IF no overwrite and the file exists simply read the values from the file
-        if os.path.exists(
-                f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}"):
+        if os.path.exists(cutoff_file_name):
             with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}",
+                    cutoff_file_name,
                     "r") as file:
                 cut_start = int(file.readline())
                 cut_end = int(file.readline())
@@ -201,14 +223,13 @@ class MultiChain():
                                                   burnin=burnin)
         # Write the cutoff boundaries to a file, if it already exists skip this part
         if _subsampling:
-            # If subsampling the start and end need to be adapted, each subsampling is dividing the chain length by 2
+            # If subsampling the start and end need to be adapted,
+            # each subsampling is dividing the chain length by 2
             for _ in range(_subsampling):
                 cut_start, cut_end = cut_start * 2, cut_end * 2
         try:
             # Write the cut start and end to a file, if it exists raises an Error
-            with open(
-                    f"{self.working_dir}/data/{self.name}_{i}_{j}_gelman_rubin_cutoff{f'_burnin_{burnin}' if burnin != 0 else ''}{f'_subsampling-{_subsampling}' if _subsampling else ''}{'' if ess_threshold == 0 else f'_ess-{ess_threshold}'}_smoothing-{smoothing}_{smoothing_average}_boundary-{tolerance}",
-                    "x") as f:
+            with open(cutoff_file_name, "x") as f:
                 f.write(f"{cut_start}\n{cut_end}")
         except FileExistsError:
             raise Exception(
@@ -284,7 +305,7 @@ class MultiChain():
 
         :param target: Either 'all' or index for which chain to plot
         :param mds_type: Type of MDS coords to plot
-        :param dim: Dimention to plot to (only dim=2 supported atm)
+        :param dim: Dimension to plot to (only dim=2 supported atm)
         :param dist_type: Type of tree distance to use (RNNI or RF)
         :return: None
         """
@@ -305,7 +326,7 @@ class MultiChain():
                     colors=np.concatenate(
                         [[i] * len(chain) for i, chain in enumerate(self.MChain_list)]),
                     label=np.concatenate(
-                        [[self[i].name] * len(chain) for i, chain in enumerate(self.MChain_list)]),
+                        [[chain.name] * len(chain) for chain in self.MChain_list]),
                     title="TSNE Plot"
                 )
 
@@ -316,3 +337,19 @@ class MultiChain():
             case _:
                 raise ValueError(f"Invalid target type '{target}'. "
                                  f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
+
+    @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
+    def get_clustree(self, target="all", k: int = 1,
+                     cluster_type: _CLUSTERING_TYPE = "spectral",
+                     dist_type: _DIST = "rnni",
+                     _overwrite: bool = False):
+        match target:
+            case int() as i:
+                return self[i].get_clustree(k=k,
+                                            cluster_type=cluster_type,
+                                            dist_type=dist_type,
+                                            _overwrite=_overwrite)
+            case "all":
+                raise NotImplementedError("Currently not implemented but WIP")
+            case _:
+                raise ValueError(f"Invalid target type '{target}'.")

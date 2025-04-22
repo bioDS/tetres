@@ -8,7 +8,7 @@ from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
 from tetres.utils.decorators import validate_literal_args
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
-from tetres.clustree.spectral_clustree import _spectral_clustree
+from tetres.clustree.spectral_clustree import _spectral_clustree, spectral_clustree_dm
 from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
@@ -195,86 +195,60 @@ class Chain:
                 cur_treeset.write_nexus(
                     file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
 
-    @validate_literal_args(clustering_type=_CLUSTERING_TYPE)
-    def get_clustering(self, k,
-                       cluster_type: _CLUSTERING_TYPE = "spectral",
-                       _overwrite: bool = False,
-                       beta: int = 1):
+    @validate_literal_args(clustering_type=_CLUSTERING_TYPE, dist_type=_DIST)
+    def get_clustree(self, k,
+                     cluster_type: _CLUSTERING_TYPE = "spectral",
+                     dist_type: _DIST = "rnni",
+                     _overwrite: bool = False,
+                     **kwargs):
 
         if k == 1:
             return np.zeros(len(self.trees), dtype=int)
         if k > 1:
-            cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
-            # todo should be a list of cluster_type [sc, ...] Future feature
-            # todo beta should be part of kwargs as only needed for
-            #  similarity pwd_matrix calculation for spectral clustering
-            _cluster_file_name = (f"{os.path.join(self.working_dir, 'clustering')}"
-                                  f"/{cluster_type}-{k}-{self.name}")
-            if _overwrite:
-                try:
-                    os.remove(f"{_cluster_file_name}.npy")
-                except FileNotFoundError:
-                    pass
+            match cluster_type:
+                case "spectral":
+                    beta = kwargs.get("beta", 1)
+                    if not isinstance(beta, (float, int)):
+                        raise TypeError("beta must be a float or int!")
+                    _cluster_file_id = (f"{cluster_type}"
+                                        f"{'' if float(beta) == 1.0 else f'-b{beta:.4g}'}")
 
-            if os.path.exists(
-                    f"{_cluster_file_name}.npy"):
-                clustering = np.load(f"{_cluster_file_name}.npy")
-            else:
-                if cluster_type == f"sc{'' if beta == 1 else f'-b{beta}'}":
-                    #
-                    clustering = _spectral_clustree(self.similarity_matrix(beta=beta), n_clus=k)
-                    np.save(file=_cluster_file_name, arr=clustering)
-                else:
+                    _cluster_file_name = (f"{os.path.join(self.working_dir, 'data')}/"
+                                          f"{self.name}_{_cluster_file_id}"
+                                          f"-C{k}"
+                                          f"-{dist_type}")
+
+                    # WIP: this will be repetitive with more methods of clustering, put to fnct
+                    if _overwrite:
+                        try:
+                            os.remove(f"{_cluster_file_name}.npy")
+                        except FileNotFoundError:
+                            pass
+
+                    if os.path.exists(
+                            f"{_cluster_file_name}.npy"):
+                        clustering = np.load(f"{_cluster_file_name}.npy")
+                    else:
+                        # todo here we need to pass dist_type on to pwd_matrix
+                        warnings.warn("Disttype is currently not implemented! WIP",
+                                      stacklevel=3)
+                        clustering = spectral_clustree_dm(self.pwd_matrix())
+                        np.save(file=_cluster_file_name, arr=clustering)
+
+                    return clustering
+
+                case _:
                     raise NotImplementedError(f"Unrecognized cluster type...{cluster_type}!")
-            return clustering
 
         raise ValueError(f"Value {k} not supported!")
-
-    def get_cluster_centroids(self, k, beta=1, _overwrite=False, _best_of_range=10):
-        # todo beta as kwargs parameter in the future
-        cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
-
-        output = []
-        for cur_cluster in range(k):
-            cur_centroid_path = os.path.join(self.working_dir, "clustering",
-                                             f"{cluster_type}-{k}{f'-k{cur_cluster + 1}' if k != 1 else ''}-{self.name}.tree")
-            if _overwrite:
-                try:
-                    os.remove(cur_centroid_path)
-                except FileNotFoundError:
-                    pass
-
-            # Creating a TimeTreeSet for the k-th cluster
-            cur_treeset = TimeTreeSet()
-            cur_treeset.map = self.trees.map
-            cur_treeset.trees = [self.trees[index] for index, x in
-                                 enumerate(self.get_clustering(k=cur_cluster + 1)) if
-                                 x == cur_cluster]
-            if len(cur_treeset) == 0:
-                output.append(None)
-            else:
-                if os.path.exists(cur_centroid_path):
-                    # Assumes that the map is always the same
-                    output.append(TimeTreeSet(file=cur_centroid_path)[0])
-                else:
-                    centroid = Centroid()
-                    cen, sos = centroid.compute_centroid(cur_treeset)
-                    for _ in range(_best_of_range):
-                        new_cen, new_sos = centroid.compute_centroid(cur_treeset)
-                        if new_sos < sos:
-                            cen, sos = new_cen, new_sos
-                    cen.write_nexus(cur_treeset.map,
-                                    cur_centroid_path,
-                                    name=f"Cen-{k}-k{cur_cluster}-{self.name}")
-                    output.append(cen)
-        return output
 
     @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
     def get_mds_coords(self, mds_type: _MDS_TYPES = 'tsne',
                        dim: int = 2, dist_type: _DIST = 'rnni',
                        _overwrite: bool = False) -> np.ndarray:
 
-        warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
+        warnings.warn("Currently not fully implemented.. "
+                      "Will only compute RNNI TSNE 2dim MDS.",
                       stacklevel=3)
 
         # todo will need to add more possible parameters, kwargs... beta for spectral
@@ -292,27 +266,6 @@ class Chain:
             # have to read the already computed coords
             coords = np.load(file=mds_coords_filename)
         return coords
-
-    def similarity_matrix(self, beta=1):
-        if not os.path.exists(
-                f"{self.working_dir}/data/{self.name}_"
-                f"{'' if beta == 1 else f'{beta}_'}similarity.npy"):
-            matrix = self.pwd_matrix()
-            if np.allclose(matrix, np.triu(matrix)):
-                # pwd_matrix is upper triangular,
-                # has to be changed to a full pwd_matrix for this implementation
-                matrix += np.transpose(matrix)
-            similarity = np.exp(-beta * matrix / matrix.std())
-            np.save(
-                file=f"{self.working_dir}/data/{self.name}_"
-                     f"{'' if beta == 1 else f'{beta}_'}similarity.npy",
-                arr=similarity)
-            return similarity
-
-        # path exists so we can load the sim matrix
-        return np.load(
-                file=f"{self.working_dir}/data/{self.name}_"
-                     f"{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
     def evaluate_clustering(self, kind="bic", _overwrite_clustering=False, add_random=True,
                             local=False):
