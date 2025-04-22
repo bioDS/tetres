@@ -227,22 +227,6 @@ class Chain:
                 best_bic = cur_bic
         return best_cluster
 
-    def get_best_silhouette_cluster(self, max_cluster=5, local_norm=False):
-        best_cluster = 0
-        best_sil = None
-        # todo rework with new funcitons
-        for cur_cluster in range(2, max_cluster + 1):
-            cur_s = silhouette_score(matrix=self.pwd_matrix(),
-                                     k=cur_cluster,
-                                     local_norm=local_norm,
-                                     working_folder=self.working_dir,
-                                     random_shuffle=False,
-                                     chain_id=self.name)
-
-            if best_sil is None or cur_s < best_sil:
-                best_cluster = cur_cluster + 1
-                best_sil = cur_s
-        return best_cluster
 
     @validate_literal_args(clustering_type=_CLUSTERING_TYPE)
     def get_clustering(self, k,

@@ -254,11 +254,6 @@ def test_get_best_bic_cluster(ten_taxa_multichain):
         assert best_bic == (1 if local else 2), "Get best bic Chain function failed"
 
 
-def test_get_best_silhouette_cluster(ten_taxa_multichain):
-    best_sil = ten_taxa_multichain[0].get_best_silhouette_cluster()
-    assert best_sil == 4, "Get best silhouette cluster evaluation failed"
-
-
 def test_similarity_matrix(ten_taxa_multichain):
     for beta in [1, 2, 0.5]:
         simd = ten_taxa_multichain[0].similarity_matrix(beta=beta)
