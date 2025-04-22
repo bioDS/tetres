@@ -248,12 +248,6 @@ def test_Chain_split_trees_from_clustering(ten_taxa_multichain):
     assert all([os.path.exists(f"{ten_taxa_multichain.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{ten_taxa_multichain[0].name}.trees") for k_cluster in range(k)]), "Split trees from clustering failed!"
 
 
-def test_get_best_bic_cluster(ten_taxa_multichain):
-    for local in [True, False]:
-        best_bic = ten_taxa_multichain[0].get_best_bic_cluster(local=local)
-        assert best_bic == (1 if local else 2), "Get best bic Chain function failed"
-
-
 def test_similarity_matrix(ten_taxa_multichain):
     for beta in [1, 2, 0.5]:
         simd = ten_taxa_multichain[0].similarity_matrix(beta=beta)

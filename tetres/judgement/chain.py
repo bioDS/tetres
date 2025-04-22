@@ -195,39 +195,6 @@ class Chain:
                 cur_treeset.write_nexus(
                     file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
 
-    def get_best_bic_cluster(self, max_cluster=5, local=False):
-        # todo add overwrite option and saving this to a file so that it can be read
-        #  maybe just save all the bic scores to a file and then create the plot based on that
-        best_cluster = 0
-        best_bic = None
-        prev_mnd = None
-        # todo soon to be arguments ?
-        beta = 1
-
-        local_norm = False
-        if local:
-            local_norm = np.max(self.pwd_matrix())
-
-        for cur_cluster in range(max_cluster):
-
-            summaries = self.get_cluster_centroids(k=cur_cluster + 1, beta=beta)
-            clustering = self.get_clustering(k=cur_cluster + 1)
-
-            cur_bic, mnd_cluster = bic(treeset=self.trees,
-                                       clustering=clustering,
-                                       summaries=summaries,
-                                       local_norm=local_norm)
-
-            if prev_mnd is not None and sum(mnd_cluster.values()) > prev_mnd:
-                warnings.warn(f"MND Constraint reached at {cur_cluster + 1} clustering")
-                return best_cluster
-            prev_mnd = sum(mnd_cluster.values())
-            if best_bic is None or cur_bic < best_bic:
-                best_cluster = cur_cluster + 1
-                best_bic = cur_bic
-        return best_cluster
-
-
     @validate_literal_args(clustering_type=_CLUSTERING_TYPE)
     def get_clustering(self, k,
                        cluster_type: _CLUSTERING_TYPE = "spectral",
