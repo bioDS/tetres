@@ -312,7 +312,7 @@ class Chain:
                                             f"{'local_' if local_norm else ''}{self.name}.pdf"))
 
     def plot_mds(self, mds_type: _MDS_TYPES = 'tsne', dim: int = 2,
-                 dist_type: _DIST = 'rnni') -> None:
+                 dist_type: _DIST = 'rnni', plot_options: PlotOptions = None) -> None:
         """
         (WIP) Plotting simple MDS of a chain without any clustering.
 
@@ -322,17 +322,34 @@ class Chain:
         :return: None
         """
 
-        # todo the function should take as input the PlotOptions options argument
-        #  then here only set filename if not already given
         if dim != 2:
             raise ValueError("Unsupported dimension for MDS -- only supports dim=2 at the moment.")
 
         coords = self.get_mds_coords(mds_type=mds_type, dim=dim)
-        options = PlotOptions(
-            filename=os.path.join(self.working_dir, "plots",
-                                  f"{self.name}_{mds_type}-{dist_type}.pdf"),
-            colors=np.ones(len(self), dtype=int),
-            label=np.full(len(self), self.name),
-            title="TSNE Plot"
-        )
-        plot_coords(coords=coords, dim=dim, options=options)
+        if plot_options is None:
+            plot_options = PlotOptions()
+        self._fill_plot_defaults(plot_options, mds_type=mds_type, dist_type=dist_type)
+
+        plot_coords(coords=coords, dim=dim, options=plot_options)
+
+    def _fill_plot_defaults(self,
+                            plot_options: PlotOptions,
+                            mds_type: _MDS_TYPES,
+                            dist_type: _DIST):
+        """
+        Filling default plotting options using plot_options.
+
+        :param plot_options: The plot options to fill
+        :param mds_type: Type of MDS
+        :param dist_type: Distance type
+        :return: None
+        """
+        if not plot_options.was_explicit("filename"):
+            plot_options.filename = os.path.join(self.working_dir, "plots",
+                                                 f"{self.name}_{mds_type}-{dist_type}.pdf")
+        if not plot_options.was_explicit("colors"):
+            plot_options.colors = np.ones(len(self), dtype=int)
+        if not plot_options.was_explicit("label"):
+            plot_options.label = np.full(len(self), self.name)
+        if not plot_options.was_explicit("title"):
+            plot_options.title = f"{self.name} - {mds_type}-{dist_type} MDS Plot"
