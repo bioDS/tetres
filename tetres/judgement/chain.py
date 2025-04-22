@@ -350,6 +350,6 @@ class Chain:
         if not plot_options.was_explicit("colors"):
             plot_options.colors = np.ones(len(self), dtype=int)
         if not plot_options.was_explicit("label"):
-            plot_options.label = np.full(len(self), self.name)
+            plot_options.label = self.name
         if not plot_options.was_explicit("title"):
             plot_options.title = f"{self.name} - {mds_type}-{dist_type} MDS Plot"
