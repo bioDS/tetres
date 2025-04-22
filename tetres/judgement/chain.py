@@ -13,7 +13,7 @@ from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.summary.centroid import Centroid
-from tetres.utils.literals import _DIST, _MDS_TYPES
+from tetres.utils.literals import _DIST, _MDS_TYPES, _CLUSTERING_TYPE
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
 
@@ -24,16 +24,16 @@ from tetres.visualize.plot_coords import plot_coords
 
 class Chain:
     def __init__(self, working_dir, trees, log_file=None, summary=None, name: str = "MC"):
-        if type(name) is str:
+        if isinstance(name, str):
             self.name = name
         else:
             raise ValueError("Unrecognized type for name!")
         # Setting the Working directory
-        if type(working_dir) is str:
+        if isinstance(working_dir, str):
             if os.path.isdir(working_dir):
                 self.working_dir = working_dir
             else:
-                if type(working_dir) is str:
+                if isinstance(working_dir, str):
                     raise NotADirectoryError(working_dir)
                 else:
                     raise ValueError(working_dir)
@@ -47,9 +47,9 @@ class Chain:
                 pass
 
         # Setting trees
-        if type(trees) is TimeTreeSet:
+        if isinstance(trees, TimeTreeSet):
             self.trees = trees
-        elif type(trees) is str:
+        elif isinstance(trees, str):
             self.trees = TimeTreeSet(os.path.join(self.working_dir, trees))
         else:
             raise ValueError(f"{type(trees)} of trees not recognized!")
@@ -67,16 +67,16 @@ class Chain:
             # assuming that the first iteration 0 tree and the last have been logged in the logfile
             self.tree_sampling_interval = int(self.chain_length / (len(self.trees) - 1))
         else:
-            if type(log_file) is str:
+            if isinstance(log_file, str):
                 raise FileNotFoundError(log_file)
             elif log_file is not None:
                 raise ValueError(log_file)
 
         if summary is not None:
             # Setting the summary tree
-            if type(summary) is TimeTreeSet:
+            if isinstance(summary, TimeTreeSet):
                 self.summary = summary
-            elif type(summary) is str:
+            elif isinstance(summary, str):
                 if os.path.exists(f"{self.working_dir}/{summary}"):
                     self.summary = TimeTreeSet(f"{self.working_dir}/{summary}")
                 else:
@@ -143,33 +143,6 @@ class Chain:
         else:
             raise ValueError("Not (yet) implemented!")
 
-    def split_trees_from_clustering(self, k, _overwrite=False):
-
-        # todo change to the get_clustering funciton and also include the type of clustering that is wanted here
-        if os.path.exists(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy"):
-
-            clustering = np.load(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy")
-        else:
-            raise ValueError("Clustering has not yet been computed!")
-
-        for k_cluster in range(k):
-            cur_treeset = TimeTreeSet()
-            cur_treeset.map = self.trees.map
-            cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if
-                                 x == k_cluster]
-            if len(cur_treeset) != 0:
-                if _overwrite:
-                    try:
-                        os.remove(
-                            f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
-                    except FileNotFoundError:
-                        pass
-                if os.path.exists(
-                        f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees"):
-                    raise ValueError("Tree file already exists!")
-                cur_treeset.write_nexus(
-                    file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
-
     def get_pseudo_ess(self, **kwargs):
         lower_i = 0
         if "lower_i" in kwargs:
@@ -197,6 +170,34 @@ class Chain:
             no_zero = kwargs["no_zero"]
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                           dist=dist, sample_range=sample_range, no_zero=no_zero)
+
+    def split_trees_from_clustering(self, k, _overwrite=False):
+
+        # todo change to the get_clustering funciton
+        #  and also include the type of clustering that is wanted here
+        if os.path.exists(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy"):
+
+            clustering = np.load(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy")
+        else:
+            raise ValueError("Clustering has not yet been computed!")
+
+        for k_cluster in range(k):
+            cur_treeset = TimeTreeSet()
+            cur_treeset.map = self.trees.map
+            cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if
+                                 x == k_cluster]
+            if len(cur_treeset) != 0:
+                if _overwrite:
+                    try:
+                        os.remove(
+                            f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
+                    except FileNotFoundError:
+                        pass
+                if os.path.exists(
+                        f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees"):
+                    raise ValueError("Tree file already exists!")
+                cur_treeset.write_nexus(
+                    file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
 
     def get_best_bic_cluster(self, max_cluster=5, local=False):
         # todo add overwrite option and saving this to a file so that it can be read
@@ -247,15 +248,18 @@ class Chain:
                 best_sil = cur_s
         return best_cluster
 
-    def get_clustering(self, k, _overwrite=False, beta=1):
-
-        cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
-        # todo should be a list of cluster_type [sc, ...] Future feature
-        # todo beta should be part of kwargs as only needed for similarity matrix calculation for spectral clustering
+    @validate_literal_args(clustering_type=_CLUSTERING_TYPE)
+    def get_clustering(self, k,
+                       cluster_type: _CLUSTERING_TYPE = "spectral",
+                       _overwrite: bool = False,
+                       beta:int = 1):
 
         if k == 1:
             return np.zeros(len(self.trees), dtype=int)
         elif k > 1:
+            cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
+            # todo should be a list of cluster_type [sc, ...] Future feature
+            # todo beta should be part of kwargs as only needed for similarity pwd_matrix calculation for spectral clustering
             if _overwrite:
                 try:
                     os.remove(
@@ -346,8 +350,8 @@ class Chain:
                 f"{'' if beta == 1 else f'{beta}_'}similarity.npy"):
             matrix = self.pwd_matrix()
             if np.allclose(matrix, np.triu(matrix)):
-                # matrix is upper triangular,
-                # has to be changed to a full matrix for this implementation
+                # pwd_matrix is upper triangular,
+                # has to be changed to a full pwd_matrix for this implementation
                 matrix += np.transpose(matrix)
             similarity = np.exp(-beta * matrix / matrix.std())
             np.save(
@@ -415,10 +419,12 @@ class Chain:
         if dim != 2:
             raise ValueError("Unsupported dimension for MDS -- only supports dim=2 at the moment.")
 
-        mds_plot_file = os.path.join(self.working_dir, "plots", f"{self.name}_{mds_type}-"
-                                                                f"{dist_type}.pdf")
-
-        coords = self.get_mds_coords(mds_type=mds_type, dim=dim, dist_type=dist_type)
-
-        # todo title and more information to be put into the plot.
-        plot_coords(coords=coords, dim=dim, options=PlotOptions(filename=mds_plot_file))
+        coords = self.get_mds_coords(mds_type=mds_type, dim=dim)
+        options = PlotOptions(
+            filename=os.path.join(self.working_dir, "plots",
+                                  f"{self.name}_{mds_type}-{dist_type}.pdf"),
+            colors=np.ones(len(self), dtype=int),
+            label=np.full(len(self), self.name),
+            title="TSNE Plot"
+        )
+        plot_coords(coords=coords, dim=dim, options=options)
