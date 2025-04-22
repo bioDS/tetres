@@ -8,11 +8,10 @@ from tetres.trees.time_trees import TimeTreeSet
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
 from tetres.utils.decorators import validate_literal_args
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
-from tetres.clustree.spectral_clustree import _spectral_clustree, spectral_clustree_dm
+from tetres.clustree.spectral_clustree import spectral_clustree_dm
 from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
-from tetres.summary.centroid import Centroid
 from tetres.utils.literals import _DIST, _MDS_TYPES, _CLUSTERING_TYPE
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
@@ -202,6 +201,11 @@ class Chain:
                      _overwrite: bool = False,
                      **kwargs):
 
+        if not isinstance(k, int):
+            raise TypeError("k must be an integer!")
+        if k < 1:
+            raise ValueError(f"Value {k} not supported!")
+
         if k == 1:
             return np.zeros(len(self.trees), dtype=int)
         if k > 1:
@@ -239,8 +243,6 @@ class Chain:
 
                 case _:
                     raise NotImplementedError(f"Unrecognized cluster type...{cluster_type}!")
-
-        raise ValueError(f"Value {k} not supported!")
 
     @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
     def get_mds_coords(self, mds_type: _MDS_TYPES = 'tsne',

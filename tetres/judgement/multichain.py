@@ -2,6 +2,7 @@ import os
 import numpy as np
 import warnings
 
+from tetres.clustree.spectral_clustree import spectral_clustree_dm
 from tetres.judgement.chain import Chain
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
 from tetres.judgement import _gelman_rubin_diag as grd
@@ -69,6 +70,8 @@ class MultiChain():
             raise ValueError("Unrecognized argument types of trees and log_files!")
 
     def pwd_matrix(self, index1, index2=None, csv: bool = False, rf: bool = False):
+        # todo make this use a target and return the "all" matrix if requested to avoid duplicate
+        #  name
         if type(index1) is not int:
             raise ValueError("Unrecognized index type!")
         if index1 >= self.m_chains:
@@ -342,14 +345,62 @@ class MultiChain():
     def get_clustree(self, target="all", k: int = 1,
                      cluster_type: _CLUSTERING_TYPE = "spectral",
                      dist_type: _DIST = "rnni",
-                     _overwrite: bool = False):
+                     _overwrite: bool = False,
+                     **kwargs):
+
+        if not isinstance(k, int):
+            raise TypeError("k must be an integer!")
+        if k < 1:
+            raise ValueError(f"Value {k} not supported!")
+
         match target:
             case int() as i:
                 return self[i].get_clustree(k=k,
                                             cluster_type=cluster_type,
                                             dist_type=dist_type,
-                                            _overwrite=_overwrite)
+                                            _overwrite=_overwrite,
+                                            **kwargs)
             case "all":
-                raise NotImplementedError("Currently not implemented but WIP")
+                if k == 1:
+                    total_len = sum(len(i) for i in self.MChain_list)
+                    return np.zeros(total_len, dtype=int)
+                if k > 1:
+                    match cluster_type:
+                        case "spectral":
+                            beta = kwargs.get("beta", 1)
+                            if not isinstance(beta, (float, int)):
+                                raise TypeError("beta must be a float or int!")
+                            _cluster_file_id = (f"{cluster_type}"
+                                                f"{'' if float(beta) == 1.0 else f'-b{beta:.4g}'}")
+
+                            _cluster_file_name = (f"{os.path.join(self.working_dir, 'data')}/"
+                                                  f"{self.name}_{_cluster_file_id}"
+                                                  f"-C{k}"
+                                                  f"-{dist_type}")
+
+                            # WIP: this will be repetitive with more methods of clustering
+                            #  --> put to fnct
+                            if _overwrite:
+                                try:
+                                    os.remove(f"{_cluster_file_name}.npy")
+                                except FileNotFoundError:
+                                    pass
+
+                            if os.path.exists(
+                                    f"{_cluster_file_name}.npy"):
+                                clustering = np.load(f"{_cluster_file_name}.npy")
+                            else:
+                                # todo here we need to pass dist_type on to pwd_matrix
+                                warnings.warn("Dist_type is currently not implemented! WIP",
+                                              stacklevel=3)
+                                clustering = spectral_clustree_dm(self.pwd_matrix_all())
+                                np.save(file=_cluster_file_name, arr=clustering)
+
+                            return clustering
+
+                        case _:
+                            raise NotImplementedError(
+                                f"Cluster Type {cluster_type} not implemented.")
+
             case _:
                 raise ValueError(f"Invalid target type '{target}'.")
