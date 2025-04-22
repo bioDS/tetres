@@ -55,9 +55,11 @@ class MultiChain():
 
         elif type(trees) is str:
             if not os.path.exists(f"{self.working_dir}/{trees}"):
-                raise FileNotFoundError(f"Given trees file {self.working_dir}/{trees} does not exist!")
+                raise FileNotFoundError(
+                    f"Given trees file {self.working_dir}/{trees} does not exist!")
             if not os.path.exists(f"{self.working_dir}/{log_files}"):
-                raise FileNotFoundError(f"Given trees file {self.working_dir}/{log_files} does not exist!")
+                raise FileNotFoundError(
+                    f"Given trees file {self.working_dir}/{log_files} does not exist!")
             self.MChain_list.append(
                 Chain(trees=trees, log_file=log_files, working_dir=working_dir,
                       name=f"{self.name}_chain{0}"))
@@ -78,27 +80,31 @@ class MultiChain():
             raise IndexError("Given Index out of range!")
 
         if index2 is None:
-            return self.MChain_list[index1].pwd_matrix(name=self.MChain_list[index1].name, csv=csv, rf=rf)
+            return self.MChain_list[index1].pwd_matrix(name=self.MChain_list[index1].name, csv=csv,
+                                                       rf=rf)
         else:
             if type(index2) is not int:
                 raise ValueError("Unrecognized index type!")
             if index1 == index2:
-                raise ValueError("Indeces are equal, only call with one index for pairwise distances of one set!")
+                raise ValueError(
+                    "Indeces are equal, only call with one index for pairwise distances of one set!")
             if index2 >= self.m_chains:
                 raise IndexError("Given Index out of range!")
             if index2 < index1:
                 index1, index2 = index2, index1
             if not os.path.exists(
                     f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
-                dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees, self.MChain_list[index2].trees, rf=rf)
+                dm = calc_pw_distances_two_sets(self.MChain_list[index1].trees,
+                                                self.MChain_list[index2].trees, rf=rf)
                 if csv:
                     np.savetxt(
                         fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz",
                         X=dm, delimiter=',',
                         fmt='%i')
                 else:
-                    np.save(file=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy",
-                            arr=dm)
+                    np.save(
+                        file=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy",
+                        arr=dm)
                 return dm
             else:
                 if csv:
@@ -106,7 +112,8 @@ class MultiChain():
                         fname=f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.csv.gz",
                         delimiter=',', dtype=int)
                 else:
-                    return np.load(f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy")
+                    return np.load(
+                        f"{self.working_dir}/data/{self.name}_{index1}_{index2}{'_rf' if rf else ''}.npy")
 
     def pwd_matrix_all(self, rf: bool = False):
         if not os.path.exists(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy"):
@@ -117,18 +124,22 @@ class MultiChain():
                     # print(i, j)
                     if i < j:
                         cur_row = np.concatenate((cur_row, self.pwd_matrix(i, j, rf=rf)),
-                                                 axis=1) if cur_row.size else self.pwd_matrix(i, j, rf=rf)
+                                                 axis=1) if cur_row.size else self.pwd_matrix(i, j,
+                                                                                              rf=rf)
                     elif i > j:
-                        cur_row = np.concatenate((cur_row, np.zeros((len(self[i].trees), len(self[j].trees)))),
-                                                 axis=1) if cur_row.size else np.zeros(
+                        cur_row = np.concatenate(
+                            (cur_row, np.zeros((len(self[i].trees), len(self[j].trees)))),
+                            axis=1) if cur_row.size else np.zeros(
                             (len(self[i].trees), len(self[j].trees)))
                     elif i == j:
                         cur_row = np.concatenate((cur_row, self.pwd_matrix(i, rf=rf)),
-                                                 axis=1) if cur_row.size else self.pwd_matrix(i, rf=rf)
+                                                 axis=1) if cur_row.size else self.pwd_matrix(i,
+                                                                                              rf=rf)
                     # print(cur_row.shape)
                 combined_matrix = np.concatenate((combined_matrix, cur_row),
                                                  axis=0) if combined_matrix.size else cur_row
-            np.save(file=f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy", arr=combined_matrix)
+            np.save(file=f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy",
+                    arr=combined_matrix)
             return combined_matrix
         else:
             return np.load(f"{self.working_dir}/data/{self.name}_all{'_rf' if rf else ''}.npy")
@@ -163,14 +174,17 @@ class MultiChain():
         except FileExistsError:
             pass
         # computing start and end from the current Multichain
-        start, end = self.gelman_rubin_cut(i=i, j=j, smoothing=smoothing, ess_threshold=ess_threshold,
+        start, end = self.gelman_rubin_cut(i=i, j=j, smoothing=smoothing,
+                                           ess_threshold=ess_threshold,
                                            smoothing_average=smoothing_average, tolerance=tolerance,
-                                           _subsampling=subsampling, _overwrite=_overwrite, burnin=burnin)
+                                           _subsampling=subsampling, _overwrite=_overwrite,
+                                           burnin=burnin)
         # Check if no cutoff raise ValueError
         if start < 0 or end < 1:
             raise ValueError("No cutoff exist, therefore no cutoff can be extracted!")
 
-        _extract_cutoff(multichain=self, i=i, start=start, end=end, tree_file=tree_file, log_file=log_file)
+        _extract_cutoff(multichain=self, i=i, start=start, end=end, tree_file=tree_file,
+                        log_file=log_file)
 
     def gelman_rubin_all_chains_density_plot(self, samples: int = 100):
         return grd.gelman_rubin_all_chains_density_plot(self, samples=samples)
@@ -180,7 +194,8 @@ class MultiChain():
 
     def gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=False, tolerance=0.02,
                                            smoothing_average="mean"):
-        return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling, tolerance=tolerance,
+        return grd.gelman_rubin_parameter_choice_plot(self, i, j, _subsampling=_subsampling,
+                                                      tolerance=tolerance,
                                                       smoothing_average=smoothing_average)
 
     def gelman_rubin_cut(self, i, j, smoothing=1, ess_threshold=200, pseudo_ess_range=100,
@@ -265,12 +280,13 @@ class MultiChain():
 
     def discrete_cladesetcomparator(self, i, j, plot=True, burnin=0):
         # Calling the discrete version of the cladesetcomparator, return the single value
-        return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees, plot=plot,
+        return discrete_cladeset_comparator(tree_set_i=self[i].trees, tree_set_j=self[j].trees,
+                                            plot=plot,
                                             burnin=burnin,
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
 
     @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
-    def get_mds_coords(self, target = "all" , mds_type: _MDS_TYPES = 'tsne',
+    def get_mds_coords(self, target="all", mds_type: _MDS_TYPES = 'tsne',
                        dim: int = 2, dist_type: _DIST = 'rnni',
                        _overwrite: bool = False) -> np.ndarray:
         warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
@@ -282,7 +298,7 @@ class MultiChain():
             case int() as i:
 
                 return self[i].get_mds_coords(mds_type=mds_type, dim=dim,
-                                               dist_type=dist_type, _overwrite=_overwrite)
+                                              dist_type=dist_type, _overwrite=_overwrite)
             case "all":
                 mds_coords_filename = os.path.join(self.working_dir, "data",
                                                    f"{self.name}_{mds_type}-{dist_type}.npy")
@@ -301,8 +317,9 @@ class MultiChain():
                 raise ValueError(f"Invalid target type '{target}'. "
                                  f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
 
-    def plot_mds(self, target = "all", mds_type: _MDS_TYPES = 'tsne',
-                 dim: int = 2, dist_type: _DIST = 'rnni') -> None:
+    def plot_mds(self, target="all", mds_type: _MDS_TYPES = 'tsne',
+                 dim: int = 2, dist_type: _DIST = 'rnni',
+                 plot_options: PlotOptions = None) -> None:
         """
         (WIP) Plotting simple MDS of MutliChain, either single chain or all together.
 
@@ -312,8 +329,6 @@ class MultiChain():
         :param dist_type: Type of tree distance to use (RNNI or RF)
         :return: None
         """
-        # todo the function should accept an input of PlotOptions and only set defaults below
-        #  if they are not already set in the given options
 
         match target:
             case int() as i:
@@ -322,24 +337,41 @@ class MultiChain():
                 if dim != 2:
                     raise ValueError("Currently not supported dimension, only dim=2 accepted.")
 
-                coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim)
-                options = PlotOptions(
-                    filename=os.path.join(self.working_dir, "plots",
-                                             f"{self.name}_{mds_type}-{dist_type}.pdf"),
-                    colors=np.concatenate(
-                        [[i] * len(chain) for i, chain in enumerate(self.MChain_list)]),
-                    label=np.concatenate(
-                        [[chain.name] * len(chain) for chain in self.MChain_list]),
-                    title="TSNE Plot"
-                )
+                if plot_options is None:
+                    plot_options = PlotOptions()
+                self._fill_plot_defaults(plot_options, mds_type=mds_type, dist_type=dist_type)
 
-                # todo legend and title of plot....
-                plot_coords(coords=coords, dim=dim, options=options)
+                coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim)
+
+                plot_coords(coords=coords, dim=dim, options=plot_options)
                 return None
 
             case _:
                 raise ValueError(f"Invalid target type '{target}'. "
                                  f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
+
+    def _fill_plot_defaults(self,
+                            plot_options: PlotOptions,
+                            mds_type: _MDS_TYPES,
+                            dist_type: _DIST):
+        """
+        Filling in default plotting options using plot_options.
+
+        :param plot_options: The plot options to fill in
+        :param mds_type: Type of MDS
+        :param dist_type: Distance type
+        :return: None
+        """
+        if not plot_options.was_explicit("filename"):
+            plot_options.filename = os.path.join(self.working_dir, "plots",
+                                                 f"{self.name}_{mds_type}-{dist_type}.pdf")
+        if not plot_options.was_explicit("colors"):
+            plot_options.colors = np.concatenate(
+                [[i] * len(chain) for i, chain in enumerate(self.MChain_list)])
+        if not plot_options.was_explicit("label"):
+            plot_options.label = {i: c.name for i, c in enumerate(self.MChain_list)}
+        if not plot_options.was_explicit("title"):
+            plot_options.title = f"{self.name} - {mds_type}-{dist_type} MDS Plot"
 
     @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
     def get_clustree(self, target="all", k: int = 1,

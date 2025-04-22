@@ -339,7 +339,7 @@ class Chain:
         """
         Filling default plotting options using plot_options.
 
-        :param plot_options: The plot options to fill
+        :param plot_options: The plot options to fill in
         :param mds_type: Type of MDS
         :param dist_type: Distance type
         :return: None
