@@ -18,10 +18,6 @@ from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
 
 
-# todo this should be moved to the visualize module...
-
-
-
 class Chain:
     def __init__(self, working_dir, trees, log_file=None, summary=None, name: str = "MC"):
         if isinstance(name, str):
@@ -35,8 +31,8 @@ class Chain:
             else:
                 if isinstance(working_dir, str):
                     raise NotADirectoryError(working_dir)
-                else:
-                    raise ValueError(working_dir)
+
+                raise ValueError(working_dir)
         else:
             raise ValueError("Working directory type not recognized!")
 
@@ -69,7 +65,7 @@ class Chain:
         else:
             if isinstance(log_file, str):
                 raise FileNotFoundError(log_file)
-            elif log_file is not None:
+            if log_file is not None:
                 raise ValueError(log_file)
 
         if summary is not None:
@@ -99,28 +95,28 @@ class Chain:
         return len(self.trees)
 
     def pwd_matrix(self, csv: bool = False, name="", rf=False):
-        if not os.path.exists(
-                f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.{'csv.gz' if csv else 'npy'}"):
+        _matrix_file_name = (f"{self.working_dir}/data/"
+                             f"{self.name if name == '' else name}"
+                             f"{'_rf' if rf else ''}")
+        if not os.path.exists(f"{_matrix_file_name}.{'csv.gz' if csv else 'npy'}"):
             dm = calc_pw_distances(self.trees, rf=rf)
             if csv:
-                np.savetxt(
-                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.csv.gz",
-                    X=dm, delimiter=',', fmt='%i')
+                np.savetxt(fname=f"{_matrix_file_name}.csv.gz",
+                           X=dm, delimiter=',', fmt='%i')
             else:
-                np.save(
-                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.npy",
-                    arr=dm)
+                np.save(file=f"{_matrix_file_name}.npy", arr=dm)
             return dm
-        else:
-            if csv:
-                return np.genfromtxt(
-                    fname=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.csv.gz",
-                    delimiter=',', dtype=int)
-            else:
-                return np.load(
-                    file=f"{self.working_dir}/data/{self.name if name == '' else name}{'_rf' if rf else ''}.npy")
+
+        if csv:
+            return np.genfromtxt(fname=f"{_matrix_file_name}.csv.gz",
+                                 delimiter=',', dtype=int)
+
+        return np.load(file=f"{_matrix_file_name}.npy")
 
     def get_key_names(self):
+        """
+        :return: list of all log file entry keys
+        """
         return list(self.log_data.columns)[1:]
 
     def get_ess(self, ess_key="posterior", **kwargs):
@@ -252,34 +248,36 @@ class Chain:
     def get_clustering(self, k,
                        cluster_type: _CLUSTERING_TYPE = "spectral",
                        _overwrite: bool = False,
-                       beta:int = 1):
+                       beta: int = 1):
 
         if k == 1:
             return np.zeros(len(self.trees), dtype=int)
-        elif k > 1:
+        if k > 1:
             cluster_type = f"sc{'' if beta == 1 else f'-b{beta}'}"
             # todo should be a list of cluster_type [sc, ...] Future feature
-            # todo beta should be part of kwargs as only needed for similarity pwd_matrix calculation for spectral clustering
+            # todo beta should be part of kwargs as only needed for
+            #  similarity pwd_matrix calculation for spectral clustering
+            _cluster_file_name = (f"{os.path.join(self.working_dir, 'clustering')}"
+                                  f"/{cluster_type}-{k}-{self.name}")
             if _overwrite:
                 try:
-                    os.remove(
-                        f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy")
+                    os.remove(f"{_cluster_file_name}.npy")
                 except FileNotFoundError:
                     pass
 
             if os.path.exists(
-                    f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}.npy"):
-                clustering = np.load(os.path.join(self.working_dir, 'clustering',
-                                                  f"{cluster_type}-{k}-{self.name}.npy"))
+                    f"{_cluster_file_name}.npy"):
+                clustering = np.load(f"{_cluster_file_name}.npy")
             else:
                 if cluster_type == f"sc{'' if beta == 1 else f'-b{beta}'}":
+                    #
                     clustering = _spectral_clustree(self.similarity_matrix(beta=beta), n_clus=k)
-                    np.save(
-                        file=f"{os.path.join(self.working_dir, 'clustering')}/{cluster_type}-{k}-{self.name}",
-                        arr=clustering)
+                    np.save(file=_cluster_file_name, arr=clustering)
+                else:
+                    raise NotImplementedError(f"Unrecognized cluster type...{cluster_type}!")
             return clustering
-        else:
-            raise ValueError(f"Value {k} not supported!")
+
+        raise ValueError(f"Value {k} not supported!")
 
     def get_cluster_centroids(self, k, beta=1, _overwrite=False, _best_of_range=10):
         # todo beta as kwargs parameter in the future
@@ -359,8 +357,9 @@ class Chain:
                      f"{'' if beta == 1 else f'{beta}_'}similarity.npy",
                 arr=similarity)
             return similarity
-        else:
-            return np.load(
+
+        # path exists so we can load the sim matrix
+        return np.load(
                 file=f"{self.working_dir}/data/{self.name}_"
                      f"{'' if beta == 1 else f'{beta}_'}similarity.npy")
 
@@ -374,7 +373,8 @@ class Chain:
             raise ValueError(f"Kind {kind} not supported, choose either 'Silhouette' or 'BIC'.")
 
         # todo if _overwrite_plot delete plot and silhouette score
-        # todo if _recalculate_clsutering delete clustering and also the plot and save file for the scores
+        # todo if _recalculate_clsutering delete clustering
+        #  and also the plot and save file for the scores
 
         if kind == "bic":
             # todo kwargs with add_random and local norm, max_cluster
@@ -393,7 +393,8 @@ class Chain:
                 k + 1: self.get_cluster_centroids(k=k + 1, _overwrite=_overwrite_clustering) for k
                 in range(max_cluster)}
 
-            # _overwrite=True will recalculate the clustering too, as this is being passed down to the bic() function
+            # _overwrite=True will recalculate the clustering too,
+            # as this is being passed down to the bic() function
             plot_bic(treeset=self.trees,
                      clusterings=clusterings,
                      summaries_dict=summaries_dict,
@@ -401,7 +402,8 @@ class Chain:
                      local_norm=local_norm,
                      add_random=add_random,
                      file_name=os.path.join(self.working_dir, "plots",
-                                            f"BIC_{'random_' if add_random else ''}{'local_' if local_norm else ''}{self.name}.pdf"))
+                                            f"BIC_{'random_' if add_random else ''}"
+                                            f"{'local_' if local_norm else ''}{self.name}.pdf"))
 
     def plot_mds(self, mds_type: _MDS_TYPES = 'tsne', dim: int = 2,
                  dist_type: _DIST = 'rnni') -> None:
