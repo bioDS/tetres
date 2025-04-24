@@ -9,7 +9,7 @@ from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
 from tetres.utils.decorators import validate_literal_args
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.clustree.spectral_clustree import spectral_clustree_dm
-from tetres.judgement.ess import autocorr_ess, pseudo_ess
+from tetres.judgement.ess import calc_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
@@ -133,8 +133,8 @@ class Chain:
             if lower_i > upper_i or lower_i < 0 or upper_i < 0:
                 raise ValueError("Something went wrong with the given upper and lower index!")
         if ess_key in list(self.log_data.columns):
-            return autocorr_ess(
-                data_list=list(self.log_data[ess_key][lower_i:(upper_i + 1)].dropna()))
+            return calc_ess(
+                list(trace=self.log_data[ess_key][lower_i:(upper_i + 1)].dropna()))
         else:
             raise ValueError("Not (yet) implemented!")
 
@@ -154,6 +154,7 @@ class Chain:
             if lower_i > upper_i or lower_i < 0 or upper_i < 0:
                 raise ValueError("Something went wrong with the given upper and lower index!")
 
+        # todo here we can use DIST Literal...
         dist = "rnni"
         if "dist_type" in kwargs:
             dist = kwargs["dist_type"]
@@ -317,6 +318,7 @@ class Chain:
         """
         (WIP) Plotting simple MDS of a chain without any clustering.
 
+        :param plot_options:
         :param mds_type: Type of MDS to plot
         :param dim: Dimension to plot to (only dim=2 supported atm)
         :param dist_type: Type of tree distance to use (RNNI or RF)

@@ -1,13 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from rpy2.robjects.packages import importr
-from rpy2.robjects.vectors import FloatVector
-tracerer = importr("tracerer")
-
-
-MAX_LAG = 2000  # for efficiency
-
 
 def _ess_df(cmchain, chain_indeces, start=-1, end=-1):
     if start == -1:
@@ -26,62 +19,6 @@ def _ess_df(cmchain, chain_indeces, start=-1, end=-1):
             ["Pseudo_ESS_RF", cmchain[chain].get_pseudo_ess(dist="rf", sample_range=100, lower_i=start, upper_i=end_internal), cmchain[chain].name])
 
     return pd.DataFrame(df, columns=["Key", "Value", "Chain"])
-
-
-def autocorr_ess(data_list, max_lag=2000, trunc=0.05):
-    """
-    Effective Sample Size calculated using autocorrelation.
-    
-    Effective Sample Size (ESS) calculated using the autocorrelation method.
-    The ESS is defined as: `n / tau`, where `tau = 1 + 2 sum_{k=1}^{\infty} tho_k(theta)`.
-    An estimate of `tau` is used where the infinite sum is truncated at lag `k` where:
-    `rho_k < 0.05` (see e.g., van Dyk and Park (2011) or Kass et al. (1988))
-    
-    Parameters:
-        x (list): a list of numeric values
-        max_lag (int): maximum calculated lag of the autocorrelation function
-        trunc (double): stop calculating the autocorrelation at this value
-    Returns:
-        ess (double): estimate of the Effective Sample Size
-    """
-    n = len(data_list)
-    max_lag = min(n, max_lag)
-    # return the ESS or the number of samples if ESS overestimates the value
-    return n / (-1 + (2 * np.sum(_autocorr_t(data_list, max_lag, trunc))))
-
-
-def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
-    """
-    Calculate lag-k autocorrelation.
-    
-    Calculate the lag-k autocorrelation ussing the gamma function (see Duerre et al. 2014)
-    
-    The correlation coefficient `rho_k` for the lag `k` is calculated using the gamma function:
-    `tho_k = gamma(k) / gamma(0)`, where `gamma(k) = sum_{j=1}^{n-k} (x_j - m) (x_{j+1}) - m)`.
-    Note that instead of the mean for the partial series, a sample mean is used.
-    
-    Parameters:
-        x (list): a list of numeric values
-        max_lag (int): maximum calculated lag of the autocorrelation function
-        trunc (double): stop calculating the atucorrelation function at this value
-    Returns:
-        cor (list): truncated autocorrelation series
-    """
-    n = len(data_list)
-    m = np.mean(data_list)
-    # m = sum(data_list)/n
-    # gamma_0 = sum([(y - m)**2 for y in data_list])
-    gamma_0 = (n-1)*np.var(data_list)
-    def gamma(k):
-        nonlocal data_list
-        return np.sum([(data_list[i] - m) * (data_list[i+k] - m) for i in range(0,n-k)])
-    cor = list()
-    for i in range(max_lag):
-        c = gamma(i) / gamma_0
-        if c < trunc:
-            break
-        cor.append(c)
-    return cor
 
 
 def pseudo_ess(tree_set, dist="rnni", sample_range=10, no_zero=False):
@@ -103,17 +40,33 @@ def pseudo_ess(tree_set, dist="rnni", sample_range=10, no_zero=False):
             raise ValueError(f"Unkown distance given {dist}!")
         if no_zero:
             cur_distance_list = [d for d in cur_distance_list if d != 0]
-        ess.append(autocorr_ess(data_list=cur_distance_list))
+        ess.append(calc_ess(data_list=cur_distance_list))
     return np.median(ess)
 
 
-def calc_ess_beast2(trace, sample_interval=1):
+def calc_ess(trace) -> float:
+    """
+    Returns the effective sample size (ESS) estimate of the input trace.
+
+    :param trace: Trace of values, can be anything that is translatable via 'np.asarray()'
+    :return: Effective sample size estimate of the input trace
+    :rtype: float
+    """
     # Reimplementation of ess as in the ASM package, translated from java
     trace = np.asarray(trace, dtype=np.float64)
-    return len(trace) / (act(trace, sample_interval) / sample_interval)
+    return len(trace) / (act(trace))
 
 
-def act(trace, sample_interval=1):
+def act(trace, sample_interval: int = 1) -> np.float64:
+    """
+    Calcualtes the autocorrelation time for a given trace and a specific sampling interval
+
+    :param trace: Trace of values, can be anything that is translatable via 'np.asarray()'
+    :param sample_interval: integer specifying the interval between samples
+    :return: autocorrelation time of independent samples
+    :rtype: np.float64
+    """
+    MAX_LAG = 2000  # for efficiency
     trace = np.asarray(trace, dtype=np.float64)
     n = len(trace)
 
@@ -157,36 +110,3 @@ def act(trace, sample_interval=1):
                 break
 
     return sample_interval * integral / auto_correlation[0] if auto_correlation[0] != 0 else np.inf
-
-
-def tracer_ess_convenience(x):
-    # Reimplementation of tracer ess, translated from cpp (convenience R package)
-    x = np.asarray(x)
-    samples = len(x)
-
-    if samples <= 1:
-        # edge cases would result in error.
-        return 0.0
-
-    max_lag = min(len(x)-1, MAX_LAG)
-
-    mean = np.mean(x)
-    gamma_stat = np.zeros(max_lag)
-
-    for lag in range(max_lag):
-        deltas = x[:samples - lag] - mean
-        deltas_lagged = x[lag:] - mean
-        gamma_stat[lag] = np.mean(deltas * deltas_lagged)
-
-        if lag == 0:
-            var_stat = gamma_stat[0]
-        elif lag % 2 == 0:
-            if gamma_stat[lag - 1] + gamma_stat[lag] > 0:
-                var_stat += 2.0 * (gamma_stat[lag - 1] + gamma_stat[lag])
-            else:
-                max_lag = lag
-                break
-    act = var_stat / gamma_stat[0]
-    ess = samples / act
-
-    return ess
