@@ -1,28 +1,12 @@
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
-#
-# def ess_stripplot(cmchain):
-#     # todo why/where do i need this?
-#     burnin = 0
-#
-#     df = _ess_df(cmchain, chain_indeces=range(cmchain.m_MChains))
-#
-#     ax = sns.stripplot(data=df, x="Key", y="Value", hue="Chain")
-#
-#     for label in ax.get_xticklabels():
-#         label.set_rotation(90)
-#     plt.xlabel("")
-#     plt.ylabel("ESS")
-#     plt.suptitle(f"Number of samples: {len(cmchain[-1].trees)}, burn-in={burnin*100}%")
-#     plt.tight_layout()
-#     # plt.show()
-#
-#     plt.savefig(fname=f"{cmchain.working_dir}/plots/{cmchain.name}_ess_comparison.png", dpi=400)
-#     plt.clf()
-#     plt.close()
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
+tracerer = importr("tracerer")
+
+
+MAX_LAG = 2000  # for efficiency
 
 
 def _ess_df(cmchain, chain_indeces, start=-1, end=-1):
@@ -101,7 +85,9 @@ def _autocorr_t(data_list, max_lag=2000, trunc=0.05):
 
 
 def pseudo_ess(tree_set, dist="rnni", sample_range=10, no_zero=False):
-    # todo use the pairwise distance matrix if avaialble?! For this i will need to add upper and lower i boundaries for this function and then calculate with that!
+    # todo use the pairwise distance matrix if avaialble?!
+    #  For this i will need to add upper and lower i boundaries for this function
+    #  and then calculate with that!
     #  also the parameter of rf needs to be given to the pwd_matrix funciton!
     ess = []
     # samples = random.sample(range(len(tree_set)), sample_range)
@@ -119,3 +105,88 @@ def pseudo_ess(tree_set, dist="rnni", sample_range=10, no_zero=False):
             cur_distance_list = [d for d in cur_distance_list if d != 0]
         ess.append(autocorr_ess(data_list=cur_distance_list))
     return np.median(ess)
+
+
+def calc_ess_beast2(trace, sample_interval=1):
+    # Reimplementation of ess as in the ASM package, translated from java
+    trace = np.asarray(trace, dtype=np.float64)
+    return len(trace) / (act(trace, sample_interval) / sample_interval)
+
+
+def act(trace, sample_interval=1):
+    trace = np.asarray(trace, dtype=np.float64)
+    n = len(trace)
+
+    if n <= 1:
+        return 0.0  # or np.nan depending on how you want to handle it
+
+    square_lagged_sums = np.zeros(MAX_LAG)
+    auto_correlation = np.zeros(MAX_LAG)
+    total_sum = 0.0
+
+    for i in range(n):
+        total_sum += trace[i]
+        mean = total_sum / (i + 1)
+
+        sum1 = total_sum
+        sum2 = total_sum
+
+        max_lag_i = min(i + 1, MAX_LAG)
+        for lag in range(max_lag_i):
+            square_lagged_sums[lag] += trace[i - lag] * trace[i]
+            auto_correlation[lag] = (
+                square_lagged_sums[lag]
+                - (sum1 + sum2) * mean
+                + mean * mean * (i + 1 - lag)
+            )
+            auto_correlation[lag] /= (i + 1 - lag)
+
+            sum1 -= trace[i - lag]
+            sum2 -= trace[lag]
+
+    max_lag = min(n, MAX_LAG)
+    integral = 0.0
+
+    for lag in range(max_lag):
+        if lag == 0:
+            integral = auto_correlation[0]
+        elif lag % 2 == 0:
+            if auto_correlation[lag - 1] + auto_correlation[lag] > 0:
+                integral += 2.0 * (auto_correlation[lag - 1] + auto_correlation[lag])
+            else:
+                break
+
+    return sample_interval * integral / auto_correlation[0] if auto_correlation[0] != 0 else np.inf
+
+
+def tracer_ess_convenience(x):
+    # Reimplementation of tracer ess, translated from cpp (convenience R package)
+    x = np.asarray(x)
+    samples = len(x)
+
+    if samples <= 1:
+        # edge cases would result in error.
+        return 0.0
+
+    max_lag = min(len(x)-1, MAX_LAG)
+
+    mean = np.mean(x)
+    gamma_stat = np.zeros(max_lag)
+
+    for lag in range(max_lag):
+        deltas = x[:samples - lag] - mean
+        deltas_lagged = x[lag:] - mean
+        gamma_stat[lag] = np.mean(deltas * deltas_lagged)
+
+        if lag == 0:
+            var_stat = gamma_stat[0]
+        elif lag % 2 == 0:
+            if gamma_stat[lag - 1] + gamma_stat[lag] > 0:
+                var_stat += 2.0 * (gamma_stat[lag - 1] + gamma_stat[lag])
+            else:
+                max_lag = lag
+                break
+    act = var_stat / gamma_stat[0]
+    ess = samples / act
+
+    return ess
