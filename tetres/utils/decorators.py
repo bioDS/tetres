@@ -10,7 +10,7 @@ def validate_literal_args(**literal_checks):
     Decorator to validate function arguments against Literal options.
 
     Example:
-        @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
+        @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
     """
     def decorator(func):
         @wraps(func)

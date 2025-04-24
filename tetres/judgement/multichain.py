@@ -11,7 +11,7 @@ from tetres.judgement._discrete_cladesetcomparator import discrete_cladeset_comp
 from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement.burnin_detection import burn_detector
 from tetres.utils.decorators import validate_literal_args
-from tetres.utils.literals import _DIST, _MDS_TYPES, _CLUSTERING_TYPE
+from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
@@ -285,9 +285,9 @@ class MultiChain():
                                             burnin=burnin,
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
 
-    @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
-    def get_mds_coords(self, target="all", mds_type: _MDS_TYPES = 'tsne',
-                       dim: int = 2, dist_type: _DIST = 'rnni',
+    @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
+    def get_mds_coords(self, target="all", mds_type: MDS_TYPES = 'tsne',
+                       dim: int = 2, dist_type: DIST = 'rnni',
                        _overwrite: bool = False) -> np.ndarray:
         warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
                       stacklevel=3)
@@ -317,8 +317,8 @@ class MultiChain():
                 raise ValueError(f"Invalid target type '{target}'. "
                                  f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
 
-    def plot_mds(self, target="all", mds_type: _MDS_TYPES = 'tsne',
-                 dim: int = 2, dist_type: _DIST = 'rnni',
+    def plot_mds(self, target="all", mds_type: MDS_TYPES = 'tsne',
+                 dim: int = 2, dist_type: DIST = 'rnni',
                  plot_options: PlotOptions = None) -> None:
         """
         (WIP) Plotting simple MDS of MutliChain, either single chain or all together.
@@ -352,8 +352,8 @@ class MultiChain():
 
     def _fill_plot_defaults(self,
                             plot_options: PlotOptions,
-                            mds_type: _MDS_TYPES,
-                            dist_type: _DIST):
+                            mds_type: MDS_TYPES,
+                            dist_type: DIST):
         """
         Filling in default plotting options using plot_options.
 
@@ -373,10 +373,10 @@ class MultiChain():
         if not plot_options.was_explicit("title"):
             plot_options.title = f"{self.name} - {mds_type}-{dist_type} MDS Plot"
 
-    @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
+    @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
     def get_clustree(self, target="all", k: int = 1,
-                     cluster_type: _CLUSTERING_TYPE = "spectral",
-                     dist_type: _DIST = "rnni",
+                     cluster_type: CLUSTERING_TYPE = "spectral",
+                     dist_type: DIST = "rnni",
                      _overwrite: bool = False,
                      **kwargs):
 

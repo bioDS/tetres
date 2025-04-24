@@ -12,7 +12,7 @@ from tetres.clustree.spectral_clustree import spectral_clustree_dm
 from tetres.judgement.ess import autocorr_ess, pseudo_ess
 from tetres.clustree.bic import bic, plot_bic
 from tetres.clustree.silhouette_score import silhouette_score
-from tetres.utils.literals import _DIST, _MDS_TYPES, _CLUSTERING_TYPE
+from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
 
@@ -194,10 +194,10 @@ class Chain:
                 cur_treeset.write_nexus(
                     file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
 
-    @validate_literal_args(clustering_type=_CLUSTERING_TYPE, dist_type=_DIST)
+    @validate_literal_args(clustering_type=CLUSTERING_TYPE, dist_type=DIST)
     def get_clustree(self, k,
-                     cluster_type: _CLUSTERING_TYPE = "spectral",
-                     dist_type: _DIST = "rnni",
+                     cluster_type: CLUSTERING_TYPE = "spectral",
+                     dist_type: DIST = "rnni",
                      _overwrite: bool = False,
                      **kwargs):
 
@@ -245,9 +245,9 @@ class Chain:
                 case _:
                     raise NotImplementedError(f"Unrecognized cluster type...{cluster_type}!")
 
-    @validate_literal_args(mds_type=_MDS_TYPES, dist_type=_DIST)
-    def get_mds_coords(self, mds_type: _MDS_TYPES = 'tsne',
-                       dim: int = 2, dist_type: _DIST = 'rnni',
+    @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
+    def get_mds_coords(self, mds_type: MDS_TYPES = 'tsne',
+                       dim: int = 2, dist_type: DIST = 'rnni',
                        _overwrite: bool = False) -> np.ndarray:
 
         warnings.warn("Currently not fully implemented.. "
@@ -312,8 +312,8 @@ class Chain:
                                             f"BIC_{'random_' if add_random else ''}"
                                             f"{'local_' if local_norm else ''}{self.name}.pdf"))
 
-    def plot_mds(self, mds_type: _MDS_TYPES = 'tsne', dim: int = 2,
-                 dist_type: _DIST = 'rnni', plot_options: PlotOptions = None) -> None:
+    def plot_mds(self, mds_type: MDS_TYPES = 'tsne', dim: int = 2,
+                 dist_type: DIST = 'rnni', plot_options: PlotOptions = None) -> None:
         """
         (WIP) Plotting simple MDS of a chain without any clustering.
 
@@ -335,8 +335,8 @@ class Chain:
 
     def _fill_plot_defaults(self,
                             plot_options: PlotOptions,
-                            mds_type: _MDS_TYPES,
-                            dist_type: _DIST):
+                            mds_type: MDS_TYPES,
+                            dist_type: DIST):
         """
         Filling default plotting options using plot_options.
 
