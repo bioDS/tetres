@@ -425,7 +425,8 @@ class MultiChain():
                                 # todo here we need to pass dist_type on to pwd_matrix
                                 warnings.warn("Dist_type is currently not implemented! WIP",
                                               stacklevel=3)
-                                clustering = spectral_clustree_dm(self.pwd_matrix_all())
+                                clustering = spectral_clustree_dm(self.pwd_matrix_all(),
+                                                                  n_clus=k, beta=beta)
                                 np.save(file=_cluster_file_name, arr=clustering)
 
                             return clustering

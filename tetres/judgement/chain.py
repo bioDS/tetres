@@ -236,7 +236,8 @@ class Chain:
                         # todo here we need to pass dist_type on to pwd_matrix
                         warnings.warn("Disttype is currently not implemented! WIP",
                                       stacklevel=3)
-                        clustering = spectral_clustree_dm(self.pwd_matrix())
+                        clustering = spectral_clustree_dm(self.pwd_matrix(),
+                                                          n_clus=k, beta=beta)
                         np.save(file=_cluster_file_name, arr=clustering)
 
                     return clustering
