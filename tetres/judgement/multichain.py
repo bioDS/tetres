@@ -1,15 +1,16 @@
 import os
-import numpy as np
 import warnings
 
+import numpy as np
+
 from tetres.clustree.spectral_clustree import spectral_clustree_dm
-from tetres.judgement.chain import Chain
-from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
-from tetres.judgement import _gelman_rubin_diag as grd
 from tetres.judgement import _cladesetcomparator as csc
+from tetres.judgement import _gelman_rubin_diag as grd
 from tetres.judgement._discrete_cladesetcomparator import discrete_cladeset_comparator
 from tetres.judgement._extract_cutoff import _extract_cutoff
+from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
 from tetres.judgement.burnin_detection import burn_detector
+from tetres.judgement.chain import Chain
 from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
@@ -288,7 +289,7 @@ class MultiChain():
     @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
     def get_mds_coords(self, target="all", mds_type: MDS_TYPES = 'tsne',
                        dim: int = 2, dist_type: DIST = 'rnni',
-                       _overwrite: bool = False) -> np.ndarray:
+                       _overwrite: bool = False, seed: (None, int) = None) -> np.ndarray:
         warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
                       stacklevel=3)
 
@@ -296,18 +297,21 @@ class MultiChain():
 
         match target:
             case int() as i:
-
                 return self[i].get_mds_coords(mds_type=mds_type, dim=dim,
-                                              dist_type=dist_type, _overwrite=_overwrite)
+                                              dist_type=dist_type, _overwrite=_overwrite,
+                                              seed=seed)
             case "all":
                 mds_coords_filename = os.path.join(self.working_dir, "data",
-                                                   f"{self.name}_{mds_type}-{dist_type}.npy")
+                                                   f"{self.name}_{mds_type}-{dist_type}"
+                                                   f"{"" if seed is None else "_seed-" + str(seed)}"
+                                                   f".npy")
 
                 if not os.path.exists(mds_coords_filename) or _overwrite:
                     # need to first calculate the coordinates with the correct function
 
                     # todo no really using the mds_type atm, need to implement that
-                    coords = _tsne_coords_from_pwd(self.pwd_matrix_all(rf=False), dim=dim)
+                    coords = _tsne_coords_from_pwd(self.pwd_matrix_all(rf=False), dim=dim,
+                                                   seed=seed)
                     np.save(file=mds_coords_filename, arr=coords)
                 else:
                     # have to read the already computed coords
@@ -319,7 +323,7 @@ class MultiChain():
 
     def plot_mds(self, target="all", mds_type: MDS_TYPES = 'tsne',
                  dim: int = 2, dist_type: DIST = 'rnni',
-                 plot_options: PlotOptions = None) -> None:
+                 plot_options: PlotOptions = None, seed: (None, int) = None) -> None:
         """
         (WIP) Plotting simple MDS of MutliChain, either single chain or all together.
 
@@ -341,7 +345,7 @@ class MultiChain():
                     plot_options = PlotOptions()
                 self._fill_plot_defaults(plot_options, mds_type=mds_type, dist_type=dist_type)
 
-                coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim)
+                coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim, seed=seed)
 
                 plot_coords(coords=coords, dim=dim, options=plot_options)
                 return None

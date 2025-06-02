@@ -249,7 +249,8 @@ class Chain:
     @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
     def get_mds_coords(self, mds_type: MDS_TYPES = 'tsne',
                        dim: int = 2, dist_type: DIST = 'rnni',
-                       _overwrite: bool = False) -> np.ndarray:
+                       _overwrite: bool = False,
+                       seed: (None, int) = None) -> np.ndarray:
 
         warnings.warn("Currently not fully implemented.. "
                       "Will only compute RNNI TSNE 2dim MDS.",
@@ -258,13 +259,15 @@ class Chain:
         # todo will need to add more possible parameters, kwargs... beta for spectral
 
         mds_coords_filename = os.path.join(self.working_dir, "data",
-                                           f"{self.name}_{mds_type}-{dist_type}.npy")
+                                           f"{self.name}_{mds_type}-{dist_type}"
+                                           f"{"" if seed is None else "seed-" + str(seed)}"
+                                           f".npy")
 
         if not os.path.exists(mds_coords_filename) or _overwrite:
             # need to first calculate the coordinates with the correct function
 
             # todo no really using the mds_type atm, need to implement that
-            coords = _tsne_coords_from_pwd(self.pwd_matrix(rf=False), dim=dim)
+            coords = _tsne_coords_from_pwd(self.pwd_matrix(rf=False), dim=dim, seed=seed)
             np.save(file=mds_coords_filename, arr=coords)
         else:
             # have to read the already computed coords
@@ -314,11 +317,13 @@ class Chain:
                                             f"{'local_' if local_norm else ''}{self.name}.pdf"))
 
     def plot_mds(self, mds_type: MDS_TYPES = 'tsne', dim: int = 2,
-                 dist_type: DIST = 'rnni', plot_options: PlotOptions = None) -> None:
+                 dist_type: DIST = 'rnni', plot_options: PlotOptions = None,
+                 seed: (None, int) = None) -> None:
         """
         (WIP) Plotting simple MDS of a chain without any clustering.
 
-        :param plot_options:
+        :param seed: Random seed for MDS coordinate computation
+        :param plot_options: Plotting options, see plot_config.py for more details
         :param mds_type: Type of MDS to plot
         :param dim: Dimension to plot to (only dim=2 supported atm)
         :param dist_type: Type of tree distance to use (RNNI or RF)
@@ -328,7 +333,7 @@ class Chain:
         if dim != 2:
             raise ValueError("Unsupported dimension for MDS -- only supports dim=2 at the moment.")
 
-        coords = self.get_mds_coords(mds_type=mds_type, dim=dim)
+        coords = self.get_mds_coords(mds_type=mds_type, dim=dim, seed=seed)
         if plot_options is None:
             plot_options = PlotOptions()
         self._fill_plot_defaults(plot_options, mds_type=mds_type, dist_type=dist_type)
