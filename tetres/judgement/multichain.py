@@ -1,6 +1,6 @@
+import logging
 import os
 import warnings
-from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -18,6 +18,8 @@ from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE, TARGET
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
+
+logger = logging.getLogger(__name__)
 
 
 class MultiChain():
@@ -474,6 +476,7 @@ class MultiChain():
                 return self[idx].split_trees_from_clustering(clustering, _overwrite=_overwrite)
 
             case "all":
+                logger.warning("Currently not configured")
                 # Your combined splitting logic here (similar to your current method)
                 # if len(self.trees) != len(clustering):
                 #     raise ValueError(

@@ -18,10 +18,6 @@ from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
 
-logging.basicConfig(
-    format='%(asctime)s [%(name)s:%(lineno)d] %(message)s',
-    datefmt='%m/%d/%Y %H:%M:%S'
-)
 logger = logging.getLogger(__name__)
 
 
