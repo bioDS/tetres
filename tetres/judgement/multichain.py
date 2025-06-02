@@ -1,6 +1,8 @@
 import logging
 import os
 import warnings
+from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
@@ -13,6 +15,7 @@ from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
 from tetres.judgement.burnin_detection import burn_detector
 from tetres.judgement.chain import Chain
+from tetres.trees.time_trees import TimeTreeSet
 from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE, TARGET
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
@@ -29,16 +32,8 @@ class MultiChain():
             raise ValueError("Wrong usage of MultiChain")
         self.name = name
 
-        # todo was unreachable at the end of the if statements...
-        # if not all(
-        #         [self.MChain_list[0].trees.map == self.MChain_list[c].trees.map
-        #          for c in range(1, self.m_chains)]):
-        #     raise ValueError(
-        #         "The taxon maps in the tree files are not the same,"
-        #         " this can lead to problems! Fix before continue!")
-
-        # if type(trees) != type(log_files):
-        #     raise ValueError("trees and logfiles should be given with the same data type!")
+        if not isinstance(trees, type(log_files)):
+            raise TypeError("trees and logfiles should be given with the same data type!")
 
         if not os.path.isdir(working_dir):
             raise FileNotFoundError(f"Given Working directory does not exist! |{working_dir}|")
@@ -57,7 +52,6 @@ class MultiChain():
                 self.MChain_list.append(Chain(trees=trees[i], log_file=log_files[i],
                                               working_dir=working_dir,
                                               name=f"{self.name}_chain{i}"))
-
         elif type(trees) is str:
             if not os.path.exists(f"{self.working_dir}/{trees}"):
                 raise FileNotFoundError(
@@ -75,6 +69,13 @@ class MultiChain():
                           name=f"{self.name}_chain{i}"))
         else:
             raise ValueError("Unrecognized argument types of trees and log_files!")
+        # noinspection PyUnreachableCode
+        if not all(
+                [self.MChain_list[0].trees.map == self.MChain_list[c].trees.map
+                 for c in range(1, self.m_chains)]):
+            raise ValueError(
+                "The taxon maps in the tree files are not the same,"
+                " this can lead to problems! Fix before continue!")
 
     def pwd_matrix(self, index1, index2=None, csv: bool = False, rf: bool = False):
         # todo make this use a target and return the "all" matrix if requested to avoid duplicate
@@ -476,19 +477,53 @@ class MultiChain():
                 return self[idx].split_trees_from_clustering(clustering, _overwrite=_overwrite)
 
             case "all":
-                logger.warning("Currently not configured")
-                # Your combined splitting logic here (similar to your current method)
-                # if len(self.trees) != len(clustering):
-                #     raise ValueError(
-                #         f"The clustering length must match the total number of
-                #         trees ({len(self.trees)} != {len(clustering)})")
-                #
-                # k = np.max(clustering) + 1
+                total_length = sum(len(chain.trees) for chain in self.MChain_list)
 
-                # check all clusters present, etc. — your existing logic here
+                if len(clustering) != total_length:
+                    raise ValueError(f"The clustreing has to have the same length as the tree file"
+                                     f" ({total_length} != {len(clustering)})")
+                k = np.max(clustering) + 1
 
-                # splitting logic for all trees goes here...
-                raise NotImplementedError("WIP: Currently not implemented.")
+                unique_labels = set(clustering.tolist())
+                expected_labels = set(range(k))
+                if unique_labels != expected_labels:
+                    missing = expected_labels - unique_labels
+                    raise ValueError(
+                        f"Clustering is missing the following cluster labels: {sorted(missing)}")
 
+                logger.warning(f"Preparing to split combined tree set {self.name} into subsets "
+                               f"from clustering...")
+                clustered_trees = defaultdict(list)
+                tree_index = 0
+                for chain in self.MChain_list:
+                    for tree in chain.trees:
+                        cluster_id = clustering[tree_index]
+                        clustered_trees[cluster_id].append(tree)
+                        tree_index += 1
+
+                logger.warning("Writing subset tree files...")
+                for k_cluster in range(k):
+                    cur_trees = clustered_trees[k_cluster]
+                    assert cur_trees, (
+                        "This should not happen as it would be caught by the ValueError "
+                        "above?")
+                    cur_treeset = TimeTreeSet()
+                    cur_treeset.map = self.MChain_list[0].trees.map
+                    # todo this is duplication, put into new module tree_export and use here
+                    #  and in the chain part... extract as much of the logic as possible ...
+                    cur_treeset.trees = cur_trees
+
+                    output_path = (Path(self.working_dir) /
+                                   "clustering" / f"trees_k-{k}-c-{k_cluster}-{self.name}.trees")
+                    if output_path.exists():
+                        if _overwrite:
+                            logger.warning(f"Overwriting existing subset tree file: {output_path}")
+                            output_path.unlink()
+                        else:
+                            logger.warning(f"Skipping existing file: {output_path} "
+                                           f"(pass _overwrite=True to overwrite)")
+                            continue
+
+                    cur_treeset.write_nexus(file_name=output_path)
             case _:
                 raise ValueError(f"Invalid target '{target}'. Must be 'all' or an integer index.")
