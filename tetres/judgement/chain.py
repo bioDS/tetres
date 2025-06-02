@@ -1,20 +1,28 @@
+import logging
 import os
 import warnings
+from pathlib import Path
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+from numpy.typing import NDArray
 
-from tetres.trees.time_trees import TimeTreeSet
-from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
-from tetres.utils.decorators import validate_literal_args
-from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
+from tetres.clustree.bic import plot_bic
 from tetres.clustree.spectral_clustree import spectral_clustree_dm
+from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
 from tetres.judgement.ess import calc_ess, pseudo_ess
-from tetres.clustree.bic import bic, plot_bic
-from tetres.clustree.silhouette_score import silhouette_score
+from tetres.trees.time_trees import TimeTreeSet
+from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
+from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
+
+logging.basicConfig(
+    format='%(asctime)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%m/%d/%Y %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 
 class Chain:
@@ -167,33 +175,55 @@ class Chain:
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                           dist=dist, sample_range=sample_range, no_zero=no_zero)
 
-    def split_trees_from_clustering(self, k, _overwrite=False):
+    def split_trees_from_clustering(self, clustering: NDArray[np.int_], _overwrite: bool = False) \
+            -> None:
+        """
+        Takes a clustering and splits the tree set into separate files according to the clustering
 
-        # todo change to the get_clustering funciton
-        #  and also include the type of clustering that is wanted here
-        if os.path.exists(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy"):
+        :param clustering: A clustering, has to have the same length as the treeset and has to
+                           contain all the values, i.e. a 3 clustering has to contain the values
+                           0, 1, and 2
+        :param _overwrite: Whether to overwrite existing subset tree files
+        :return:
+        """
 
-            clustering = np.load(f"{self.working_dir}/clustering/sc-{k}-{self.name}.npy")
-        else:
-            raise ValueError("Clustering has not yet been computed!")
+        if len(self.trees) != len(clustering):
+            raise ValueError(f"The clustering has to have the same length as the tree file"
+                             f" ({len(self.trees)} != {len(clustering)})")
+
+        k = np.max(clustering) + 1
+
+        unique_labels = set(clustering.tolist())
+        expected_labels = set(range(k))
+        if unique_labels != expected_labels:
+            missing = expected_labels - unique_labels
+            raise ValueError(
+                f"Clustering is missing the following cluster labels: {sorted(missing)}")
+
+        logger.warning(f"Preparing to split tree set {self.name} into *{k}* subsets from "
+                       f"clustering...")
 
         for k_cluster in range(k):
+            cur_trees = [self.trees[i] for i, label in enumerate(clustering) if label == k_cluster]
+            assert cur_trees, ("This should not happen as it would be caught by the ValueError "
+                               "above?")
+
             cur_treeset = TimeTreeSet()
             cur_treeset.map = self.trees.map
-            cur_treeset.trees = [self.trees[index] for index, x in enumerate(clustering) if
-                                 x == k_cluster]
-            if len(cur_treeset) != 0:
+            cur_treeset.trees = cur_trees
+
+            output_path = (Path(self.working_dir) /
+                           "clustering" / f"trees_k-{k}-c-{k_cluster}-{self.name}.trees")
+            if output_path.exists():
                 if _overwrite:
-                    try:
-                        os.remove(
-                            f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
-                    except FileNotFoundError:
-                        pass
-                if os.path.exists(
-                        f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees"):
-                    raise ValueError("Tree file already exists!")
-                cur_treeset.write_nexus(
-                    file_name=f"{self.working_dir}/clustering/trees_k-{k}-c-{k_cluster}-{self.name}.trees")
+                    logger.warning(f"Overwriting existing subset tree file: {output_path}")
+                    output_path.unlink()
+                else:
+                    logger.warning(f"Skipping existing file: {output_path} "
+                                   f"(pass _overwrite=True to overwrite)")
+                    continue
+
+            cur_treeset.write_nexus(file_name=output_path)
 
     @validate_literal_args(clustering_type=CLUSTERING_TYPE, dist_type=DIST)
     def get_clustree(self, k,
