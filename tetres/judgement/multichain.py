@@ -323,10 +323,14 @@ class MultiChain():
 
     def plot_mds(self, target="all", mds_type: MDS_TYPES = 'tsne',
                  dim: int = 2, dist_type: DIST = 'rnni',
-                 plot_options: PlotOptions = None, seed: (None, int) = None) -> None:
+                 plot_options: PlotOptions = None, seed: (None, int) = None,
+                 _overwrite: bool = False) -> None:
         """
         (WIP) Plotting simple MDS of MutliChain, either single chain or all together.
 
+        :param _overwrite: If true recompute the MDS coordinates
+        :param plot_options: Plot options, see plot_config.py for more infos
+        :param seed: Random number seed for tSNE embedding
         :param target: Either 'all' or index for which chain to plot
         :param mds_type: Type of MDS coords to plot
         :param dim: Dimension to plot to (only dim=2 supported atm)
@@ -336,7 +340,8 @@ class MultiChain():
 
         match target:
             case int() as i:
-                return self[i].plot_mds(mds_type=mds_type, dim=dim, dist_type=dist_type)
+                return self[i].plot_mds(mds_type=mds_type, dim=dim, dist_type=dist_type,
+                                        _overwrite=_overwrite, seed=seed)
             case "all":
                 if dim != 2:
                     raise ValueError("Currently not supported dimension, only dim=2 accepted.")
@@ -345,7 +350,8 @@ class MultiChain():
                     plot_options = PlotOptions()
                 self._fill_plot_defaults(plot_options, mds_type=mds_type, dist_type=dist_type)
 
-                coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim, seed=seed)
+                coords = self.get_mds_coords(target=target, mds_type=mds_type, dim=dim, seed=seed,
+                                             _overwrite=_overwrite)
 
                 plot_coords(coords=coords, dim=dim, options=plot_options)
                 return None

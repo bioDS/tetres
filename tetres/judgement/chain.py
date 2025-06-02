@@ -277,6 +277,7 @@ class Chain:
     def evaluate_clustering(self, kind="bic", _overwrite_clustering=False, add_random=True,
                             local=False):
 
+        warnings.warn("Currently not fixed or working... ")
         # todo parameters for overwrite currently not used
 
         # todo kind should be an enum
@@ -318,10 +319,11 @@ class Chain:
 
     def plot_mds(self, mds_type: MDS_TYPES = 'tsne', dim: int = 2,
                  dist_type: DIST = 'rnni', plot_options: PlotOptions = None,
-                 seed: (None, int) = None) -> None:
+                 seed: (None, int) = None, _overwrite: bool = False) -> None:
         """
         (WIP) Plotting simple MDS of a chain without any clustering.
 
+        :param _overwrite: If true then the MDS coordinates are recomputed
         :param seed: Random seed for MDS coordinate computation
         :param plot_options: Plotting options, see plot_config.py for more details
         :param mds_type: Type of MDS to plot
@@ -333,7 +335,7 @@ class Chain:
         if dim != 2:
             raise ValueError("Unsupported dimension for MDS -- only supports dim=2 at the moment.")
 
-        coords = self.get_mds_coords(mds_type=mds_type, dim=dim, seed=seed)
+        coords = self.get_mds_coords(mds_type=mds_type, dim=dim, seed=seed, _overwrite=_overwrite)
         if plot_options is None:
             plot_options = PlotOptions()
         self._fill_plot_defaults(plot_options, mds_type=mds_type, dist_type=dist_type)
