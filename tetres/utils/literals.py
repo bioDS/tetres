@@ -6,3 +6,4 @@ from typing import Literal
 DIST = Literal["rnni", "rf"]
 MDS_TYPES = Literal["tsne"]
 CLUSTERING_TYPE = Literal["spectral"]
+TARGET = Literal["all"]

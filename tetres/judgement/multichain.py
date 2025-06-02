@@ -1,7 +1,9 @@
 import os
 import warnings
+from typing import Literal
 
 import numpy as np
+from numpy.typing import NDArray
 
 from tetres.clustree.spectral_clustree import spectral_clustree_dm
 from tetres.judgement import _cladesetcomparator as csc
@@ -12,7 +14,7 @@ from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_set
 from tetres.judgement.burnin_detection import burn_detector
 from tetres.judgement.chain import Chain
 from tetres.utils.decorators import validate_literal_args
-from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
+from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE, TARGET
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
 from tetres.visualize.plot_config import PlotOptions
 from tetres.visualize.plot_coords import plot_coords
@@ -287,7 +289,8 @@ class MultiChain():
                                             file=f"{self.working_dir}/plots/{self.name}_discrete_cc_{i}_{j}_burn-{burnin}.png")
 
     @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
-    def get_mds_coords(self, target="all", mds_type: MDS_TYPES = 'tsne',
+    def get_mds_coords(self, target: TARGET | int = "all",
+                       mds_type: MDS_TYPES = 'tsne',
                        dim: int = 2, dist_type: DIST = 'rnni',
                        _overwrite: bool = False, seed: (None, int) = None) -> np.ndarray:
         warnings.warn("Currently not fully implemented.. Will only compute RNNI TSNE 2dim MDS.",
@@ -321,7 +324,8 @@ class MultiChain():
                 raise ValueError(f"Invalid target type '{target}'. "
                                  f"Choose from: 'all, 0 < index < {len(self.MChain_list)}'")
 
-    def plot_mds(self, target="all", mds_type: MDS_TYPES = 'tsne',
+    def plot_mds(self, target: TARGET | int = "all",
+                 mds_type: MDS_TYPES = 'tsne',
                  dim: int = 2, dist_type: DIST = 'rnni',
                  plot_options: PlotOptions = None, seed: (None, int) = None,
                  _overwrite: bool = False) -> None:
@@ -339,9 +343,9 @@ class MultiChain():
         """
 
         match target:
-            case int() as i:
-                return self[i].plot_mds(mds_type=mds_type, dim=dim, dist_type=dist_type,
-                                        _overwrite=_overwrite, seed=seed)
+            case int() as idx:
+                return self[idx].plot_mds(mds_type=mds_type, dim=dim, dist_type=dist_type,
+                                          _overwrite=_overwrite, seed=seed)
             case "all":
                 if dim != 2:
                     raise ValueError("Currently not supported dimension, only dim=2 accepted.")
@@ -384,11 +388,12 @@ class MultiChain():
             plot_options.title = f"{self.name} - {mds_type}-{dist_type} MDS Plot"
 
     @validate_literal_args(mds_type=MDS_TYPES, dist_type=DIST)
-    def get_clustree(self, target="all", k: int = 1,
+    def get_clustree(self, target: TARGET | int = "all",
+                     k: int = 1,
                      cluster_type: CLUSTERING_TYPE = "spectral",
                      dist_type: DIST = "rnni",
                      _overwrite: bool = False,
-                     **kwargs):
+                     **kwargs) -> NDArray[np.int_]:
 
         if not isinstance(k, int):
             raise TypeError("k must be an integer!")
@@ -396,12 +401,12 @@ class MultiChain():
             raise ValueError(f"Value {k} not supported!")
 
         match target:
-            case int() as i:
-                return self[i].get_clustree(k=k,
-                                            cluster_type=cluster_type,
-                                            dist_type=dist_type,
-                                            _overwrite=_overwrite,
-                                            **kwargs)
+            case int() as idx:
+                return self[idx].get_clustree(k=k,
+                                              cluster_type=cluster_type,
+                                              dist_type=dist_type,
+                                              _overwrite=_overwrite,
+                                              **kwargs)
             case "all":
                 if k == 1:
                     total_len = sum(len(i) for i in self.MChain_list)
@@ -447,3 +452,40 @@ class MultiChain():
 
             case _:
                 raise ValueError(f"Invalid target type '{target}'.")
+
+    def split_trees_from_clustering(
+            self,
+            clustering: NDArray[np.int_],
+            target: TARGET | int = "all",
+            _overwrite: bool = False,
+    ) -> None:
+        """
+        Split trees from clustering either for a single chain (indexed by target)
+        or for all chains combined.
+
+        :param clustering: Array of cluster labels
+        :param target: 'all' or index of the chain to split
+        :param _overwrite: Whether to overwrite existing files
+        """
+
+        match target:
+            case int() as idx:
+                # Call the method on a specific chain,
+                return self[idx].split_trees_from_clustering(clustering, _overwrite=_overwrite)
+
+            case "all":
+                # Your combined splitting logic here (similar to your current method)
+                # if len(self.trees) != len(clustering):
+                #     raise ValueError(
+                #         f"The clustering length must match the total number of
+                #         trees ({len(self.trees)} != {len(clustering)})")
+                #
+                # k = np.max(clustering) + 1
+
+                # check all clusters present, etc. — your existing logic here
+
+                # splitting logic for all trees goes here...
+                raise NotImplementedError("WIP: Currently not implemented.")
+
+            case _:
+                raise ValueError(f"Invalid target '{target}'. Must be 'all' or an integer index.")

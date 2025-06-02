@@ -230,7 +230,7 @@ class Chain:
                      cluster_type: CLUSTERING_TYPE = "spectral",
                      dist_type: DIST = "rnni",
                      _overwrite: bool = False,
-                     **kwargs):
+                     **kwargs) -> NDArray[np.int_]:
 
         if not isinstance(k, int):
             raise TypeError("k must be an integer!")
