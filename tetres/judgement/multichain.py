@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from tetres.clustree.clustering_utils import validate_clustering_labels
 from tetres.clustree.spectral_clustree import spectral_clustree_dm
 from tetres.judgement import _cladesetcomparator as csc
 from tetres.judgement import _gelman_rubin_diag as grd
@@ -15,7 +16,8 @@ from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
 from tetres.judgement.burnin_detection import burn_detector
 from tetres.judgement.chain import Chain
-from tetres.judgement.tree_io import write_clustered_treesets
+from tetres.judgement.utils_io import write_clustered_logfiles
+from tetres.trees.tree_io import write_clustered_treesets
 from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE, TARGET
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
@@ -470,7 +472,6 @@ class MultiChain():
         :param target: 'all' or index of the chain to split
         :param _overwrite: Whether to overwrite existing files
         """
-
         match target:
             case int() as idx:
                 # Call the method on a specific chain,
@@ -482,14 +483,8 @@ class MultiChain():
                 if len(clustering) != total_length:
                     raise ValueError(f"The clustreing has to have the same length as the tree file"
                                      f" ({total_length} != {len(clustering)})")
-                k = np.max(clustering) + 1
 
-                unique_labels = set(clustering.tolist())
-                expected_labels = set(range(k))
-                if unique_labels != expected_labels:
-                    missing = expected_labels - unique_labels
-                    raise ValueError(
-                        f"Clustering is missing the following cluster labels: {sorted(missing)}")
+                k = validate_clustering_labels(clustering)
 
                 logger.warning(f"Preparing to split combined tree set {self.name} into subsets "
                                f"from clustering...")
@@ -503,10 +498,59 @@ class MultiChain():
 
                 write_clustered_treesets(clustered_trees=clustered_trees,
                                          map_data=self.MChain_list[0].trees.map,
-                                         working_dir=Path(self.working_dir) / "clustering",
+                                         output_dir=Path(self.working_dir) / "clustering",
                                          name=self.name,
                                          k=k,
                                          _overwrite=_overwrite)
+
+            case _:
+                raise ValueError(f"Invalid target '{target}'. Must be 'all' or an integer index.")
+
+    def split_logs_from_clustering(
+            self,
+            clustering: NDArray[np.int_],
+            target: TARGET | int = "all",
+            _overwrite: bool = False,
+    ) -> None:
+        """
+        Split logs from clustering either for a single chain (indexed by target)
+        or for all chains combined.
+
+        :param clustering: Array of cluster labels
+        :param target: 'all' or index of the chain to split
+        :param _overwrite: Whether to overwrite existing files
+        """
+        match target:
+            case int() as idx:
+                # Call the method on a specific chain,
+                return self[idx].split_logs_from_clustering(clustering, _overwrite=_overwrite)
+
+            case "all":
+                total_length = sum(len(chain.trees) for chain in self.MChain_list)
+                if len(clustering) != total_length:
+                    raise ValueError(f"The clustreing has to have the same length as the tree file"
+                                     f" ({total_length} != {len(clustering)})")
+
+                k = validate_clustering_labels(clustering)
+
+                logger.warning(f"Preparing to split combined logs {self.name} into subsets "
+                               f"from clustering...")
+
+                import pandas as pd
+                combined_log_data = pd.concat([chain.log_data for chain in self.MChain_list],
+                                              ignore_index=True)
+
+                if combined_log_data.shape[0] != len(clustering):
+                    raise ValueError(f"Length of combined logs does not match cluster size. "
+                                     f"({combined_log_data.shape[0]} != {len(clustering)})")
+
+                write_clustered_logfiles(df=combined_log_data,
+                                         clustering=clustering,
+                                         output_dir=Path(self.working_dir) / "clustering",
+                                         name=self.name,
+                                         k=k,
+                                         _overwrite=_overwrite
+                                         )
 
             case _:
                 raise ValueError(f"Invalid target '{target}'. Must be 'all' or an integer index.")
