@@ -15,7 +15,7 @@ from tetres.judgement._extract_cutoff import _extract_cutoff
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances_two_sets
 from tetres.judgement.burnin_detection import burn_detector
 from tetres.judgement.chain import Chain
-from tetres.trees.time_trees import TimeTreeSet
+from tetres.judgement.tree_io import write_clustered_treesets
 from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE, TARGET
 from tetres.visualize.mds_coord_compuation import _tsne_coords_from_pwd
@@ -501,29 +501,12 @@ class MultiChain():
                         clustered_trees[cluster_id].append(tree)
                         tree_index += 1
 
-                logger.warning("Writing subset tree files...")
-                for k_cluster in range(k):
-                    cur_trees = clustered_trees[k_cluster]
-                    assert cur_trees, (
-                        "This should not happen as it would be caught by the ValueError "
-                        "above?")
-                    cur_treeset = TimeTreeSet()
-                    cur_treeset.map = self.MChain_list[0].trees.map
-                    # todo this is duplication, put into new module tree_export and use here
-                    #  and in the chain part... extract as much of the logic as possible ...
-                    cur_treeset.trees = cur_trees
+                write_clustered_treesets(clustered_trees=clustered_trees,
+                                         map_data=self.MChain_list[0].trees.map,
+                                         working_dir=Path(self.working_dir) / "clustering",
+                                         name=self.name,
+                                         k=k,
+                                         _overwrite=_overwrite)
 
-                    output_path = (Path(self.working_dir) /
-                                   "clustering" / f"trees_k-{k}-c-{k_cluster}-{self.name}.trees")
-                    if output_path.exists():
-                        if _overwrite:
-                            logger.warning(f"Overwriting existing subset tree file: {output_path}")
-                            output_path.unlink()
-                        else:
-                            logger.warning(f"Skipping existing file: {output_path} "
-                                           f"(pass _overwrite=True to overwrite)")
-                            continue
-
-                    cur_treeset.write_nexus(file_name=output_path)
             case _:
                 raise ValueError(f"Invalid target '{target}'. Must be 'all' or an integer index.")

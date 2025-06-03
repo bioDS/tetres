@@ -1,6 +1,7 @@
 import logging
 import os
 import warnings
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,7 @@ from tetres.clustree.bic import plot_bic
 from tetres.clustree.spectral_clustree import spectral_clustree_dm
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
 from tetres.judgement.ess import calc_ess, pseudo_ess
+from tetres.judgement.tree_io import write_clustered_treesets
 from tetres.trees.time_trees import TimeTreeSet
 from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
@@ -199,27 +201,16 @@ class Chain:
         logger.warning(f"Preparing to split tree set {self.name} into *{k}* subsets from "
                        f"clustering...")
 
-        for k_cluster in range(k):
-            cur_trees = [self.trees[i] for i, label in enumerate(clustering) if label == k_cluster]
-            assert cur_trees, ("This should not happen as it would be caught by the ValueError "
-                               "above?")
+        clustered_trees = defaultdict(list)
+        for i, label in enumerate(clustering):
+            clustered_trees[label].append(self.trees[i])
 
-            cur_treeset = TimeTreeSet()
-            cur_treeset.map = self.trees.map
-            cur_treeset.trees = cur_trees
-
-            output_path = (Path(self.working_dir) /
-                           "clustering" / f"trees_k-{k}-c-{k_cluster}-{self.name}.trees")
-            if output_path.exists():
-                if _overwrite:
-                    logger.warning(f"Overwriting existing subset tree file: {output_path}")
-                    output_path.unlink()
-                else:
-                    logger.warning(f"Skipping existing file: {output_path} "
-                                   f"(pass _overwrite=True to overwrite)")
-                    continue
-
-            cur_treeset.write_nexus(file_name=output_path)
+        write_clustered_treesets(clustered_trees=clustered_trees,
+                                 map_data=self.trees.map,
+                                 working_dir=Path(self.working_dir) / "clustering",
+                                 name=self.name,
+                                 k=k,
+                                 _overwrite=_overwrite)
 
     @validate_literal_args(clustering_type=CLUSTERING_TYPE, dist_type=DIST)
     def get_clustree(self, k,
