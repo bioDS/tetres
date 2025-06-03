@@ -11,10 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def write_clustered_treesets(clustered_trees: dict[int, list],
-                             map_data,
-                             working_dir: Path,
-                             name: str,
-                             k: int,
+                             map_data, output_dir: Path, name: str, k: int,
                              _overwrite: bool = False):
     logger.warning(f"Splitting tree set {name} into {k} subsets...")
     for k_cluster in range(k):
@@ -22,14 +19,14 @@ def write_clustered_treesets(clustered_trees: dict[int, list],
         cur_treeset.map = map_data
         cur_treeset.trees = clustered_trees[k_cluster]
 
-        output_path = working_dir / f"trees_k-{k}-c-{k_cluster}-{name}.trees"
-        if output_path.exists():
+        output_tree_file = output_dir / f"split_k-{k}-c-{k_cluster}-{name}.trees"
+        if output_tree_file.exists():
             if _overwrite:
-                logger.warning(f"Overwriting existing subset tree file: {output_path}")
-                output_path.unlink()
+                logger.warning(f"Overwriting existing subset tree file: {output_tree_file}")
+                output_tree_file.unlink()
             else:
-                logger.warning(f"Skipping existing file: {output_path} "
+                logger.warning(f"Skipping existing file: {output_tree_file} "
                                f"(pass _overwrite=True to overwrite)")
                 continue
 
-        cur_treeset.write_nexus(file_name=output_path)
+        cur_treeset.write_nexus(file_name=output_tree_file)

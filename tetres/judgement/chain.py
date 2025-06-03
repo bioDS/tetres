@@ -9,10 +9,12 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from tetres.clustree.bic import plot_bic
+from tetres.clustree.clustering_utils import validate_clustering_labels
 from tetres.clustree.spectral_clustree import spectral_clustree_dm
 from tetres.judgement._pairwise_distance_matrix import calc_pw_distances
 from tetres.judgement.ess import calc_ess, pseudo_ess
-from tetres.judgement.tree_io import write_clustered_treesets
+from tetres.judgement.utils_io import write_clustered_logfiles
+from tetres.trees.tree_io import write_clustered_treesets
 from tetres.trees.time_trees import TimeTreeSet
 from tetres.utils.decorators import validate_literal_args
 from tetres.utils.literals import DIST, MDS_TYPES, CLUSTERING_TYPE
@@ -173,6 +175,24 @@ class Chain:
         return pseudo_ess(tree_set=self.trees[lower_i:upper_i],
                           dist=dist, sample_range=sample_range, no_zero=no_zero)
 
+    def split_logs_from_clustering(self, clustering: NDArray[np.int_], _overwrite: bool = False):
+        if self.log_data.shape[0] != len(clustering):
+            raise ValueError(f"The clustering has to have the same length as the log file"
+                             f" ({self.log_data.shape[0]} != {len(clustering)})")
+
+        k = validate_clustering_labels(clustering)
+
+        logger.warning(f"Splitting log file {self.name} into *{k}* subsets from "
+                       f"clustering...")
+
+        write_clustered_logfiles(df=self.log_data,
+                                 clustering=clustering,
+                                 output_dir=Path(self.working_dir) / "clustering",
+                                 name=self.name,
+                                 k=k,
+                                 _overwrite=_overwrite
+                                 )
+
     def split_trees_from_clustering(self, clustering: NDArray[np.int_], _overwrite: bool = False) \
             -> None:
         """
@@ -189,14 +209,7 @@ class Chain:
             raise ValueError(f"The clustering has to have the same length as the tree file"
                              f" ({len(self.trees)} != {len(clustering)})")
 
-        k = np.max(clustering) + 1
-
-        unique_labels = set(clustering.tolist())
-        expected_labels = set(range(k))
-        if unique_labels != expected_labels:
-            missing = expected_labels - unique_labels
-            raise ValueError(
-                f"Clustering is missing the following cluster labels: {sorted(missing)}")
+        k = validate_clustering_labels(clustering)
 
         logger.warning(f"Preparing to split tree set {self.name} into *{k}* subsets from "
                        f"clustering...")
@@ -207,7 +220,7 @@ class Chain:
 
         write_clustered_treesets(clustered_trees=clustered_trees,
                                  map_data=self.trees.map,
-                                 working_dir=Path(self.working_dir) / "clustering",
+                                 output_dir=Path(self.working_dir) / "clustering",
                                  name=self.name,
                                  k=k,
                                  _overwrite=_overwrite)
