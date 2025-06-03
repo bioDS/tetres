@@ -1,7 +1,6 @@
 """
 Utility functions for reading and writing phylogenetic tree data
-WIP: This should probably end up in the trees module and contain other functions such as
-write_nexus, etc.
+WIP: This should probably contain other functions such as write_nexus, etc.
 """
 import logging
 from pathlib import Path
