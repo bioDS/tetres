@@ -1,5 +1,5 @@
 from tetres.trees.time_trees import TimeTree, TimeTreeSet
-from tetres.summary.compute_sos import compute_sos_mt
+from tetres.summary.compute_sos import compute_sos_mt, compute_hop_sos_mt
 from tetres.summary._constants import SELECT_LIST
 from tetres.trees._ctrees import TREE_LIST, TREE, PAIR
 
@@ -163,3 +163,60 @@ def search_neighbourhood_separate(t: TimeTree, trees: TimeTreeSet, t_value: int,
         return better_neighbours[-1], cur_best
     elif select == 'random':
         return choice(better_neighbours), cur_best
+
+
+def search_hop_neighbourhood_greedy(t, trees, t_value: int, hop_taxa_orders, n_cores=None, select='first'):
+    if select not in SELECT_LIST:
+        raise ValueError(f"The 'select' parameter should be"
+                         f" in {SELECT_LIST} but {select} was given.")
+
+    from TreeVec import TreeVec
+
+    # todo this is just one of the labels, do we need to take all?
+    neighbourhood = t[0].hop_neighbourhood()
+
+    better_neighbours = []
+    cur_best = t_value
+
+    for n in neighbourhood:
+        cur_neighbour_list = []
+        # todo need to get the different labels for each neighbour...
+        for cur_order in hop_taxa_orders:
+            cur_tree = TreeVec(
+                newick_str=n.treevec2newick(),
+                leaf2idx=cur_order
+            )
+            cur_neighbour_list.append(cur_tree)
+
+        sos = compute_hop_sos_mt(t=cur_neighbour_list, trees=trees, n_cores=n_cores)
+        if sos < cur_best:
+            cur_best = sos
+            better_neighbours = [n]
+        elif sos == cur_best and sos < t_value:
+            better_neighbours.append(n)
+
+    if len(better_neighbours) == 0:
+        # No better neighbour was found
+        raise NoBetterNeighbourFound
+    elif len(better_neighbours) >= 1:
+        if len(better_neighbours) > 1:
+            print("There was a tie break in neighbours to pick,"
+                  " currently not implemented for HOP, picking first in list.")
+        better_neighbour_output = []
+        for cur_order in hop_taxa_orders:
+            cur_tree = TreeVec(
+                newick_str=better_neighbours[0].treevec2newick(),
+                leaf2idx=cur_order
+            )
+            better_neighbour_output.append(cur_tree)
+        return better_neighbour_output, cur_best
+
+    # todo currently not implemented
+    # print("Multiple choices!")
+    # multiple neighbours with same SOS value found, choosing by the given selection method
+    # if select == 'first':
+    #     return better_neighbours[0], cur_best
+    # elif select == 'last':
+    #     return better_neighbours[-1], cur_best
+    # elif select == 'random':
+    #     return choice(better_neighbours), cur_best

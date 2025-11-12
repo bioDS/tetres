@@ -55,3 +55,11 @@ def compute_sos_omp(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int
 
     sos = lib.sum_of_squares(t.ctree, ctreelist, n_cores)
     return sos
+
+
+def compute_hop_sos_mt(t, trees, n_cores: int = None) -> int:
+    from GelmanRubin import __hop_min_distance
+    from TreeVec import get_nb_taxa
+    with Pool(n_cores) as p:
+        dists = p.starmap(__hop_min_distance, [(t, i, get_nb_taxa(t[0])) for i in trees])
+    return sum(i * i for i in dists)

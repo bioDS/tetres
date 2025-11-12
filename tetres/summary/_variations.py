@@ -1,7 +1,7 @@
 from tetres.trees.time_trees import TimeTreeSet, TimeTree
-from tetres.summary.compute_sos import compute_sos_mt
+from tetres.summary.compute_sos import compute_sos_mt, compute_hop_sos_mt
 from tetres.summary._tree_proposals import search_neighbourhood_greedy, NoBetterNeighbourFound, \
-    search_neighbourhood_separate, search_neighbourhood_greedy_omp
+    search_neighbourhood_separate, search_neighbourhood_greedy_omp, search_hop_neighbourhood_greedy
 
 import random
 
@@ -247,3 +247,80 @@ def online(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, **kwa
         cen, cen_sos = greedy_omp(trees=sample, n_cores=n_cores, select=select, start=cen)
 
     return cen, cen_sos
+
+
+def hop(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, tree_log_file='', **kwargs):
+    # Always Pick the first tree that is better
+
+    # todo convert the start and input tree into list, each tree is a list of x
+    #  different taxa orderings for the hop_min_distance function
+    # todo imports not based on installed package, temporary...
+    from TreeVec import TreeVec
+    from GelmanRubin import __hop_min_distance
+    from LeavesOrder import order2str
+
+    import numpy as np
+
+    nb_orders = 10  # todo fixed number of orders
+    leaves_orders = []
+    rng = np.random.default_rng(1337)  # todo fixed seed for now...
+
+    # This will be a list of the start tree with different orders
+    tree_start_list = []
+    tree_input_list = []
+    orders = []
+
+    tmp_tree = TreeVec(newick_str=start.get_newick())
+
+    for _ in range(nb_orders):
+        # Generating a random leaves order
+        _reordered_tree = tmp_tree.reorder_leaves(rng)
+        leaf2idx, idx2leaf = _reordered_tree.extract_leaves_order()
+        orders.append(leaf2idx)
+        leaves_orders.append(order2str(idx2leaf))
+
+        cur_tree = TreeVec(newick_str=start.get_newick(), leaf2idx=leaf2idx)
+        tree_start_list.append(cur_tree)
+
+    # orderings of leaves exists now, need to make list for input trees
+    for t in trees:
+        cur_tree_list = []
+        for cur_order in orders:
+            cur_tree = TreeVec(newick_str=t.get_newick(), leaf2idx=cur_order)
+            cur_tree_list.append(cur_tree)
+        tree_input_list.append(cur_tree_list)
+
+    # test = __hop_min_distance(tree_start_list, tree_input_list[22], len(start))
+
+    sos = compute_hop_sos_mt(tree_start_list, tree_input_list, n_cores=n_cores)
+
+    centroid = tree_start_list
+
+    # count = 0  # Used to name the trees for the logfile
+    # if tree_log_file:
+    #     with open(tree_log_file, "a") as log:
+    #         log.write(f"tree {count} = {centroid.get_newick()}\n")
+    #         count += 1
+    while True:
+        try:
+            centroid, sos = search_hop_neighbourhood_greedy(
+                t=centroid,
+                trees=tree_input_list,
+                t_value=sos,
+                n_cores=n_cores,
+                select=select,
+                hop_taxa_orders=orders
+            )
+        except NoBetterNeighbourFound:
+            # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
+            break
+        # if tree_log_file:
+        #     with open(tree_log_file, "a") as log:
+        #         log.write(f"tree {count} = {centroid.get_newick()}\n")
+        #         count += 1
+
+    # if tree_log_file:
+    #     with open(tree_log_file, "a") as log:
+    #         log.write("End;")
+
+    return centroid, sos

@@ -234,3 +234,10 @@ def test_centroid_treelogfile_incsub(twelve_taxa_tts):
         assert my_cen.compute_centroid(twelve_taxa_tts)
 
 
+# HOP testing for implementation
+def test_centroid_hop(twelve_taxa_tts):
+    # Fixing the subsample size to the number of trees in the set for testing
+    tree_set = twelve_taxa_tts[:500]
+    cen, sos = Centroid(variation="hop", start=10, n_cores=4).compute_centroid(tree_set)
+    print(cen[0].treevec2newick())
+    assert sos == 4054, "HOP implementation failed!"
