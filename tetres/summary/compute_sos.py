@@ -57,9 +57,52 @@ def compute_sos_omp(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int
     return sos
 
 
+from multiprocessing import get_context
+# Global Pool
+_POOL = None
+_T = None
+_NB = None
+
+
+def _init_pool(t, nb_taxa):
+    """Initializer for Pool: set global references."""
+    global _T, _NB
+    _T = t
+    _NB = nb_taxa
+
+
+def _worker_chunk(trees_chunk):
+    """Top-level function for Pool mapping."""
+    from GelmanRubin import __hop_min_distance
+    results = [__hop_min_distance(_T, tree, _NB) for tree in trees_chunk]
+    return results
+
+
 def compute_hop_sos_mt(t, trees, n_cores: int = None) -> int:
     from GelmanRubin import __hop_min_distance
     from TreeVec import get_nb_taxa
-    with Pool(n_cores) as p:
-        dists = p.starmap(__hop_min_distance, [(t, i, get_nb_taxa(t[0])) for i in trees])
-    return sum(i * i for i in dists)
+    import numpy as np
+
+    global _POOL, _T, _NB
+
+    if n_cores is None:
+        import os
+        n_cores = os.cpu_count()
+
+    _T = t
+    _NB = get_nb_taxa(t[0])
+
+    if _POOL is None:
+        _POOL = get_context("fork").Pool(processes=n_cores, initializer=_init_pool,
+                                         initargs=(t, _NB))
+
+    # Split trees into chunks
+    chunks = np.array_split(trees, n_cores)
+
+    # Map each chunk to a worker
+    dists_chunks = _POOL.map(_worker_chunk, chunks)
+
+    # Flatten list of lists
+    dists = [dist for chunk in dists_chunks for dist in chunk]
+
+    return np.sum(np.square(dists))

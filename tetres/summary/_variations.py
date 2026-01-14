@@ -261,7 +261,7 @@ def hop(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, tree_log
 
     import numpy as np
 
-    nb_orders = 10  # todo fixed number of orders
+    nb_orders = 1  # todo fixed number of orders
     leaves_orders = []
     rng = np.random.default_rng(1337)  # todo fixed seed for now...
 
@@ -270,7 +270,8 @@ def hop(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, tree_log
     tree_input_list = []
     orders = []
 
-    tmp_tree = TreeVec(newick_str=start.get_newick())
+    # tmp_tree = TreeVec(newick_str=start.get_newick())
+    tmp_tree = TreeVec(tree=start.etree)
 
     for _ in range(nb_orders):
         # Generating a random leaves order
@@ -279,14 +280,16 @@ def hop(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, tree_log
         orders.append(leaf2idx)
         leaves_orders.append(order2str(idx2leaf))
 
-        cur_tree = TreeVec(newick_str=start.get_newick(), leaf2idx=leaf2idx)
+        # cur_tree = TreeVec(newick_str=start.get_newick(), leaf2idx=leaf2idx)
+        cur_tree = TreeVec(tree=start.etree, leaf2idx=leaf2idx)
         tree_start_list.append(cur_tree)
 
     # orderings of leaves exists now, need to make list for input trees
     for t in trees:
         cur_tree_list = []
         for cur_order in orders:
-            cur_tree = TreeVec(newick_str=t.get_newick(), leaf2idx=cur_order)
+            # cur_tree = TreeVec(newick_str=t.get_newick(), leaf2idx=cur_order)
+            cur_tree = TreeVec(tree=t.etree, leaf2idx=cur_order)
             cur_tree_list.append(cur_tree)
         tree_input_list.append(cur_tree_list)
 

@@ -182,8 +182,9 @@ def search_hop_neighbourhood_greedy(t, trees, t_value: int, hop_taxa_orders, n_c
         cur_neighbour_list = []
         # todo need to get the different labels for each neighbour...
         for cur_order in hop_taxa_orders:
+            # TreeVec(tree=self.treevec2tree(), leaf2idx=leaf2idx)
             cur_tree = TreeVec(
-                newick_str=n.treevec2newick(),
+                tree=n.treevec2tree(),
                 leaf2idx=cur_order
             )
             cur_neighbour_list.append(cur_tree)
@@ -205,7 +206,8 @@ def search_hop_neighbourhood_greedy(t, trees, t_value: int, hop_taxa_orders, n_c
         better_neighbour_output = []
         for cur_order in hop_taxa_orders:
             cur_tree = TreeVec(
-                newick_str=better_neighbours[0].treevec2newick(),
+                # newick_str=better_neighbours[0].treevec2newick(),
+                tree=better_neighbours[0].treevec2tree(),
                 leaf2idx=cur_order
             )
             better_neighbour_output.append(cur_tree)
