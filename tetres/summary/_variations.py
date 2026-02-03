@@ -299,11 +299,11 @@ def hop(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, tree_log
 
     centroid = tree_start_list
 
-    # count = 0  # Used to name the trees for the logfile
-    # if tree_log_file:
-    #     with open(tree_log_file, "a") as log:
-    #         log.write(f"tree {count} = {centroid.get_newick()}\n")
-    #         count += 1
+    count = 0  # Used to name the trees for the logfile
+    if tree_log_file:
+        with open(tree_log_file, "a") as log:
+            log.write(f"tree {count} = {centroid[0].treevec2newick()}\n")
+            count += 1
     while True:
         try:
             centroid, sos = search_hop_neighbourhood_greedy(
@@ -317,13 +317,13 @@ def hop(trees: TimeTreeSet, n_cores: int, select: str, start: TimeTree, tree_log
         except NoBetterNeighbourFound:
             # This is thrown when no neighbour has a better SoS value, i.e. the loop can be stopped
             break
-        # if tree_log_file:
-        #     with open(tree_log_file, "a") as log:
-        #         log.write(f"tree {count} = {centroid.get_newick()}\n")
-        #         count += 1
+        if tree_log_file:
+            with open(tree_log_file, "a") as log:
+                log.write(f"tree {count} = {centroid[0].treevec2newick()}\n")
+                count += 1
 
-    # if tree_log_file:
-    #     with open(tree_log_file, "a") as log:
-    #         log.write("End;")
+    if tree_log_file:
+        with open(tree_log_file, "a") as log:
+            log.write("End;")
 
     return centroid, sos
