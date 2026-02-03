@@ -62,8 +62,7 @@ def compute_sos_omp(t: TimeTree, trees: TimeTreeSet, n_cores: int = None) -> int
 
 def _worker_chunk(args):
     T, trees_chunk, NB = args
-    from GelmanRubin import __hop_min_distance
-    return [__hop_min_distance(T, tree, NB) for tree in trees_chunk]
+    return [HOP(T, tree, NB) for tree in trees_chunk]
 
 
 def compute_hop_sos_mt(t, trees, n_cores=None):
@@ -72,17 +71,23 @@ def compute_hop_sos_mt(t, trees, n_cores=None):
     import os
     from multiprocessing import get_context
 
+    from GelmanRubin import __hop_min_distance
+    global HOP
+    HOP = __hop_min_distance
+
     if n_cores is None:
         n_cores = os.cpu_count()
 
     NB = get_nb_taxa(t[0])
-    chunks = np.array_split(trees, n_cores)
+    n_chunks = n_cores * 8
+    chunks = np.array_split(trees, n_chunks)
+    tasks = [(t, chunk, NB) for chunk in chunks]
 
     with get_context("fork").Pool(n_cores) as pool:
-        dists_chunks = pool.map(
-            _worker_chunk,
-            [(t, chunk, NB) for chunk in chunks]
-        )
-
-    dists = [d for chunk in dists_chunks for d in chunk]
-    return np.sum(np.square(dists))
+        dists = []
+        for chunk_result in pool.imap_unordered(_worker_chunk, tasks):
+            dists.extend(chunk_result)
+    s = 0
+    for d in dists:
+        s += d * d
+    return s
