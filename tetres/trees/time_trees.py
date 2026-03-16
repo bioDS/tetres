@@ -66,7 +66,7 @@ class TimeTree:
                                                                      old_map[int(m.group(1))]]))
                                  , cur_nwk)
 
-        return TimeTree(new_newick)
+        return TimeTree(new_newick, _ignore_ctrees=True if self.ctree is None else False)
 
     def write_nexus(self, taxa_map, file_name, name="TimeTree"):
         try:
